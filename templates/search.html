@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Search Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h2 class="card-title"><i class="fas fa-search"></i> Search Lost & Found Items</h2>
+                    <form method="GET" action="{{ url_for('search') }}" class="row g-3">
+                        <div class="col-md-8">
+                            <input type="text" name="q" class="form-control form-control-lg" 
+                                   placeholder="Search by item name, description, category, or location..." 
+                                   value="{{ query }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    {% if query %}
+    <div class="row">
+        <div class="col-12">
+            <h4 class="mb-3">
+                {% if items %}
+                Search Results for "{{ query }}"
+                <span class="badge bg-primary">{{ items|length }} items found</span>
+                {% else %}
+                No results found for "{{ query }}"
+                {% endif %}
+            </h4>
+        </div>
+    </div>
+
+    {% if items %}
+    <div class="row">
+        {% for item in items %}
+        <div class="col-md-6 mb-4">
+            <div class="card card-hover h-100">
+                <!-- Card Header -->
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="badge bg-{% if item.type == 'lost' %}danger{% else %}success{% endif %}">
+                        {{ item.type|title }}
+                    </span>
+                    <span class="badge bg-{% if item.status == 'pending' %}warning{% elif item.status == 'claimed' %}info{% else %}success{% endif %}">
+                        {{ item.status|title }}
+                    </span>
+                </div>
+                
+                <!-- Item Image -->
+                {% if item.image_path %}
+                <div class="text-center p-3 border-bottom">
+                    <div class="position-relative d-inline-block">
+                        <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
+                             class="card-img-top search-item-image" 
+                             alt="{{ item.title }}"
+                             style="max-height: 200px; width: auto; object-fit: contain;"
+                             onerror="this.style.display='none'">
+                        {% if item.embedding %}
+                        <div class="ai-badge" title="AI Image Recognition Enabled">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center p-3 border-bottom bg-light">
+                    <i class="fas fa-image fa-3x text-muted mb-2"></i>
+                    <p class="text-muted small mb-0">No image available</p>
+                </div>
+                {% endif %}
+                
+                <!-- Card Body -->
+                <div class="card-body">
+                    <h5 class="card-title">{{ item.title }}</h5>
+                    <p class="card-text">{{ item.description }}</p>
+                    
+                    <div class="item-details mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-tag"></i> {{ item.category }} • 
+                            <i class="fas fa-map-marker-alt"></i> {{ item.location }} •
+                            <i class="fas fa-calendar"></i> {{ item.date_lost_found.strftime('%Y-%m-%d') }}
+                        </small>
+                    </div>
+                    
+                    <div class="reporter-info">
+                        <small class="text-muted">
+                            <i class="fas fa-user"></i> <strong>Reported by:</strong> {{ item.owner.username }}
+                        </small>
+                    </div>
+                </div>
+                
+                <!-- Card Footer -->
+                <div class="card-footer bg-transparent">
+                    {% if item.type == 'found' and item.status == 'pending' %}
+                    <form method="POST" action="{{ url_for('claim_item', item_id=item.id) }}" class="d-grid">
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="fas fa-hand-paper"></i> Claim This Item
+                        </button>
+                    </form>
+                    {% elif item.type == 'lost' %}
+                    <div class="text-center">
+                        <small class="text-muted">If found, please contact the reporter</small>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-2 text-center">
+                        <small class="text-muted">
+                            Reported {{ item.created_at.strftime('%b %d, %Y') }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- No Results Message -->
+    <div class="text-center py-5">
+        <i class="fas fa-search fa-4x text-muted mb-3"></i>
+        <h4>No items found matching "{{ query }}"</h4>
+        <p class="text-muted mb-4">
+            Try searching with different keywords or check the spelling.
+        </p>
+        <div class="suggestions">
+            <h6>Search Tips:</h6>
+            <ul class="list-unstyled">
+                <li>• Try more general keywords</li>
+                <li>• Check different categories</li>
+                <li>• Search by location (e.g., "library", "cafeteria")</li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- Browse All Items (when no search query) -->
+    {% if not query %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-search fa-4x text-primary mb-3"></i>
+                    <h3>Start Your Search</h3>
+                    <p class="text-muted mb-4">
+                        Enter keywords in the search box above to find lost or found items across campus.
+                    </p>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body">
+                                    <i class="fas fa-mobile-alt fa-2x text-primary mb-2"></i>
+                                    <h6>Electronics</h6>
+                                    <small class="text-muted">Phones, laptops, headphones</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body">
+                                    <i class="fas fa-book fa-2x text-success mb-2"></i>
+                                    <h6>Books & Notes</h6>
+                                    <small class="text-muted">Textbooks, notebooks, documents</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body">
+                                    <i class="fas fa-tshirt fa-2x text-warning mb-2"></i>
+                                    <h6>Clothing</h6>
+                                    <small class="text-muted">Jackets, bags, accessories</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.search-item-image {
+    transition: transform 0.3s ease;
+    border-radius: 8px;
+}
+
+.search-item-image:hover {
+    transform: scale(1.05);
+}
+
+.card-hover {
+    transition: all 0.3s ease;
+    border: 1px solid #dee2e6;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-color: #007bff;
+}
+
+.ai-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.item-details {
+    border-top: 1px solid #e9ecef;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.reporter-info {
+    border-top: 1px solid #e9ecef;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.suggestions {
+    max-width: 400px;
+    margin: 0 auto;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-{% if item.type == 'lost' %}search{% else %}hand-holding{% endif %} me-2"></i>
+                            {{ item.title }}
+                        </h4>
+                        <div>
+                            <span class="badge bg-{% if item.type == 'lost' %}warning{% else %}success{% endif %}">
+                                {{ item.type|title }}
+                            </span>
+                            <span class="badge bg-{% if item.status == 'pending' %}info{% elif item.status == 'claimed' %}success{% else %}secondary{% endif %}">
+                                {{ item.status|title }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Item Image -->
+                    {% if item.image_path %}
+                    <div class="text-center mb-4">
+                        <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
+                             class="img-fluid rounded" 
+                             alt="{{ item.title }}"
+                             style="max-height: 300px;">
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Item Details -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-tag me-2 text-muted"></i>Category</h6>
+                            <p class="ps-4">{{ item.category }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-map-marker-alt me-2 text-muted"></i>Location</h6>
+                            <p class="ps-4">{{ item.location }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-calendar me-2 text-muted"></i>Date</h6>
+                            <p class="ps-4">{{ item.date_lost_found.strftime('%Y-%m-%d') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-user me-2 text-muted"></i>Reported by</h6>
+                            <p class="ps-4">{{ item.owner.username }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="mt-3">
+                        <h6><i class="fas fa-align-left me-2 text-muted"></i>Description</h6>
+                        <p class="ps-4">{{ item.description }}</p>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="mt-4 border-top pt-3">
+                        {% if is_potential_match %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-handshake me-2"></i>
+                            <strong>Potential Match!</strong> This item might match one of your reported items.
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-flex gap-2 flex-wrap">
+                            <!-- CLAIM ITEM BUTTON - Show only for found items that are pending -->
+                            {% if item.type == 'found' and item.status == 'pending' and item.owner.id != current_user.id %}
+                            <form method="POST" action="{{ url_for('claim_item', item_id=item.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-success" 
+                                        onclick="return confirm('Are you sure you want to claim this item? This will notify the finder and mark the item as claimed.')">
+                                    <i class="fas fa-check me-1"></i>Claim This Item
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            <!-- RESOLVE BUTTON - Show only for user's own items that are pending -->
+                            {% if item.owner.id == current_user.id and item.status == 'pending' %}
+                            <form method="POST" action="{{ url_for('resolve_item', item_id=item.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-warning"
+                                        onclick="return confirm('Mark this item as resolved? This will remove it from search results.')">
+                                    <i class="fas fa-check-circle me-1"></i>Mark as Resolved
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            <!-- Contact button for other users' items -->
+                            {% if item.owner.id != current_user.id %}
+                            <a href="mailto:{{ item.owner.email }}?subject=Regarding your {{ item.type }} item: {{ item.title }}&body=Hello {{ item.owner.username }}, I saw your {{ item.type }} item '{{ item.title }}' on Campus Lost & Found..." 
+                               class="btn btn-outline-success">
+                                <i class="fas fa-envelope me-1"></i>Contact {{ item.owner.username }}
+                            </a>
+                            {% endif %}
+                            
+                            <!-- Navigation buttons -->
+                            <a href="{{ url_for('search') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-search me-1"></i>Back to Search
+                            </a>
+                            
+                            <a href="{{ url_for('reporting.my_items') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-list me-1"></i>My Items
+                            </a>
+                        </div>
+                        
+                        <!-- Status messages -->
+                        {% if item.status == 'claimed' %}
+                        <div class="alert alert-success mt-3">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>This item has been claimed.</strong> The owner and finder are coordinating the return.
+                        </div>
+                        {% elif item.status == 'resolved' %}
+                        <div class="alert alert-secondary mt-3">
+                            <i class="fas fa-archive me-2"></i>
+                            <strong>This item has been resolved.</strong> The case is closed.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

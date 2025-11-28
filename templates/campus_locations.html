@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-map-marker-alt"></i> Campus Item Handoff Locations</h4>
+                </div>
+                <div class="card-body">
+                    <!-- IMPORTANT NOTICE -->
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-id-card"></i> Important Security Notice</h5>
+                        <p class="mb-0">
+                            <strong>🎓 STUDENT ID REQUIRED:</strong> All item handoffs require valid student identification 
+                            for both parties. This ensures security and proper ownership verification.
+                        </p>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> How Item Recovery Works</h5>
+                        <p class="mb-0">
+                            1. Report lost/found item → 2. Get matched by our AI system → 3. Coordinate pickup at campus location → 
+                            4. <strong>🎓 Present student ID for verification</strong> → 5. Complete secure handoff
+                        </p>
+                    </div>
+
+                    <div class="row">
+                        {% for location in locations %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card card-hover border-{{ location.color }}">
+                                <div class="card-header bg-{{ location.color }} text-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">
+                                        <i class="{{ location.icon }}"></i> {{ location.name }}
+                                    </h5>
+                                    <span class="badge bg-light text-dark">
+                                        <i class="fas fa-id-card"></i> ID Required
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">
+                                        <i class="fas fa-building text-muted"></i> <strong>Building:</strong> {{ location.building }}<br>
+                                        <i class="fas fa-door-open text-muted"></i> <strong>Location:</strong> {{ location.room }}<br>
+                                        <i class="fas fa-clock text-muted"></i> <strong>Hours:</strong> {{ location.hours }}<br>
+                                        <i class="fas fa-user text-muted"></i> <strong>Contact:</strong> {{ location.contact }}<br>
+                                        <i class="fas fa-phone text-muted"></i> <strong>Phone:</strong> {{ location.phone }}
+                                    </p>
+                                    <div class="mt-3">
+                                        <h6><i class="fas fa-star text-warning"></i> Best For:</h6>
+                                        <p class="mb-2">{{ location.specialties }}</p>
+                                        
+                                        <h6><i class="fas fa-info-circle text-info"></i> Instructions:</h6>
+                                        <p class="mb-0">{{ location.notes }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Verification Requirements -->
+                    <div class="mt-4">
+                        <div class="card border-success">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0"><i class="fas fa-user-shield"></i> Verification Requirements</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6><i class="fas fa-user-check text-primary"></i> For Item Owners:</h6>
+                                        <ul>
+                                            <li>✅ Valid Student ID Card</li>
+                                            <li>✅ Ability to describe item details</li>
+                                            <li>✅ Matching contact information</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6><i class="fas fa-user-tie text-primary"></i> For Staff Verification:</h6>
+                                        <ul>
+                                            <li>✅ Cross-check ID with campus records</li>
+                                            <li>✅ Verify item description matches</li>
+                                            <li>✅ Witness secure handoff process</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+</style>
+{% endblock %}

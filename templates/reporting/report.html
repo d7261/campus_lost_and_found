@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-plus"></i> Report Lost or Found Item</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="type" class="form-label">Item Type *</label>
+                                <select class="form-select" id="type" name="type" required>
+                                    <option value="">Select Type</option>
+                                    <option value="lost">Lost Item</option>
+                                    <option value="found">Found Item</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="category" class="form-label">Category *</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Books">Books</option>
+                                    <option value="Clothing">Clothing</option>
+                                    <option value="Accessories">Accessories</option>
+                                    <option value="Bags">Bags & Backpacks</option>
+                                    <option value="Keys">Keys</option>
+                                    <option value="ID Cards">ID Cards</option>
+                                    <option value="Water Bottles">Water Bottles</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Item Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   placeholder="e.g., Black iPhone 13, Calculus Textbook, etc." required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea class="form-control" id="description" name="description" 
+                                      rows="4" placeholder="Provide detailed description including color, brand, distinctive features..." required></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="location" class="form-label">Location *</label>
+                                <input type="text" class="form-control" id="location" name="location" 
+                                       placeholder="e.g., Library, Cafeteria, Room 201" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="date_lost_found" class="form-label">Date *</label>
+                                <input type="date" class="form-control" id="date_lost_found" name="date_lost_found" 
+                                       max="{{ today }}" required>
+                            </div>
+                        </div>
+                        
+                     <!-- Image Upload Section - FLEXIBLE -->
+<div class="mb-4">
+    <div class="card border-primary">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-camera text-primary"></i> Item Photo (Highly Recommended)</h5>
+        </div>
+        <div class="card-body">
+            <!-- Option 1: Upload actual photo -->
+            <div class="mb-3">
+                <label for="image" class="form-label">
+                    <i class="fas fa-upload"></i> Upload Photo
+                </label>
+                <input type="file" class="form-control" id="image" name="image" 
+                       accept="image/*">
+                <div class="form-text">
+                    <strong>Best options:</strong>
+                    <ul class="mb-1">
+                        <li>Photo of the actual lost item (if available)</li>
+                        <li>Photo of a similar item (same model/color)</li>
+                        <li>Stock photo from internet</li>
+                    </ul>
+                    <strong>Why upload?</strong> Items with photos are 3x more likely to be recovered!
+                </div>
+            </div>
+
+            <!-- Option 2: No photo available -->
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="noPhoto" name="noPhoto">
+                <label class="form-check-label text-muted" for="noPhoto">
+                    <i class="fas fa-times-circle"></i> I don't have any photo of this item
+                </label>
+            </div>
+
+            <!-- Image Preview -->
+            <div class="mb-3" id="imagePreviewContainer" style="display: none;">
+                <label class="form-label">Photo Preview</label>
+                <div class="text-center">
+                    <img id="imagePreview" class="img-thumbnail" style="max-height: 200px; max-width: 100%;">
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearImage()">
+                            <i class="fas fa-times"></i> Remove Photo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Report Item</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Set max date to today
+    document.getElementById('date_lost_found').max = new Date().toISOString().split('T')[0];
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('image');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const previewImage = document.getElementById('imagePreview');
+    
+    imageInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            
+            reader.addEventListener('load', function() {
+                previewImage.setAttribute('src', this.result);
+                previewContainer.style.display = 'block';
+            });
+            
+            reader.readAsDataURL(file);
+        } else {
+            previewContainer.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

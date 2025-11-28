@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-envelope"></i> Contact Item Owner</h4>
+                </div>
+                <div class="card-body">
+                    <h5>About the Item:</h5>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6>{{ item.title }}</h6>
+                            <p class="mb-1">{{ item.description }}</p>
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt"></i> Found at: {{ item.location }}<br>
+                                <i class="fas fa-calendar"></i> Date: {{ item.date_lost_found.strftime('%Y-%m-%d') }}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <h5>Next Steps:</h5>
+                    <ol>
+                        <li><strong>Claim the item</strong> using the button below</li>
+                        <li><strong>Coordinate pickup</strong> through system notifications</li>
+                        <li><strong>Choose a campus location</strong> for handoff</li>
+                        <li><strong>Bring your ID</strong> for verification</li>
+                    </ol>
+                    
+                    <div class="mt-4">
+                        <form method="POST" action="{{ url_for('claim_item', item_id=item.id) }}">
+                            <button type="submit" class="btn btn-success btn-lg w-100">
+                                <i class="fas fa-hand-holding"></i> Claim This Item
+                            </button>
+                        </form>
+                        
+                        <a href="{{ url_for('campus_locations') }}" class="btn btn-outline-info w-100 mt-2">
+                            <i class="fas fa-map-marker-alt"></i> View Pickup Locations
+                        </a>
+                        
+                        <a href="{{ url_for('search') }}" class="btn btn-outline-secondary w-100 mt-2">
+                            <i class="fas fa-arrow-left"></i> Back to Search
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

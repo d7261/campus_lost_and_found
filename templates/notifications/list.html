@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-bell"></i> Notifications</h4>
+                    <span class="badge bg-light text-primary">{{ notifications|length }}</span>
+                </div>
+                <div class="card-body">
+                    {% if notifications %}
+                        <div class="list-group">
+                            {% for notification in notifications %}
+                            <div class="list-group-item {% if not notification.is_seen %}bg-light border-start border-primary border-3{% endif %}">
+                                <div class="d-flex w-100 justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">
+                                            {% if notification.notification_type == 'potential_match' %}
+                                                <i class="fas fa-handshake text-success me-2"></i>
+                                            {% elif notification.notification_type == 'visual_match' %}
+                                                <i class="fas fa-images text-info me-2"></i>
+                                            {% else %}
+                                                <i class="fas fa-info-circle text-primary me-2"></i>
+                                            {% endif %}
+                                            {{ notification.message }}
+                                        </h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            {{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        </small>
+                                        
+                                        <!-- ACTION BUTTONS FOR POTENTIAL MATCHES -->
+                                        {% if notification.notification_type == 'potential_match' %}
+                                        <div class="mt-2">
+                                            <a href="{{ url_for('view_item', item_id=notification.item_id) }}" 
+                                               class="btn btn-sm btn-primary">
+                                                <i class="fas fa-search me-1"></i>View Matched Item
+                                            </a>
+                                            {% if notification.item.owner.id != current_user.id %}
+                                            <a href="mailto:{{ notification.item.owner.email }}" 
+                                               class="btn btn-sm btn-outline-success ms-1">
+                                                <i class="fas fa-envelope me-1"></i>Contact {{ notification.item.owner.username }}
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if not notification.is_seen %}
+                                    <form method="POST" action="{{ url_for('mark_notification_seen', notification_id=notification.id) }}" class="ms-3">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                                            Mark Read
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span class="badge bg-secondary ms-3">Read</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Mark All as Read Button -->
+                        <div class="mt-3 text-end">
+                            {% set unread_count = notifications|selectattr('is_seen', 'equalto', false)|list|length %}
+                            {% if unread_count > 0 %}
+                            <form method="POST" action="{{ url_for('mark_all_notifications_seen') }}" class="d-inline">
+                                <button type="submit" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-check-double"></i> Mark All as Read
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                            <h5>No notifications yet</h5>
+                            <p class="text-muted">
+                                You'll see notifications here when we find potential matches for your items 
+                                or when there are updates to your reports.
+                            </p>
+                            <div class="mt-3">
+                                <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary me-2">
+                                    <i class="fas fa-plus"></i> Report an Item
+                                </a>
+                                <a href="{{ url_for('search') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-search"></i> Search Items
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

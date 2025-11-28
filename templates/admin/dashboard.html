@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+        <div class="btn-group">
+            <a href="{{ url_for('admin.manage_users') }}" class="btn btn-outline-primary">
+                <i class="fas fa-users"></i> Manage Users
+            </a>
+            <a href="{{ url_for('admin.manage_items') }}" class="btn btn-outline-success">
+                <i class="fas fa-clipboard-list"></i> Manage Items
+            </a>
+            <a href="{{ url_for('admin.system_stats') }}" class="btn btn-outline-info">
+                <i class="fas fa-chart-bar"></i> Statistics
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-2 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>{{ total_users }}</h3>
+                    <p class="mb-0">Total Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>{{ total_items }}</h3>
+                    <p class="mb-0">Total Items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h3>{{ pending_items }}</h3>
+                    <p class="mb-0">Pending Items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3>{{ resolved_items }}</h3>
+                    <p class="mb-0">Resolved Items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+    <div class="card image-stats text-white">
+        <div class="card-body text-center">
+            {% set items_with_images = [] %}
+            {% for item in recent_items %}
+                {% if item.image_path %}
+                    {% set _ = items_with_images.append(item) %}
+                {% endif %}
+            {% endfor %}
+            <h4>{{ items_with_images|length }}</h4>
+            <p class="mb-0">With Images</p>
+        </div>
+    </div>
+</div>
+<div class="col-md-2 mb-3">
+    <div class="card visual-matches text-white">
+        <div class="card-body text-center">
+            <h4>{{ total_matches }}</h4>
+            <p class="mb-0">AI Matches</p>
+        </div>
+    </div>
+</div>
+        <div class="col-md-2 mb-3">
+            <div class="card bg-dark text-white">
+                <div class="card-body text-center">
+                    <h3>{{ total_matches }}</h3>
+                    <p class="mb-0">Total Matches</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card bg-secondary text-white">
+                <div class="card-body text-center">
+                    <h3>{{ items_today }}</h3>
+                    <p class="mb-0">Today's Items</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Activity -->
+<div class="col-md-8">
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Activity</h5>
+        </div>
+        <div class="card-body">
+            {% if recent_items %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Item</th>
+                            <th>Type</th>
+                            <th>User</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in recent_items %}
+                        <tr>
+                            <td>
+                                {% if item.image_path %}
+                                <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
+                                     class="admin-thumbnail" 
+                                     alt="{{ item.title }}"
+                                     onerror="this.style.display='none'">
+                                {% else %}
+                                <div class="no-image-placeholder">
+                                    <i class="fas fa-image text-muted"></i>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ item.title }}</strong>
+                                <br><small class="text-muted">{{ item.category }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if item.type == 'lost' %}danger{% else %}success{% endif %}">
+                                    {{ item.type }}
+                                </span>
+                            </td>
+                            <td>{{ item.owner.username }}</td>
+                            <td>
+                                <span class="badge bg-{% if item.status == 'pending' %}warning{% else %}success{% endif %}">
+                                    {{ item.status }}
+                                </span>
+                            </td>
+                            <td>{{ item.created_at.strftime('%m/%d %H:%M') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center">No recent activity</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+        <!-- Recent Users -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-plus"></i> New Users</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_users %}
+                    <div class="list-group list-group-flush">
+                        {% for user in recent_users %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ user.username }}</h6>
+                                <small>{{ user.created_at.strftime('%m/%d') }}</small>
+                            </div>
+                            <p class="mb-1 text-muted">{{ user.email }}</p>
+                            <small class="text-muted">Role: {{ user.role }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No new users</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.card:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+}
+</style>
+{% endblock %}

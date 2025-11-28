@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-4">Campus Lost & Found</h1>
+        <p class="lead mb-5">AI-powered platform to help you find your lost items on campus</p>
+        <div class="mt-4">
+            <!-- CHANGE THIS LINE: -->
+            <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg me-2">Get Started</a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg">Login</a>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container my-5">
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm card-hover">
+                <div class="card-body py-5">
+                    <i class="fas fa-robot fa-3x text-primary mb-3"></i>
+                    <h4 class="card-title">AI-Powered Search</h4>
+                    <p class="card-text">Advanced image recognition to match lost and found items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm card-hover">
+                <div class="card-body py-5">
+                    <i class="fas fa-bell fa-3x text-success mb-3"></i>
+                    <h4 class="card-title">Instant Notifications</h4>
+                    <p class="card-text">Get notified when your lost item is found</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm card-hover">
+                <div class="card-body py-5">
+                    <i class="fas fa-camera fa-3x text-warning mb-3"></i>
+                    <h4 class="card-title">Image Upload</h4>
+                    <p class="card-text">Upload photos of lost or found items for better matching</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

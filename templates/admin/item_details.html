@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-search"></i> Item Details</h1>
+        <div>
+            <a href="{{ url_for('admin.manage_items') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Back to Items
+            </a>
+        </div>
+    </div>
+
+    <!-- Item Information -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Item Information</h5>
+                    <div>
+                        <span class="badge bg-{% if item.type == 'lost' %}danger{% else %}success{% endif %} me-2">
+                            {{ item.type|title }}
+                        </span>
+                        <span class="badge bg-{% if item.status == 'pending' %}warning{% elif item.status == 'claimed' %}info{% else %}success{% endif %}">
+                            {{ item.status|title }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <th style="width: 150px;">Title:</th>
+                            <td><strong>{{ item.title }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Description:</th>
+                            <td>{{ item.description }}</td>
+                        </tr>
+                        <tr>
+                            <th>Category:</th>
+                            <td>{{ item.category }}</td>
+                        </tr>
+                        <tr>
+                            <th>Location:</th>
+                            <td>{{ item.location }}</td>
+                        </tr>
+                        <tr>
+                            <th>Date {{ item.type }}:</th>
+                            <td>{{ item.date_lost_found.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Reported by:</th>
+                            <td>
+                                <a href="{{ url_for('admin.view_user', user_id=item.owner.id) }}" class="text-decoration-none">
+                                    {{ item.owner.username }} ({{ item.owner.email }})
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Reported on:</th>
+                            <td>{{ item.created_at.strftime('%Y-%m-%d at %H:%M') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Item ID:</th>
+                            <td>#{{ item.id }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Item Image Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-image"></i> Item Image</h5>
+            </div>
+            <div class="card-body text-center">
+                {% if item.image_path %}
+                <div class="position-relative d-inline-block">
+                    <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
+                         class="img-fluid rounded shadow" 
+                         alt="{{ item.title }}"
+                         style="max-height: 400px;"
+                         onerror="this.style.display='none'">
+                    {% if item.embedding %}
+                    <div class="ai-badge-large" title="AI Image Recognition Enabled">
+                        <i class="fas fa-robot"></i> AI Processed
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle"></i> 
+                        This image is used for AI-powered visual matching
+                        {% if item.embedding %}
+                        <span class="text-success">• AI Features Extracted</span>
+                        {% else %}
+                        <span class="text-warning">• No AI Features</span>
+                        {% endif %}
+                    </small>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-image fa-4x text-muted mb-3"></i>
+                    <h5>No Image Available</h5>
+                    <p class="text-muted">This item was reported without an image.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+        <!-- Quick Actions -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="fas fa-cog"></i> Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if item.status == 'pending' %}
+                        <form method="POST" action="{{ url_for('resolve_item', item_id=item.id) }}">
+                            <button type="submit" class="btn btn-success w-100 mb-2">
+                                <i class="fas fa-check"></i> Mark as Resolved
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        <form method="POST" action="{{ url_for('admin.delete_item', item_id=item.id) }}"
+                              onsubmit="return confirm('Are you sure you want to delete this item? This action cannot be undone.');">
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="fas fa-trash"></i> Delete Item
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Info -->
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Reporter Info</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>{{ item.owner.username }}</strong></p>
+                    <p class="mb-1 text-muted">{{ item.owner.email }}</p>
+                    <p class="mb-1 text-muted">Role: {{ item.owner.role }}</p>
+                    <p class="mb-0 text-muted">Joined: {{ item.owner.created_at.strftime('%Y-%m-%d') }}</p>
+                    <div class="mt-2">
+                        <a href="{{ url_for('admin.view_user', user_id=item.owner.id) }}" class="btn btn-outline-primary btn-sm w-100">
+                            View User Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications for this item -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-bell"></i> Notifications for this Item ({{ item_notifications|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if item_notifications %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Message</th>
+                                    <th>Type</th>
+                                    <th>User</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for notification in item_notifications %}
+                                <tr>
+                                    <td>{{ notification.message }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ notification.notification_type }}</span>
+                                    </td>
+                                    <td>{{ notification.user.username }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if notification.is_seen %}success{% else %}warning{% endif %}">
+                                            {{ 'Read' if notification.is_seen else 'Unread' }}
+                                        </span>
+                                    </td>
+                                    <td>{{ notification.created_at.strftime('%m/%d/%Y %H:%M') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No notifications for this item.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Matches for this item -->
+    {% if all_matches %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-handshake"></i> Potential Matches ({{ all_matches|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for match in all_matches %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card card-hover border-success">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-primary">Similarity: {{ (match.similarity_score * 100)|round(1) }}%</span>
+                                    <span class="badge bg-{% if match.status == 'pending' %}warning{% else %}success{% endif %}">
+                                        {{ match.status }}
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <h6>{% if item.id == match.lost_item_id %}This Item{% else %}Lost Item{% endif %}</h6>
+                                            <p class="mb-1"><strong>{{ match.lost_item.title }}</strong></p>
+                                            <small class="text-muted">
+                                                By: {{ match.lost_item.owner.username }}<br>
+                                                {{ match.lost_item.category }}
+                                            </small>
+                                        </div>
+                                        <div class="col-6">
+                                            <h6>{% if item.id == match.found_item_id %}This Item{% else %}Found Item{% endif %}</h6>
+                                            <p class="mb-1"><strong>{{ match.found_item.title }}</strong></p>
+                                            <small class="text-muted">
+                                                By: {{ match.found_item.owner.username }}<br>
+                                                {{ match.found_item.category }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.card-hover {
+    transition: transform 0.2s ease;
+    border: 1px solid #dee2e6;
+}
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}
