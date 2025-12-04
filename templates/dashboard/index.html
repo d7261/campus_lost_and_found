@@ -1,229 +1,1088 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Welcome Section -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <div class="jumbotron bg-primary text-white p-5 rounded-3">
-                <h1 class="display-4">Welcome back, {{ current_user.username }}! 👋</h1>
-                <p class="lead">Manage your lost and found items, search for missing belongings, and help others reunite with their items.</p>
-                <hr class="my-4 bg-white">
-                <p>What would you like to do today?</p>
-            </div>
+<!-- Sidebar -->
+<div class="dashboard-sidebar">
+    <!-- User Profile at Top -->
+    <div class="sidebar-user-profile">
+        <div class="user-avatar-large">
+            {{ current_user.username[0]|upper }}
         </div>
-    </div>
-
-    <!-- Quick Stats -->
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 class="card-title">{{ current_user.items|length }}</h4>
-                            <p class="card-text">My Reports</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-clipboard-list fa-2x"></i>
-                        </div>
-                    </div>
+        <div class="user-info-main">
+            <h4>{{ current_user.username }}</h4>
+            <p class="user-role">{{ current_user.role|title }}</p>
+            <div class="user-stats">
+                <div class="stat">
+                    <strong>{{ current_user.items|length }}</strong>
+                    <span>Reports</span>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            {% set found_items = [] %}
-                            {% for item in current_user.items %}
-                                {% if item.type == 'found' %}
-                                    {% set _ = found_items.append(item) %}
-                                {% endif %}
-                            {% endfor %}
-                            <h4 class="card-title">{{ found_items|length }}</h4>
-                            <p class="card-text">Found Items</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-search fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            {% set lost_items = [] %}
-                            {% for item in current_user.items %}
-                                {% if item.type == 'lost' %}
-                                    {% set _ = lost_items.append(item) %}
-                                {% endif %}
-                            {% endfor %}
-                            <h4 class="card-title">{{ lost_items|length }}</h4>
-                            <p class="card-text">Lost Items</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-exclamation-triangle fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            {% set new_notifications = [] %}
-                            {% for notification in current_user.notifications %}
-                                {% if not notification.is_seen %}
-                                    {% set _ = new_notifications.append(notification) %}
-                                {% endif %}
-                            {% endfor %}
-                            <h4 class="card-title">{{ new_notifications|length }}</h4>
-                            <p class="card-text">New Notifications</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-bell fa-2x"></i>
-                        </div>
-                    </div>
+                <div class="stat">
+                    {% set new_notifications = [] %}
+                    {% for notification in current_user.notifications %}
+                        {% if not notification.is_seen %}
+                            {% set _ = new_notifications.append(notification) %}
+                        {% endif %}
+                    {% endfor %}
+                    <strong>{{ new_notifications|length }}</strong>
+                    <span>Alerts</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Action Cards -->
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card text-center card-hover border-primary">
-                <div class="card-header bg-primary text-white">
-                    <i class="fas fa-search fa-2x mb-2"></i>
-                    <h5 class="card-title">Search Items</h5>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">Look for lost or found items across campus using our advanced search.</p>
-                    <a href="{{ url_for('search') }}" class="btn btn-outline-primary">Start Searching</a>
-                </div>
-            </div>
+    <!-- App Logo -->
+    <div class="sidebar-header">
+        <div class="logo">
+            <i class="fas fa-search-location"></i>
+            <span>Campus Lost & Found</span>
         </div>
+    </div>
+    
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+        <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            <div class="nav-icon">
+                <i class="fas fa-home"></i>
+            </div>
+            <span class="nav-text">Dashboard</span>
+            <div class="nav-indicator"></div>
+        </a>
         
-        <div class="col-md-4 mb-4">
-            <div class="card text-center card-hover border-warning">
-                <div class="card-header bg-warning text-white">
-                    <i class="fas fa-plus fa-2x mb-2"></i>
-                    <h5 class="card-title">Report Item</h5>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">Report a lost item or submit a found item to help others.</p>
-<a href="{{ url_for('reporting.report_item') }}" class="btn btn-outline-warning">Report Now</a>
-                </div>
+        <a href="{{ url_for('search') }}" class="nav-item {% if request.endpoint == 'search' %}active{% endif %}">
+            <div class="nav-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <span class="nav-text">Search Items</span>
+            <div class="nav-indicator"></div>
+        </a>
+        
+        <a href="{{ url_for('reporting.report_item') }}" class="nav-item {% if request.endpoint == 'reporting.report_item' %}active{% endif %}">
+            <div class="nav-icon">
+                <i class="fas fa-plus-circle"></i>
+            </div>
+            <span class="nav-text">Report Item</span>
+            <div class="nav-indicator"></div>
+        </a>
+        
+        <a href="{{ url_for('reporting.my_items') }}" class="nav-item {% if request.endpoint == 'reporting.my_items' %}active{% endif %}">
+            <div class="nav-icon">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <span class="nav-text">My Reports</span>
+            <div class="nav-indicator"></div>
+        </a>
+        
+        <a href="{{ url_for('notifications') }}" class="nav-item {% if request.endpoint == 'notifications' %}active{% endif %}">
+            <div class="nav-icon">
+                <i class="fas fa-bell"></i>
+                {% if new_notifications|length > 0 %}
+                <span class="nav-badge">{{ new_notifications|length }}</span>
+                {% endif %}
+            </div>
+            <span class="nav-text">Notifications</span>
+            <div class="nav-indicator"></div>
+        </a>
+        
+        <a href="{{ url_for('campus_locations') }}" class="nav-item {% if request.endpoint == 'campus_locations' %}active{% endif %}">
+            <div class="nav-icon">
+                <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <span class="nav-text">Campus Locations</span>
+            <div class="nav-indicator"></div>
+        </a>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+        <div class="app-stats">
+            <div class="stat-item">
+                <i class="fas fa-users"></i>
+                <span>Active Community</span>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-handshake"></i>
+                <span>Helping Students</span>
             </div>
         </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card text-center card-hover border-info">
-                <div class="card-header bg-info text-white">
-                    <i class="fas fa-history fa-2x mb-2"></i>
-                    <h5 class="card-title">My Reports</h5>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">View and manage all your reported lost and found items.</p>
-<a href="{{ url_for('reporting.my_items') }}" class="btn btn-outline-info">View Reports</a>
-                </div>
-            </div>
+        <div class="logout-section">
+            <a href="{{ url_for('auth.logout') }}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
         </div>
     </div>
+</div>
 
-    <!-- Recent Activity Section -->
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Recent Activity</h5>
+    <!-- Main Content -->
+    <div class="dashboard-main">
+        <!-- Welcome Header -->
+        <div class="welcome-section">
+            <h1>Welcome back, {{ current_user.username }}! 👋</h1>
+            <p>Manage your lost and found items, search for missing belongings, and help others reunite with their items.</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+            <div class="stat-card stat-primary">
+                <div class="stat-content">
+                    <div class="stat-info">
+                        <h3>{{ current_user.items|length }}</h3>
+                        <p>Total Reports</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
                 </div>
-                <div class="card-body">
-                    {% if current_user.items %}
-                        <div class="list-group">
-                            {% for item in current_user.items %}
-                                {% if loop.index <= 5 %}
-                                <div class="list-group-item">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">
-                                            <span class="badge bg-{% if item.type == 'lost' %}danger{% else %}success{% endif %} me-2">
-                                                {{ item.type|title }}
-                                            </span>
-                                            {{ item.title }}
-                                        </h6>
-                                        <small class="text-muted">{{ item.created_at.strftime('%b %d, %Y') }}</small>
-                                    </div>
-                                    <p class="mb-1">
-                                        {% if item.description|length > 100 %}
-                                            {{ item.description[:100] }}...
-                                        {% else %}
-                                            {{ item.description }}
-                                        {% endif %}
-                                    </p>
-                                    <small class="text-muted">
-                                        <i class="fas fa-map-marker-alt"></i> {{ item.location }} • 
-                                        <i class="fas fa-tag"></i> {{ item.category }} •
-                                        <span class="badge bg-{% if item.status == 'pending' %}warning{% else %}success{% endif %}">
-                                            {{ item.status|title }}
-                                        </span>
-                                    </small>
+                <div class="stat-trend">
+                    <i class="fas fa-chart-line"></i>
+                    <span>All time</span>
+                </div>
+            </div>
+            
+            <div class="stat-card stat-success">
+                <div class="stat-content">
+                    <div class="stat-info">
+                        {% set found_items = [] %}
+                        {% for item in current_user.items %}
+                            {% if item.type == 'found' %}
+                                {% set _ = found_items.append(item) %}
+                            {% endif %}
+                        {% endfor %}
+                        <h3>{{ found_items|length }}</h3>
+                        <p>Found Items</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-hand-holding-heart"></i>
+                    </div>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-{% if found_items|length > 0 %}arrow-up{% else %}minus{% endif %}"></i>
+                    <span>Helping others</span>
+                </div>
+            </div>
+            
+            <div class="stat-card stat-warning">
+                <div class="stat-content">
+                    <div class="stat-info">
+                        {% set lost_items = [] %}
+                        {% for item in current_user.items %}
+                            {% if item.type == 'lost' %}
+                                {% set _ = lost_items.append(item) %}
+                            {% endif %}
+                        {% endfor %}
+                        <h3>{{ lost_items|length }}</h3>
+                        <p>Lost Items</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-search-location"></i>
+                    </div>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-{% if lost_items|length > 0 %}exclamation{% else %}check{% endif %}"></i>
+                    <span>{% if lost_items|length > 0 %}Needs attention{% else %}All good{% endif %}</span>
+                </div>
+            </div>
+            
+            <div class="stat-card stat-info">
+                <div class="stat-content">
+                    <div class="stat-info">
+                        {% set new_notifications = [] %}
+                        {% for notification in current_user.notifications %}
+                            {% if not notification.is_seen %}
+                                {% set _ = new_notifications.append(notification) %}
+                            {% endif %}
+                        {% endfor %}
+                        <h3>{{ new_notifications|length }}</h3>
+                        <p>New Alerts</p>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-{% if new_notifications|length > 0 %}envelope{% else %}envelope-open{% endif %}"></i>
+                    <span>{% if new_notifications|length > 0 %}Unread{% else %}All read{% endif %}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Quick Actions</h2>
+                <p>Get things done quickly</p>
+            </div>
+            <div class="actions-grid">
+                <a href="{{ url_for('search') }}" class="action-card">
+                    <div class="action-icon search">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="action-content">
+                        <h4>Search Items</h4>
+                        <p>Look for lost or found items across campus</p>
+                    </div>
+                    <div class="action-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </a>
+                
+                <a href="{{ url_for('reporting.report_item') }}" class="action-card">
+                    <div class="action-icon report">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="action-content">
+                        <h4>Report Item</h4>
+                        <p>Report lost or submit found items</p>
+                    </div>
+                    <div class="action-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </a>
+                
+                <a href="{{ url_for('reporting.my_items') }}" class="action-card">
+                    <div class="action-icon history">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div class="action-content">
+                        <h4>My Reports</h4>
+                        <p>View and manage your reports</p>
+                    </div>
+                    <div class="action-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </a>
+                
+                <a href="{{ url_for('notifications') }}" class="action-card">
+                    <div class="action-icon notifications">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="action-content">
+                        <h4>Notifications</h4>
+                        <p>Check your alerts and matches</p>
+                    </div>
+                    <div class="action-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Recent Activity</h2>
+                <p>Your latest reported items</p>
+            </div>
+            <div class="activity-card">
+                {% if current_user.items %}
+                    <div class="activity-list">
+                        {% for item in current_user.items %}
+                            {% if loop.index <= 5 %}
+                            <div class="activity-item">
+                                <div class="activity-type {{ item.type }}">
+                                    <i class="fas fa-{% if item.type == 'lost' %}search{% else %}hand-holding{% endif %}"></i>
                                 </div>
-                                {% endif %}
-                            {% endfor %}
+                                <div class="activity-details">
+                                    <div class="activity-main">
+                                        <h5>{{ item.title }}</h5>
+                                        <p class="activity-desc">
+                                            {% if item.description|length > 80 %}
+                                                {{ item.description[:80] }}...
+                                            {% else %}
+                                                {{ item.description }}
+                                            {% endif %}
+                                        </p>
+                                        <div class="activity-meta">
+                                            <span class="meta location">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                {{ item.location }}
+                                            </span>
+                                            <span class="meta category">
+                                                <i class="fas fa-tag"></i>
+                                                {{ item.category }}
+                                            </span>
+                                            <span class="meta date">
+                                                <i class="fas fa-calendar"></i>
+                                                {{ item.created_at.strftime('%b %d, %Y') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="activity-status">
+                                        <span class="status {{ item.status }}">{{ item.status|title }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="activity-footer">
+                        <a href="{{ url_for('reporting.my_items') }}" class="view-all-btn">
+                            View All Items
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-inbox"></i>
                         </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                            <h5>No activity yet</h5>
-                            <p class="text-muted">Start by reporting your first lost or found item!</p>
-<a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary">Report Your First Item</a>                        </div>
-                    {% endif %}
-                </div>
+                        <h4>No activity yet</h4>
+                        <p>Start by reporting your first lost or found item!</p>
+                        <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary">
+                            Report Your First Item
+                        </a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
 <style>
-.card-hover {
+/* Dashboard Layout */
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+    background: #f8fafc;
+}
+
+/* Sidebar Styles */
+.dashboard-sidebar {
+    width: 280px;
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+}
+
+.sidebar-header {
+    padding: 2rem 1.5rem 1rem;
+    border-bottom: 1px solid #475569;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+.logo i {
+    font-size: 1.5rem;
+    color: #60a5fa;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 1.5rem 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.5rem;
+    color: #cbd5e1;
+    text-decoration: none;
     transition: all 0.3s ease;
-    border: 2px solid transparent;
+    position: relative;
+    border-left: 3px solid transparent;
 }
 
-.card-hover:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    border-color: #007bff;
+.nav-item:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border-left-color: #60a5fa;
 }
 
-.jumbotron {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+.nav-item.active {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border-left-color: #3b82f6;
 }
 
-.stats-card {
+.nav-item i {
+    width: 20px;
+    text-align: center;
+}
+
+.notification-badge {
+    background: #ef4444;
+    color: white;
     border-radius: 10px;
-    border: none;
+    padding: 0.25em 0.5em;
+    font-size: 0.75rem;
+    margin-left: auto;
+}
+
+.sidebar-footer {
+    padding: 1.5rem;
+    border-top: 1px solid #475569;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.user-details {
+    flex: 1;
+}
+
+.user-details strong {
+    display: block;
+    font-size: 0.875rem;
+}
+
+.user-details small {
+    color: #94a3b8;
+    font-size: 0.75rem;
+}
+
+/* Main Content */
+.dashboard-main {
+    flex: 1;
+    margin-left: 280px;
+    padding: 2rem;
+}
+
+.welcome-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    margin-bottom: 2rem;
+}
+
+.welcome-section h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-section p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    border: 1px solid #f1f5f9;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.stat-content {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.stat-info h3 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    line-height: 1;
+}
+
+.stat-info p {
+    color: #64748b;
+    font-weight: 500;
+    margin-bottom: 0;
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    opacity: 0.7;
+    margin-left: auto;
+}
+
+.stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+/* Section Styles */
+.section {
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.section-header p {
+    color: #64748b;
+    margin-bottom: 0;
+}
+
+/* Actions Grid */
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .action-card {
+    background: white;
     border-radius: 15px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    border: 1px solid #f1f5f9;
+}
+
+.action-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    text-decoration: none;
+    color: inherit;
+    border-color: #3b82f6;
+}
+
+.action-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.action-icon.search { background: linear-gradient(135deg, #667eea, #764ba2); }
+.action-icon.report { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.action-icon.history { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+.action-icon.notifications { background: linear-gradient(135deg, #10b981, #059669); }
+
+.action-content {
+    flex: 1;
+}
+
+.action-content h4 {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #1e293b;
+}
+
+.action-content p {
+    color: #64748b;
+    margin-bottom: 0;
+    font-size: 0.875rem;
+}
+
+.action-arrow {
+    color: #cbd5e1;
+    transition: all 0.3s ease;
+}
+
+.action-card:hover .action-arrow {
+    color: #3b82f6;
+    transform: translateX(3px);
+}
+
+/* Activity Card */
+.activity-card {
+    background: white;
+    border-radius: 15px;
+    border: 1px solid #f1f5f9;
     overflow: hidden;
 }
 
-.action-card .card-header {
-    border-bottom: none;
-    padding: 1.5rem 1rem;
+.activity-list {
+    padding: 1.5rem;
 }
 
-.action-card .card-body {
-    padding: 2rem 1rem;
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 0;
+}
+
+.activity-item:not(:last-child) {
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.activity-type {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.activity-type.lost { background: #f59e0b; }
+.activity-type.found { background: #10b981; }
+
+.activity-details {
+    flex: 1;
+    display: flex;
+    justify-content: between;
+    align-items: flex-start;
+}
+
+.activity-main {
+    flex: 1;
+}
+
+.activity-main h5 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #1e293b;
+}
+
+.activity-desc {
+    color: #64748b;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.activity-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.meta {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.activity-status {
+    margin-left: 1rem;
+}
+
+.status {
+    padding: 0.35em 0.65em;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status.pending { background: #dbeafe; color: #1e40af; }
+.status.claimed { background: #d1fae5; color: #065f46; }
+.status.resolved { background: #f3f4f6; color: #374151; }
+
+.activity-footer {
+    padding: 1.5rem;
+    border-top: 1px solid #f1f5f9;
+    text-align: center;
+}
+
+.view-all-btn {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.view-all-btn:hover {
+    gap: 0.75rem;
+    text-decoration: none;
+    color: #1d4ed8;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: #cbd5e1;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h4 {
+    color: #4a5568;
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    color: #718096;
+    margin-bottom: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .dashboard-sidebar {
+        width: 250px;
+    }
+    
+    .dashboard-main {
+        margin-left: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .dashboard-sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    
+    .dashboard-main {
+        margin-left: 0;
+        padding: 1rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .actions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .welcome-section h1 {
+        font-size: 2rem;
+    }
+    
+    .welcome-section {
+        padding: 1.5rem;
+    }
+}
+
+/* Impressive Sidebar Styles */
+.dashboard-sidebar {
+    width: 300px;
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+    border-right: 1px solid #334155;
+}
+
+/* User Profile at Top */
+.sidebar-user-profile {
+    padding: 2rem 1.5rem 1.5rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+    border-bottom: 1px solid #334155;
+    text-align: center;
+}
+
+.user-avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0 auto 1rem;
+    border: 3px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+}
+
+.user-info-main h4 {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: white;
+}
+
+.user-role {
+    color: #94a3b8;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.user-stats {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+.user-stats .stat {
+    text-align: center;
+}
+
+.user-stats .stat strong {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+}
+
+.user-stats .stat span {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+/* App Logo */
+.sidebar-header {
+    padding: 1.5rem 1.5rem 1rem;
+    border-bottom: 1px solid #334155;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.logo i {
+    font-size: 1.5rem;
+    color: #6366f1;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Navigation */
+.sidebar-nav {
+    flex: 1;
+    padding: 1rem 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    color: #cbd5e1;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    margin: 0.25rem 0.5rem;
+    border-radius: 12px;
+}
+
+.nav-item:hover {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+    color: white;
+    transform: translateX(5px);
+}
+
+.nav-item.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.nav-icon {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ef4444;
+    color: white;
+    border-radius: 10px;
+    padding: 0.2em 0.5em;
+    font-size: 0.7rem;
+    font-weight: 600;
+    min-width: 18px;
+    text-align: center;
+}
+
+.nav-text {
+    font-weight: 500;
+    flex: 1;
+}
+
+.nav-indicator {
+    width: 4px;
+    height: 20px;
+    background: #6366f1;
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.nav-item.active .nav-indicator {
+    opacity: 1;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    padding: 1.5rem;
+    border-top: 1px solid #334155;
+}
+
+.app-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #94a3b8;
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.stat-item i {
+    color: #6366f1;
+}
+
+.logout-section {
+    border-top: 1px solid #334155;
+    padding-top: 1rem;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: #ef4444;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.logout-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    text-decoration: none;
+}
+
+/* Main Content Adjustment */
+.dashboard-main {
+    flex: 1;
+    margin-left: 300px;
+    padding: 2rem;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+/* Mobile Responsive */
+@media (max-width: 1024px) {
+    .dashboard-sidebar {
+        width: 280px;
+    }
+    
+    .dashboard-main {
+        margin-left: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        width: 280px;
+    }
+    
+    .dashboard-sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    
+    .dashboard-main {
+        margin-left: 0;
+        padding: 1rem;
+    }
+    
+    /* Mobile menu toggle button */
+    .mobile-menu-toggle {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1001;
+        background: #6366f1;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
 }
 </style>
 {% endblock %}

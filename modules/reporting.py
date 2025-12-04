@@ -47,7 +47,7 @@ def report_item():
             
             db.session.add(new_item)
             db.session.commit()
-            # Process image if provided (now optional)
+           # Process image if provided (now optional)
             image_matches = []
             if image_file and allowed_file(image_file.filename):
                 try:
@@ -65,18 +65,43 @@ def report_item():
                         image_matches = image_engine.process_new_item(new_item.id, image_file)
                         
                         if image_matches:
-                            # Create notifications for image-based matches
+                            # Create notifications for OTHER USERS, not the current user
+                            notifications_created = 0
                             for match in image_matches:
-                                notification = Notification(
-                                    message=f"Visual match found! Your {new_item.type} item '{new_item.title}' looks similar to an item in our system ({(match['similarity'] * 100):.1f}% match)",
-                                    notification_type='visual_match',
-                                    user_id=current_user.id,
-                                    item_id=new_item.id
-                                )
-                                db.session.add(notification)
+                                matched_item = match['item']  # The existing item that was matched
+                                
+                                # ONLY create notification if it's a different user
+                                if matched_item.user_id != current_user.id:
+                                    
+                                    if new_item.type == 'lost' and matched_item.type == 'found':
+                                        # Cynthia reported LOST item → notify CYNTHIA about the FOUND item
+                                        notification_user_id = current_user.id  # Notify Cynthia
+                                        message = f"📸 Visual match found! We found an item that looks like your lost '{new_item.title}'. Similarity: {(match['similarity'] * 100):.1f}%"
+                                        linked_item_id = matched_item.id  # Link to the FOUND item
+                                        
+                                    elif new_item.type == 'found' and matched_item.type == 'lost':
+                                        # Cynthia reported FOUND item → notify the person who LOST it
+                                        notification_user_id = matched_item.user_id  # Notify the loser
+                                        message = f"📸 Visual match found! Someone found an item that looks like your lost '{matched_item.title}'. Similarity: {(match['similarity'] * 100):.1f}%"
+                                        linked_item_id = new_item.id  # Link to Cynthia's FOUND item
+                                    else:
+                                        # Same type items - skip
+                                        continue
+                                    
+                                    notification = Notification(
+                                        message=message,
+                                        notification_type='visual_match',
+                                        user_id=notification_user_id,
+                                        item_id=linked_item_id
+                                    )
+                                    db.session.add(notification)
+                                    notifications_created += 1
                             
                             db.session.commit()
-                            flash(f'Item reported successfully! Found {len(image_matches)} visual matches.', 'success')
+                            if notifications_created > 0:
+                                flash(f'Item reported successfully! Notified {notifications_created} users about potential matches.', 'success')
+                            else:
+                                flash('Item reported successfully! Image uploaded and processed.', 'success')
                         else:
                             flash('Item reported successfully! Image uploaded and processed.', 'success')
                     else:
@@ -88,7 +113,6 @@ def report_item():
             else:
                 # No image provided - show helpful message
                 flash('Item reported successfully! 💡 Tip: Adding a photo greatly increases recovery chances.', 'info')
-
             # ==== CRITICAL FIX: MOVE TEXT MATCHING OUTSIDE THE IMAGE BLOCK ====
 # Text-based matching should happen for ALL items (with or without images)
             try:

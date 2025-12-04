@@ -1,125 +1,297 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">
-                            <i class="fas fa-{% if item.type == 'lost' %}search{% else %}hand-holding{% endif %} me-2"></i>
-                            {{ item.title }}
-                        </h4>
-                        <div>
-                            <span class="badge bg-{% if item.type == 'lost' %}warning{% else %}success{% endif %}">
-                                {{ item.type|title }}
-                            </span>
-                            <span class="badge bg-{% if item.status == 'pending' %}info{% elif item.status == 'claimed' %}success{% else %}secondary{% endif %}">
-                                {{ item.status|title }}
-                            </span>
-                        </div>
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    <div class="dashboard-sidebar">
+        <!-- User Profile at Top -->
+        <div class="sidebar-user-profile">
+            <div class="user-avatar-large">
+                {{ current_user.username[0]|upper }}
+            </div>
+            <div class="user-info-main">
+                <h4>{{ current_user.username }}</h4>
+                <p class="user-role">{{ current_user.role|title }}</p>
+                <div class="user-stats">
+                    <div class="stat">
+                        <strong>{{ current_user.items|length }}</strong>
+                        <span>Reports</span>
+                    </div>
+                    <div class="stat">
+                        {% set new_notifications = [] %}
+                        {% for notification in current_user.notifications %}
+                            {% if not notification.is_seen %}
+                                {% set _ = new_notifications.append(notification) %}
+                            {% endif %}
+                        {% endfor %}
+                        <strong>{{ new_notifications|length }}</strong>
+                        <span>Alerts</span>
                     </div>
                 </div>
-                
-                <div class="card-body">
-                    <!-- Item Image -->
-                    {% if item.image_path %}
-                    <div class="text-center mb-4">
-                        <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
-                             class="img-fluid rounded" 
-                             alt="{{ item.title }}"
-                             style="max-height: 300px;">
-                    </div>
+            </div>
+        </div>
+
+        <!-- App Logo -->
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-search-location"></i>
+                <span>Campus Lost & Found</span>
+            </div>
+        </div>
+        
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}" class="nav-item">
+                <div class="nav-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <span class="nav-text">Dashboard</span>
+                <div class="nav-indicator"></div>
+            </a>
+            
+            <a href="{{ url_for('search') }}" class="nav-item">
+                <div class="nav-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <span class="nav-text">Search Items</span>
+                <div class="nav-indicator"></div>
+            </a>
+            
+            <a href="{{ url_for('reporting.report_item') }}" class="nav-item">
+                <div class="nav-icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <span class="nav-text">Report Item</span>
+                <div class="nav-indicator"></div>
+            </a>
+            
+            <a href="{{ url_for('reporting.my_items') }}" class="nav-item">
+                <div class="nav-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <span class="nav-text">My Reports</span>
+                <div class="nav-indicator"></div>
+            </a>
+            
+            <a href="{{ url_for('notifications') }}" class="nav-item">
+                <div class="nav-icon">
+                    <i class="fas fa-bell"></i>
+                    {% if new_notifications|length > 0 %}
+                    <span class="nav-badge">{{ new_notifications|length }}</span>
                     {% endif %}
-                    
-                    <!-- Item Details -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6><i class="fas fa-tag me-2 text-muted"></i>Category</h6>
-                            <p class="ps-4">{{ item.category }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <h6><i class="fas fa-map-marker-alt me-2 text-muted"></i>Location</h6>
-                            <p class="ps-4">{{ item.location }}</p>
-                        </div>
+                </div>
+                <span class="nav-text">Notifications</span>
+                <div class="nav-indicator"></div>
+            </a>
+            
+            <a href="{{ url_for('campus_locations') }}" class="nav-item">
+                <div class="nav-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <span class="nav-text">Campus Locations</span>
+                <div class="nav-indicator"></div>
+            </a>
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+            <div class="app-stats">
+                <div class="stat-item">
+                    <i class="fas fa-users"></i>
+                    <span>Active Community</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-handshake"></i>
+                    <span>Helping Students</span>
+                </div>
+            </div>
+            <div class="logout-section">
+                <a href="{{ url_for('auth.logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="dashboard-main">
+        <!-- Item Details Header -->
+        <div class="item-details-header">
+            <div class="header-content">
+                <div class="item-title-section">
+                    <h1>
+                        <i class="fas fa-{% if item.type == 'lost' %}search{% else %}hand-holding{% endif %} me-3"></i>
+                        {{ item.title }}
+                    </h1>
+                    <div class="item-badges">
+                        <span class="type-badge type-{{ item.type }}">
+                            {{ item.type|title }}
+                        </span>
+                        <span class="status-badge status-{{ item.status }}">
+                            {{ item.status|title }}
+                        </span>
                     </div>
-                    
-                    <div class="row mt-3">
-                        <div class="col-md-6">
-                            <h6><i class="fas fa-calendar me-2 text-muted"></i>Date</h6>
-                            <p class="ps-4">{{ item.date_lost_found.strftime('%Y-%m-%d') }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <h6><i class="fas fa-user me-2 text-muted"></i>Reported by</h6>
-                            <p class="ps-4">{{ item.owner.username }}</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Description -->
-                    <div class="mt-3">
-                        <h6><i class="fas fa-align-left me-2 text-muted"></i>Description</h6>
-                        <p class="ps-4">{{ item.description }}</p>
-                    </div>
-                    
-                    <!-- Action Buttons -->
-                    <div class="mt-4 border-top pt-3">
-                        {% if is_potential_match %}
-                        <div class="alert alert-info">
-                            <i class="fas fa-handshake me-2"></i>
-                            <strong>Potential Match!</strong> This item might match one of your reported items.
+                </div>
+                <p class="item-subtitle">Item details and actions</p>
+            </div>
+        </div>
+
+        <!-- Item Details Content -->
+        <div class="item-details-container">
+            <div class="details-grid">
+                <!-- Left Column - Image -->
+                <div class="image-column">
+                    {% if item.image_path %}
+                    <div class="item-image-card">
+                        <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
+                             class="item-image-large" 
+                             alt="{{ item.title }}">
+                        {% if item.embedding %}
+                        <div class="ai-feature-badge">
+                            <i class="fas fa-robot me-1"></i>
+                            AI Image Recognition Enabled
                         </div>
                         {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="no-image-card">
+                        <i class="fas fa-image"></i>
+                        <h4>No Image Available</h4>
+                        <p>This item was reported without a photo</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Right Column - Details & Actions -->
+                <div class="details-column">
+                    <!-- Quick Info Cards -->
+                    <div class="info-cards-grid">
+                        <div class="info-card">
+                            <div class="info-icon category">
+                                <i class="fas fa-tag"></i>
+                            </div>
+                            <div class="info-content">
+                                <label>Category</label>
+                                <h4>{{ item.category }}</h4>
+                            </div>
+                        </div>
                         
-                        <div class="d-flex gap-2 flex-wrap">
-                            <!-- CLAIM ITEM BUTTON - Show only for found items that are pending -->
+                        <div class="info-card">
+                            <div class="info-icon location">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="info-content">
+                                <label>Location</label>
+                                <h4>{{ item.location }}</h4>
+                            </div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-icon date">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <div class="info-content">
+                                <label>Date</label>
+                                <h4>{{ item.date_lost_found.strftime('%b %d, %Y') }}</h4>
+                            </div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-icon reporter">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="info-content">
+                                <label>Reported by</label>
+                                <h4>{{ item.owner.username }}</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="description-card">
+                        <div class="card-header">
+                            <i class="fas fa-align-left me-2"></i>
+                            <h3>Description</h3>
+                        </div>
+                        <div class="card-content">
+                            <p>{{ item.description }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Action Section -->
+                    <div class="action-section">
+                        {% if is_potential_match %}
+                        <div class="match-alert">
+                            <i class="fas fa-handshake me-3"></i>
+                            <div>
+                                <h4>Potential Match Found!</h4>
+                                <p>This item might match one of your reported items.</p>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Primary Actions -->
+                        <div class="primary-actions">
                             {% if item.type == 'found' and item.status == 'pending' and item.owner.id != current_user.id %}
-                            <form method="POST" action="{{ url_for('claim_item', item_id=item.id) }}" class="d-inline">
-                                <button type="submit" class="btn btn-success" 
-                                        onclick="return confirm('Are you sure you want to claim this item? This will notify the finder and mark the item as claimed.')">
-                                    <i class="fas fa-check me-1"></i>Claim This Item
+                            <form method="POST" action="{{ url_for('claim_item', item_id=item.id) }}" class="claim-form">
+                                <button type="submit" class="action-btn claim-btn" 
+                                        onclick="return confirm('Are you sure this is your item? This will notify the finder and help coordinate the return.')">
+                                    <i class="fas fa-check me-2"></i>
+                                    Claim This Item
                                 </button>
                             </form>
                             {% endif %}
                             
-                            <!-- RESOLVE BUTTON - Show only for user's own items that are pending -->
                             {% if item.owner.id == current_user.id and item.status == 'pending' %}
-                            <form method="POST" action="{{ url_for('resolve_item', item_id=item.id) }}" class="d-inline">
-                                <button type="submit" class="btn btn-warning"
-                                        onclick="return confirm('Mark this item as resolved? This will remove it from search results.')">
-                                    <i class="fas fa-check-circle me-1"></i>Mark as Resolved
+                            <form method="POST" action="{{ url_for('resolve_item', item_id=item.id) }}" class="resolve-form">
+                                <button type="submit" class="action-btn resolve-btn"
+                                        onclick="return confirm('Mark this item as resolved? This will remove it from active searches.')">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    Mark as Resolved
                                 </button>
                             </form>
                             {% endif %}
-                            
-                            <!-- Contact button for other users' items -->
+                        </div>
+
+                        <!-- Secondary Actions -->
+                        <div class="secondary-actions">
                             {% if item.owner.id != current_user.id %}
                             <a href="mailto:{{ item.owner.email }}?subject=Regarding your {{ item.type }} item: {{ item.title }}&body=Hello {{ item.owner.username }}, I saw your {{ item.type }} item '{{ item.title }}' on Campus Lost & Found..." 
-                               class="btn btn-outline-success">
-                                <i class="fas fa-envelope me-1"></i>Contact {{ item.owner.username }}
+                               class="action-btn contact-btn">
+                                <i class="fas fa-envelope me-2"></i>
+                                Contact {{ item.owner.username }}
                             </a>
                             {% endif %}
                             
-                            <!-- Navigation buttons -->
-                            <a href="{{ url_for('search') }}" class="btn btn-outline-primary">
-                                <i class="fas fa-search me-1"></i>Back to Search
-                            </a>
-                            
-                            <a href="{{ url_for('reporting.my_items') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-list me-1"></i>My Items
-                            </a>
+                            <div class="navigation-actions">
+                                <a href="{{ url_for('search') }}" class="nav-btn">
+                                    <i class="fas fa-search me-2"></i>
+                                    Back to Search
+                                </a>
+                                <a href="{{ url_for('reporting.my_items') }}" class="nav-btn">
+                                    <i class="fas fa-list me-2"></i>
+                                    My Items
+                                </a>
+                            </div>
                         </div>
-                        
-                        <!-- Status messages -->
+
+                        <!-- Status Messages -->
                         {% if item.status == 'claimed' %}
-                        <div class="alert alert-success mt-3">
-                            <i class="fas fa-check-circle me-2"></i>
-                            <strong>This item has been claimed.</strong> The owner and finder are coordinating the return.
+                        <div class="status-alert claimed">
+                            <i class="fas fa-check-circle me-3"></i>
+                            <div>
+                                <h4>Item Claimed</h4>
+                                <p>The owner has claimed this item and is coordinating the return with the finder.</p>
+                            </div>
                         </div>
                         {% elif item.status == 'resolved' %}
-                        <div class="alert alert-secondary mt-3">
-                            <i class="fas fa-archive me-2"></i>
-                            <strong>This item has been resolved.</strong> The case is closed.
+                        <div class="status-alert resolved">
+                            <i class="fas fa-archive me-3"></i>
+                            <div>
+                                <h4>Case Resolved</h4>
+                                <p>This item has been successfully returned or the case has been closed.</p>
+                            </div>
                         </div>
                         {% endif %}
                     </div>
@@ -128,4 +300,346 @@
         </div>
     </div>
 </div>
-{% endblock %}
+
+<style>
+/* Item Details Specific Styles */
+.item-details-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    margin-bottom: 2rem;
+}
+
+.item-title-section {
+    display: flex;
+    justify-content: between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.item-title-section h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    flex: 1;
+}
+
+.item-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+.item-badges {
+    display: flex;
+    gap: 0.75rem;
+    margin-left: 2rem;
+}
+
+.type-badge, .status-badge {
+    padding: 0.5em 1em;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.type-lost { background: #fef3c7; color: #92400e; }
+.type-found { background: #d1fae5; color: #065f46; }
+.status-pending { background: #dbeafe; color: #1e40af; }
+.status-claimed { background: #f3e8ff; color: #6b21a8; }
+.status-resolved { background: #f1f5f9; color: #475569; }
+
+/* Details Container */
+.item-details-container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    min-height: 600px;
+}
+
+/* Image Column */
+.image-column {
+    background: #f8fafc;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid #f1f5f9;
+}
+
+.item-image-card {
+    text-align: center;
+    max-width: 100%;
+}
+
+.item-image-large {
+    max-height: 400px;
+    max-width: 100%;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    object-fit: contain;
+}
+
+.ai-feature-badge {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 0.5em 1em;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.no-image-card {
+    text-align: center;
+    color: #94a3b8;
+    padding: 3rem 2rem;
+}
+
+.no-image-card i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.no-image-card h4 {
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.no-image-card p {
+    margin-bottom: 0;
+}
+
+/* Details Column */
+.details-column {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Info Cards Grid */
+.info-cards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.info-card {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    background: #f1f5f9;
+    transform: translateY(-2px);
+}
+
+.info-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: white;
+}
+
+.info-icon.category { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+.info-icon.location { background: linear-gradient(135deg, #10b981, #059669); }
+.info-icon.date { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.info-icon.reporter { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+.info-content label {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.info-content h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0;
+}
+
+/* Description Card */
+.description-card {
+    background: white;
+    border: 1px solid #f1f5f9;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.description-card .card-header {
+    background: #f8fafc;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+}
+
+.description-card .card-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0;
+}
+
+.description-card .card-content {
+    padding: 1.5rem;
+}
+
+.description-card .card-content p {
+    color: #374151;
+    line-height: 1.6;
+    margin-bottom: 0;
+    font-size: 1.05rem;
+}
+
+/* Action Section */
+.action-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.match-alert {
+    background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+    border: 1px solid #bae6fd;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    color: #0369a1;
+}
+
+.match-alert i {
+    font-size: 1.5rem;
+}
+
+.match-alert h4 {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.match-alert p {
+    margin-bottom: 0;
+    opacity: 0.9;
+}
+
+.primary-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-width: 200px;
+}
+
+.claim-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.claim-btn:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+}
+
+.resolve-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.resolve-btn:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+}
+
+.contact-btn {
+    background: white;
+    color: #374151;
+    border: 2px solid #e5e7eb;
+}
+
+.contact-btn:hover {
+    background: #f8fafc;
+    border-color: #6366f1;
+    color: #6366f1;
+    text-decoration: none;
+    transform: translateY(-2px);
+}
+
+.secondary-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.navigation-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-btn {
+    background: #f8fafc;
+    color: #374151;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    justify-content: center;
+}
+
+.nav-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.status-alert {
+    padding: 1.5rem;
+    border-radius: 12px;
+    display

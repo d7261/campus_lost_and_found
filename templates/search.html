@@ -1,242 +1,1128 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Search Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card bg-light">
-                <div class="card-body">
-                    <h2 class="card-title"><i class="fas fa-search"></i> Search Lost & Found Items</h2>
-                    <form method="GET" action="{{ url_for('search') }}" class="row g-3">
-                        <div class="col-md-8">
-                            <input type="text" name="q" class="form-control form-control-lg" 
-                                   placeholder="Search by item name, description, category, or location..." 
-                                   value="{{ query }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <button type="submit" class="btn btn-primary btn-lg w-100">
-                                <i class="fas fa-search"></i> Search
-                            </button>
-                        </div>
-                    </form>
+<!-- Sidebar -->
+<div class="dashboard-sidebar">
+    <!-- User Profile at Top -->
+    <div class="sidebar-user-profile">
+        <div class="user-avatar-large">
+            {{ current_user.username[0]|upper }}
+        </div>
+        <div class="user-info-main">
+            <h4>{{ current_user.username }}</h4>
+            <p class="user-role">{{ current_user.role|title }}</p>
+            <div class="user-stats">
+                <div class="stat">
+                    <strong>{{ current_user.items|length }}</strong>
+                    <span>Reports</span>
+                </div>
+                <div class="stat">
+                    {% set new_notifications = [] %}
+                    {% for notification in current_user.notifications %}
+                        {% if not notification.is_seen %}
+                            {% set _ = new_notifications.append(notification) %}
+                        {% endif %}
+                    {% endfor %}
+                    <strong>{{ new_notifications|length }}</strong>
+                    <span>Alerts</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Search Results -->
-    {% if query %}
-    <div class="row">
-        <div class="col-12">
-            <h4 class="mb-3">
-                {% if items %}
-                Search Results for "{{ query }}"
-                <span class="badge bg-primary">{{ items|length }} items found</span>
-                {% else %}
-                No results found for "{{ query }}"
-                {% endif %}
-            </h4>
+    <!-- App Logo -->
+    <div class="sidebar-header">
+        <div class="logo">
+            <i class="fas fa-search-location"></i>
+            <span>Campus Lost & Found</span>
         </div>
     </div>
+    
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+        <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            <div class="nav-icon">
+                <i class="fas fa-home"></i>
+            </div>
+            <span class="nav-text">Dashboard</span>
+            <div class="nav-indicator"></div>
+        </a>
+        
+        <a href="{{ url_for('search') }}" class="nav-item {% if request.endpoint == 'search' %}active{% endif %}">
+            <div class="nav-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <span class="nav-text">Search Items</span>
+            <div class="nav-indicator"></div>
+        </a>
+        
+        <a href="{{ url_for('reporting.report_item') }}" class="nav-item {% if request.endpoint == 'reporting.report_item' %}active{% endif %}">
+            <div class="nav-icon">
+                <i class="fas fa-plus-circle"></i>
+            </div>
+            <span class="nav-text">Report Item</span>
+            <div class="nav-indicator"></div>
+        </a>
+        
+        <a href="{{ url_for('reporting.my_items') }}" class="nav-item {% if request.endpoint == 'reporting.my_items' %}active{% endif %}">
+            <div class="nav-icon">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <span class="nav-text">My Reports</span>
+            <div class="nav-indicator"></div>
+        </a>
+        
+        <a href="{{ url_for('notifications') }}" class="nav-item {% if request.endpoint == 'notifications' %}active{% endif %}">
+            <div class="nav-icon">
+                <i class="fas fa-bell"></i>
+                {% if new_notifications|length > 0 %}
+                <span class="nav-badge">{{ new_notifications|length }}</span>
+                {% endif %}
+            </div>
+            <span class="nav-text">Notifications</span>
+            <div class="nav-indicator"></div>
+        </a>
+        
+        <a href="{{ url_for('campus_locations') }}" class="nav-item {% if request.endpoint == 'campus_locations' %}active{% endif %}">
+            <div class="nav-icon">
+                <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <span class="nav-text">Campus Locations</span>
+            <div class="nav-indicator"></div>
+        </a>
+    </nav>
 
-    {% if items %}
-    <div class="row">
-        {% for item in items %}
-        <div class="col-md-6 mb-4">
-            <div class="card card-hover h-100">
-                <!-- Card Header -->
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="badge bg-{% if item.type == 'lost' %}danger{% else %}success{% endif %}">
-                        {{ item.type|title }}
-                    </span>
-                    <span class="badge bg-{% if item.status == 'pending' %}warning{% elif item.status == 'claimed' %}info{% else %}success{% endif %}">
-                        {{ item.status|title }}
-                    </span>
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+        <div class="app-stats">
+            <div class="stat-item">
+                <i class="fas fa-users"></i>
+                <span>Active Community</span>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-handshake"></i>
+                <span>Helping Students</span>
+            </div>
+        </div>
+        <div class="logout-section">
+            <a href="{{ url_for('auth.logout') }}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+    <!-- Main Content -->
+    <div class="dashboard-main">
+        <!-- Search Header -->
+        <div class="search-header">
+            <div class="header-content">
+                <h1><i class="fas fa-search me-3"></i>Search Lost & Found Items</h1>
+                <p class="lead">Find missing items or discover found belongings across campus</p>
+            </div>
+            
+            <div class="search-form-container">
+                <form method="GET" action="{{ url_for('search') }}" class="search-form">
+                    <div class="search-input-group">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" name="q" class="search-input" 
+                               placeholder="Search by item name, description, category, or location..." 
+                               value="{{ query }}" required>
+                        <button type="submit" class="search-btn">
+                            <i class="fas fa-search"></i>
+                            Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        {% if query %}
+        <div class="results-section">
+            <div class="section-header">
+                <div class="results-info">
+                    <h2>
+                        {% if items %}
+                        Search Results for "{{ query }}"
+                        <span class="results-count">{{ items|length }} items found</span>
+                        {% else %}
+                        No results found for "{{ query }}"
+                        {% endif %}
+                    </h2>
                 </div>
-                
-                <!-- Item Image -->
-                {% if item.image_path %}
-                <div class="text-center p-3 border-bottom">
-                    <div class="position-relative d-inline-block">
-                        <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
-                             class="card-img-top search-item-image" 
-                             alt="{{ item.title }}"
-                             style="max-height: 200px; width: auto; object-fit: contain;"
-                             onerror="this.style.display='none'">
-                        {% if item.embedding %}
-                        <div class="ai-badge" title="AI Image Recognition Enabled">
-                            <i class="fas fa-robot"></i>
+            </div>
+
+            {% if items %}
+            <div class="items-grid">
+                {% for item in items %}
+                <div class="item-card">
+                    <!-- Card Header -->
+                    <div class="card-header">
+                        <div class="item-badges">
+                            <span class="type-badge type-{{ item.type }}">
+                                <i class="fas fa-{% if item.type == 'lost' %}search{% else %}hand-holding{% endif %} me-1"></i>
+                                {{ item.type|title }}
+                            </span>
+                            <span class="status-badge status-{{ item.status }}">
+                                {{ item.status|title }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Item Image -->
+                    <div class="card-image">
+                        {% if item.image_path %}
+                        <div class="image-container">
+                            <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
+                                 class="item-image" 
+                                 alt="{{ item.title }}"
+                                 onerror="this.style.display='none'">
+                            {% if item.embedding %}
+                            <div class="ai-badge" title="AI Image Recognition Enabled">
+                                <i class="fas fa-robot"></i>
+                                AI
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="no-image">
+                            <i class="fas fa-image"></i>
+                            <span>No image available</span>
                         </div>
                         {% endif %}
                     </div>
-                </div>
-                {% else %}
-                <div class="text-center p-3 border-bottom bg-light">
-                    <i class="fas fa-image fa-3x text-muted mb-2"></i>
-                    <p class="text-muted small mb-0">No image available</p>
-                </div>
-                {% endif %}
-                
-                <!-- Card Body -->
-                <div class="card-body">
-                    <h5 class="card-title">{{ item.title }}</h5>
-                    <p class="card-text">{{ item.description }}</p>
                     
-                    <div class="item-details mb-3">
-                        <small class="text-muted">
-                            <i class="fas fa-tag"></i> {{ item.category }} • 
-                            <i class="fas fa-map-marker-alt"></i> {{ item.location }} •
-                            <i class="fas fa-calendar"></i> {{ item.date_lost_found.strftime('%Y-%m-%d') }}
-                        </small>
+                    <!-- Card Content -->
+                    <div class="card-content">
+                        <h3 class="item-title">{{ item.title }}</h3>
+                        <p class="item-description">{{ item.description }}</p>
+                        
+                        <div class="item-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-tag"></i>
+                                <span>{{ item.category }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>{{ item.location }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>{{ item.date_lost_found.strftime('%b %d, %Y') }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="reporter-info">
+                            <div class="reporter-avatar">
+                                {{ item.owner.username[0]|upper }}
+                            </div>
+                            <div class="reporter-details">
+                                <strong>Reported by {{ item.owner.username }}</strong>
+                                <small>{{ item.created_at.strftime('%b %d, %Y') }}</small>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="reporter-info">
-                        <small class="text-muted">
-                            <i class="fas fa-user"></i> <strong>Reported by:</strong> {{ item.owner.username }}
-                        </small>
+                    <!-- Card Actions -->
+                    <div class="card-actions">
+                        {% if item.type == 'found' and item.status == 'pending' %}
+                        <form method="POST" action="{{ url_for('claim_item', item_id=item.id) }}" class="claim-form">
+                            <button type="submit" class="claim-btn" 
+                                    onclick="return confirm('Are you sure this is your item? This will notify the finder.')">
+                                <i class="fas fa-hand-paper me-2"></i>
+                                Claim This Item
+                            </button>
+                        </form>
+                        {% elif item.type == 'lost' %}
+                        <div class="contact-notice">
+                            <i class="fas fa-info-circle me-2"></i>
+                            If found, please contact the reporter
+                        </div>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('view_item', item_id=item.id) }}" class="view-details-btn">
+                            <i class="fas fa-eye me-2"></i>
+                            View Details
+                        </a>
                     </div>
                 </div>
-                
-                <!-- Card Footer -->
-                <div class="card-footer bg-transparent">
-                    {% if item.type == 'found' and item.status == 'pending' %}
-                    <form method="POST" action="{{ url_for('claim_item', item_id=item.id) }}" class="d-grid">
-                        <button type="submit" class="btn btn-success btn-sm">
-                            <i class="fas fa-hand-paper"></i> Claim This Item
-                        </button>
-                    </form>
-                    {% elif item.type == 'lost' %}
-                    <div class="text-center">
-                        <small class="text-muted">If found, please contact the reporter</small>
-                    </div>
-                    {% endif %}
-                    
-                    <div class="mt-2 text-center">
-                        <small class="text-muted">
-                            Reported {{ item.created_at.strftime('%b %d, %Y') }}
-                        </small>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- No Results Message -->
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>No items found matching "{{ query }}"</h3>
+                <p class="text-muted">
+                    Try searching with different keywords or check the spelling.
+                </p>
+                <div class="search-tips">
+                    <h4>Search Tips:</h4>
+                    <div class="tips-grid">
+                        <div class="tip-card">
+                            <i class="fas fa-keyboard"></i>
+                            <h5>Use General Terms</h5>
+                            <p>Try "phone" instead of "iPhone 13"</p>
+                        </div>
+                        <div class="tip-card">
+                            <i class="fas fa-map"></i>
+                            <h5>Search by Location</h5>
+                            <p>Try "library", "cafeteria", "lab"</p>
+                        </div>
+                        <div class="tip-card">
+                            <i class="fas fa-tags"></i>
+                            <h5>Browse Categories</h5>
+                            <p>Search by item type like "book", "jacket"</p>
+                        </div>
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <!-- No Results Message -->
-    <div class="text-center py-5">
-        <i class="fas fa-search fa-4x text-muted mb-3"></i>
-        <h4>No items found matching "{{ query }}"</h4>
-        <p class="text-muted mb-4">
-            Try searching with different keywords or check the spelling.
-        </p>
-        <div class="suggestions">
-            <h6>Search Tips:</h6>
-            <ul class="list-unstyled">
-                <li>• Try more general keywords</li>
-                <li>• Check different categories</li>
-                <li>• Search by location (e.g., "library", "cafeteria")</li>
-            </ul>
-        </div>
-    </div>
-    {% endif %}
-    {% endif %}
+        {% endif %}
 
-    <!-- Browse All Items (when no search query) -->
-    {% if not query %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center py-5">
-                    <i class="fas fa-search fa-4x text-primary mb-3"></i>
-                    <h3>Start Your Search</h3>
-                    <p class="text-muted mb-4">
-                        Enter keywords in the search box above to find lost or found items across campus.
-                    </p>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <div class="card border-0 bg-light">
-                                <div class="card-body">
-                                    <i class="fas fa-mobile-alt fa-2x text-primary mb-2"></i>
-                                    <h6>Electronics</h6>
-                                    <small class="text-muted">Phones, laptops, headphones</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="card border-0 bg-light">
-                                <div class="card-body">
-                                    <i class="fas fa-book fa-2x text-success mb-2"></i>
-                                    <h6>Books & Notes</h6>
-                                    <small class="text-muted">Textbooks, notebooks, documents</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="card border-0 bg-light">
-                                <div class="card-body">
-                                    <i class="fas fa-tshirt fa-2x text-warning mb-2"></i>
-                                    <h6>Clothing</h6>
-                                    <small class="text-muted">Jackets, bags, accessories</small>
-                                </div>
-                            </div>
-                        </div>
+        <!-- Browse Categories (when no search query) -->
+        {% if not query %}
+        <div class="categories-section">
+            <div class="section-header">
+                <h2>Browse Categories</h2>
+                <p>Start by searching or explore common categories</p>
+            </div>
+            
+            <div class="categories-grid">
+                <div class="category-card electronics">
+                    <div class="category-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="category-content">
+                        <h4>Electronics</h4>
+                        <p>Phones, laptops, headphones, chargers</p>
+                        <small>Most common category</small>
+                    </div>
+                </div>
+                
+                <div class="category-card books">
+                    <div class="category-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="category-content">
+                        <h4>Books & Notes</h4>
+                        <p>Textbooks, notebooks, documents</p>
+                        <small>Academic materials</small>
+                    </div>
+                </div>
+                
+                <div class="category-card clothing">
+                    <div class="category-icon">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <div class="category-content">
+                        <h4>Clothing</h4>
+                        <p>Jackets, bags, hats, accessories</p>
+                        <small>Personal items</small>
+                    </div>
+                </div>
+                
+                <div class="category-card personal">
+                    <div class="category-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="category-content">
+                        <h4>Personal Items</h4>
+                        <p>Wallets, keys, ID cards, glasses</p>
+                        <small>Important documents</small>
+                    </div>
+                </div>
+                
+                <div class="category-card accessories">
+                    <div class="category-icon">
+                        <i class="fas fa-mug-hot"></i>
+                    </div>
+                    <div class="category-content">
+                        <h4>Accessories</h4>
+                        <p>Water bottles, lunch boxes, umbrellas</p>
+                        <small>Everyday items</small>
+                    </div>
+                </div>
+                
+                <div class="category-card other">
+                    <div class="category-icon">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </div>
+                    <div class="category-content">
+                        <h4>Other Items</h4>
+                        <p>Sports equipment, instruments, etc.</p>
+                        <small>Miscellaneous items</small>
                     </div>
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
 
 <style>
-.search-item-image {
-    transition: transform 0.3s ease;
-    border-radius: 8px;
+/* Search Page Specific Styles */
+.search-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    margin-bottom: 2rem;
 }
 
-.search-item-image:hover {
-    transform: scale(1.05);
+.header-content h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
 }
 
-.card-hover {
+.header-content .lead {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+}
+
+.search-form-container {
+    max-width: 800px;
+}
+
+.search-input-group {
+    display: flex;
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.search-icon {
+    padding: 1rem 1.5rem;
+    color: #64748b;
+    font-size: 1.2rem;
+}
+
+.search-input {
+    flex: 1;
+    border: none;
+    padding: 1rem 0;
+    font-size: 1.1rem;
+    outline: none;
+}
+
+.search-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
     transition: all 0.3s ease;
-    border: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.card-hover:hover {
+.search-btn:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+}
+
+/* Results Section */
+.results-section {
+    margin-bottom: 2rem;
+}
+
+.results-info h2 {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0;
+}
+
+.results-count {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* Items Grid */
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.item-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.item-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    border-color: #007bff;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.item-badges {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.type-badge, .status-badge {
+    padding: 0.35em 0.75em;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.type-lost { background: #fef3c7; color: #92400e; }
+.type-found { background: #d1fae5; color: #065f46; }
+.status-pending { background: #dbeafe; color: #1e40af; }
+.status-claimed { background: #f3e8ff; color: #6b21a8; }
+.status-resolved { background: #f1f5f9; color: #475569; }
+
+/* Card Image */
+.card-image {
+    position: relative;
+}
+
+.image-container {
+    position: relative;
+    padding: 1rem;
+    text-align: center;
+}
+
+.item-image {
+    max-height: 200px;
+    width: auto;
+    border-radius: 10px;
+    object-fit: contain;
 }
 
 .ai-badge {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    top: 1.5rem;
+    right: 1.5rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
-    padding: 4px 8px;
+    padding: 0.35em 0.75em;
     border-radius: 12px;
     font-size: 0.7rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
-.item-details {
-    border-top: 1px solid #e9ecef;
-    padding-top: 10px;
-    margin-top: 10px;
+.no-image {
+    padding: 3rem 2rem;
+    text-align: center;
+    background: #f8fafc;
+    color: #94a3b8;
+}
+
+.no-image i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+/* Card Content */
+.card-content {
+    padding: 1.5rem;
+}
+
+.item-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #1e293b;
+}
+
+.item-description {
+    color: #64748b;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.item-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #64748b;
+    font-size: 0.875rem;
+}
+
+.meta-item i {
+    width: 16px;
+    color: #94a3b8;
 }
 
 .reporter-info {
-    border-top: 1px solid #e9ecef;
-    padding-top: 10px;
-    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f1f5f9;
 }
 
-.suggestions {
-    max-width: 400px;
-    margin: 0 auto;
+.reporter-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.reporter-details strong {
+    display: block;
+    font-size: 0.875rem;
+    color: #1e293b;
+}
+
+.reporter-details small {
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+/* Card Actions */
+.card-actions {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #f1f5f9;
+    background: #f8fafc;
+}
+
+.claim-form {
+    margin-bottom: 1rem;
+}
+
+.claim-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.claim-btn:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+}
+
+.contact-notice {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.view-details-btn {
+    display: block;
+    text-align: center;
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.view-details-btn:hover {
+    background: #dbeafe;
+    color: #1d4ed8;
+    text-decoration: none;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.empty-state .empty-icon {
+    font-size: 4rem;
+    color: #cbd5e1;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h3 {
+    color: #4a5568;
+    margin-bottom: 1rem;
+}
+
+.search-tips {
+    max-width: 600px;
+    margin: 2rem auto 0;
+}
+
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.tip-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+    text-align: center;
+}
+
+.tip-card i {
+    font-size: 2rem;
+    color: #667eea;
+    margin-bottom: 1rem;
+}
+
+.tip-card h5 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #1e293b;
+}
+
+.tip-card p {
+    color: #64748b;
+    font-size: 0.875rem;
+    margin-bottom: 0;
+}
+
+/* Categories Section */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.category-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-color: #3b82f6;
+}
+
+.category-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.category-card.electronics .category-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+.category-card.books .category-icon { background: linear-gradient(135deg, #10b981, #059669); }
+.category-card.clothing .category-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.category-card.personal .category-icon { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.category-card.accessories .category-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.category-card.other .category-icon { background: linear-gradient(135deg, #64748b, #475569); }
+
+.category-content h4 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #1e293b;
+}
+
+.category-content p {
+    color: #64748b;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.category-content small {
+    color: #94a3b8;
+    font-size: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .items-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-input-group {
+        flex-direction: column;
+    }
+    
+    .search-btn {
+        border-radius: 0 0 15px 15px;
+    }
+    
+    .categories-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .category-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .header-content h1 {
+        font-size: 2rem;
+    }
+}
+/* Impressive Sidebar Styles */
+.dashboard-sidebar {
+    width: 300px;
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+    border-right: 1px solid #334155;
+}
+
+/* User Profile at Top */
+.sidebar-user-profile {
+    padding: 2rem 1.5rem 1.5rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+    border-bottom: 1px solid #334155;
+    text-align: center;
+}
+
+.user-avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0 auto 1rem;
+    border: 3px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+}
+
+.user-info-main h4 {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: white;
+}
+
+.user-role {
+    color: #94a3b8;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.user-stats {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+.user-stats .stat {
+    text-align: center;
+}
+
+.user-stats .stat strong {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+}
+
+.user-stats .stat span {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+/* App Logo */
+.sidebar-header {
+    padding: 1.5rem 1.5rem 1rem;
+    border-bottom: 1px solid #334155;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.logo i {
+    font-size: 1.5rem;
+    color: #6366f1;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Navigation */
+.sidebar-nav {
+    flex: 1;
+    padding: 1rem 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    color: #cbd5e1;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    margin: 0.25rem 0.5rem;
+    border-radius: 12px;
+}
+
+.nav-item:hover {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+    color: white;
+    transform: translateX(5px);
+}
+
+.nav-item.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.nav-icon {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ef4444;
+    color: white;
+    border-radius: 10px;
+    padding: 0.2em 0.5em;
+    font-size: 0.7rem;
+    font-weight: 600;
+    min-width: 18px;
+    text-align: center;
+}
+
+.nav-text {
+    font-weight: 500;
+    flex: 1;
+}
+
+.nav-indicator {
+    width: 4px;
+    height: 20px;
+    background: #6366f1;
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.nav-item.active .nav-indicator {
+    opacity: 1;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    padding: 1.5rem;
+    border-top: 1px solid #334155;
+}
+
+.app-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #94a3b8;
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.stat-item i {
+    color: #6366f1;
+}
+
+.logout-section {
+    border-top: 1px solid #334155;
+    padding-top: 1rem;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: #ef4444;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.logout-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    text-decoration: none;
+}
+
+/* Main Content Adjustment */
+.dashboard-main {
+    flex: 1;
+    margin-left: 300px;
+    padding: 2rem;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+/* Mobile Responsive */
+@media (max-width: 1024px) {
+    .dashboard-sidebar {
+        width: 280px;
+    }
+    
+    .dashboard-main {
+        margin-left: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        width: 280px;
+    }
+    
+    .dashboard-sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    
+    .dashboard-main {
+        margin-left: 0;
+        padding: 1rem;
+    }
+    
+    /* Mobile menu toggle button */
+    .mobile-menu-toggle {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1001;
+        background: #6366f1;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+}
+</style>
+
+<!-- Include the sidebar styles from dashboard -->
+<style>
+/* Copy all the sidebar styles from the dashboard template here */
+.dashboard-container { display: flex; min-height: 100vh; background: #f8fafc; }
+.dashboard-sidebar { width: 280px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; display: flex; flex-direction: column; position: fixed; height: 100vh; left: 0; top: 0; z-index: 1000; }
+.sidebar-header { padding: 2rem 1.5rem 1rem; border-bottom: 1px solid #475569; }
+.logo { display: flex; align-items: center; gap: 0.75rem; font-weight: 700; font-size: 1.25rem; }
+.logo i { font-size: 1.5rem; color: #60a5fa; }
+.sidebar-nav { flex: 1; padding: 1.5rem 0; }
+.nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1.5rem; color: #cbd5e1; text-decoration: none; transition: all 0.3s ease; position: relative; border-left: 3px solid transparent; }
+.nav-item:hover { background: rgba(255,255,255,0.1); color: white; border-left-color: #60a5fa; }
+.nav-item.active { background: rgba(255,255,255,0.15); color: white; border-left-color: #3b82f6; }
+.nav-item i { width: 20px; text-align: center; }
+.notification-badge { background: #ef4444; color: white; border-radius: 10px; padding: 0.25em 0.5em; font-size: 0.75rem; margin-left: auto; }
+.sidebar-footer { padding: 1.5rem; border-top: 1px solid #475569; }
+.user-info { display: flex; align-items: center; gap: 0.75rem; }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #60a5fa, #3b82f6); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem; }
+.user-details { flex: 1; }
+.user-details strong { display: block; font-size: 0.875rem; }
+.user-details small { color: #94a3b8; font-size: 0.75rem; }
+.dashboard-main { flex: 1; margin-left: 280px; padding: 2rem; }
+.section-header { margin-bottom: 1.5rem; }
+.section-header h2 { font-weight: 700; color: #1e293b; margin-bottom: 0.5rem; }
+.section-header p { color: #64748b; margin-bottom: 0; }
+
+@media (max-width: 768px) {
+    .dashboard-sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+    .dashboard-sidebar.mobile-open { transform: translateX(0); }
+    .dashboard-main { margin-left: 0; padding: 1rem; }
 }
 </style>
 {% endblock %}
