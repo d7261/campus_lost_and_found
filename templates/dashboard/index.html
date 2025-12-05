@@ -1,1088 +1,697 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Sidebar -->
-<div class="dashboard-sidebar">
-    <!-- User Profile at Top -->
-    <div class="sidebar-user-profile">
-        <div class="user-avatar-large">
-            {{ current_user.username[0]|upper }}
-        </div>
-        <div class="user-info-main">
-            <h4>{{ current_user.username }}</h4>
-            <p class="user-role">{{ current_user.role|title }}</p>
-            <div class="user-stats">
-                <div class="stat">
-                    <strong>{{ current_user.items|length }}</strong>
-                    <span>Reports</span>
+    <!-- Welcome Header -->
+    <div class="welcome-section">
+        <h1>Welcome back, {{ current_user.username }}! 👋</h1>
+        <p>Manage your lost and found items, search for missing belongings, and help others reunite with their items.</p>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stats-grid">
+        <div class="stat-card stat-primary">
+            <div class="stat-content">
+                <div class="stat-info">
+                    <h3>{{ current_user.items|length }}</h3>
+                    <p>Total Reports</p>
                 </div>
-                <div class="stat">
+                <div class="stat-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+            </div>
+            <div class="stat-trend">
+                <i class="fas fa-chart-line"></i>
+                <span>All time</span>
+            </div>
+        </div>
+        
+        <div class="stat-card stat-success">
+            <div class="stat-content">
+                <div class="stat-info">
+                    {% set found_items = [] %}
+                    {% for item in current_user.items %}
+                        {% if item.type == 'found' %}
+                            {% set _ = found_items.append(item) %}
+                        {% endif %}
+                    {% endfor %}
+                    <h3>{{ found_items|length }}</h3>
+                    <p>Found Items</p>
+                </div>
+                <div class="stat-icon">
+                    <i class="fas fa-hand-holding-heart"></i>
+                </div>
+            </div>
+            <div class="stat-trend">
+                <i class="fas fa-{% if found_items|length > 0 %}arrow-up{% else %}minus{% endif %}"></i>
+                <span>Helping others</span>
+            </div>
+        </div>
+        
+        <div class="stat-card stat-warning">
+            <div class="stat-content">
+                <div class="stat-info">
+                    {% set lost_items = [] %}
+                    {% for item in current_user.items %}
+                        {% if item.type == 'lost' %}
+                            {% set _ = lost_items.append(item) %}
+                        {% endif %}
+                    {% endfor %}
+                    <h3>{{ lost_items|length }}</h3>
+                    <p>Lost Items</p>
+                </div>
+                <div class="stat-icon">
+                    <i class="fas fa-search-location"></i>
+                </div>
+            </div>
+            <div class="stat-trend">
+                <i class="fas fa-{% if lost_items|length > 0 %}exclamation{% else %}check{% endif %}"></i>
+                <span>{% if lost_items|length > 0 %}Needs attention{% else %}All good{% endif %}</span>
+            </div>
+        </div>
+        
+        <div class="stat-card stat-info">
+            <div class="stat-content">
+                <div class="stat-info">
                     {% set new_notifications = [] %}
                     {% for notification in current_user.notifications %}
                         {% if not notification.is_seen %}
                             {% set _ = new_notifications.append(notification) %}
                         {% endif %}
                     {% endfor %}
-                    <strong>{{ new_notifications|length }}</strong>
-                    <span>Alerts</span>
+                    <h3>{{ new_notifications|length }}</h3>
+                    <p>New Alerts</p>
+                </div>
+                <div class="stat-icon">
+                    <i class="fas fa-bell"></i>
                 </div>
             </div>
+            <div class="stat-trend">
+                <i class="fas fa-{% if new_notifications|length > 0 %}envelope{% else %}envelope-open{% endif %}"></i>
+                <span>{% if new_notifications|length > 0 %}Unread{% else %}All read{% endif %}</span>
+            </div>
         </div>
     </div>
 
-    <!-- App Logo -->
-    <div class="sidebar-header">
-        <div class="logo">
-            <i class="fas fa-search-location"></i>
-            <span>Campus Lost & Found</span>
+    <!-- Quick Actions -->
+    <div class="section">
+        <div class="section-header">
+            <h2>Quick Actions</h2>
+            <p>Get things done quickly</p>
         </div>
-    </div>
-    
-    <!-- Navigation -->
-    <nav class="sidebar-nav">
-        <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
-            <div class="nav-icon">
-                <i class="fas fa-home"></i>
-            </div>
-            <span class="nav-text">Dashboard</span>
-            <div class="nav-indicator"></div>
-        </a>
-        
-        <a href="{{ url_for('search') }}" class="nav-item {% if request.endpoint == 'search' %}active{% endif %}">
-            <div class="nav-icon">
-                <i class="fas fa-search"></i>
-            </div>
-            <span class="nav-text">Search Items</span>
-            <div class="nav-indicator"></div>
-        </a>
-        
-        <a href="{{ url_for('reporting.report_item') }}" class="nav-item {% if request.endpoint == 'reporting.report_item' %}active{% endif %}">
-            <div class="nav-icon">
-                <i class="fas fa-plus-circle"></i>
-            </div>
-            <span class="nav-text">Report Item</span>
-            <div class="nav-indicator"></div>
-        </a>
-        
-        <a href="{{ url_for('reporting.my_items') }}" class="nav-item {% if request.endpoint == 'reporting.my_items' %}active{% endif %}">
-            <div class="nav-icon">
-                <i class="fas fa-clipboard-list"></i>
-            </div>
-            <span class="nav-text">My Reports</span>
-            <div class="nav-indicator"></div>
-        </a>
-        
-        <a href="{{ url_for('notifications') }}" class="nav-item {% if request.endpoint == 'notifications' %}active{% endif %}">
-            <div class="nav-icon">
-                <i class="fas fa-bell"></i>
-                {% if new_notifications|length > 0 %}
-                <span class="nav-badge">{{ new_notifications|length }}</span>
-                {% endif %}
-            </div>
-            <span class="nav-text">Notifications</span>
-            <div class="nav-indicator"></div>
-        </a>
-        
-        <a href="{{ url_for('campus_locations') }}" class="nav-item {% if request.endpoint == 'campus_locations' %}active{% endif %}">
-            <div class="nav-icon">
-                <i class="fas fa-map-marker-alt"></i>
-            </div>
-            <span class="nav-text">Campus Locations</span>
-            <div class="nav-indicator"></div>
-        </a>
-    </nav>
-
-    <!-- Sidebar Footer -->
-    <div class="sidebar-footer">
-        <div class="app-stats">
-            <div class="stat-item">
-                <i class="fas fa-users"></i>
-                <span>Active Community</span>
-            </div>
-            <div class="stat-item">
-                <i class="fas fa-handshake"></i>
-                <span>Helping Students</span>
-            </div>
-        </div>
-        <div class="logout-section">
-            <a href="{{ url_for('auth.logout') }}" class="logout-btn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
+        <div class="actions-grid">
+            <a href="{{ url_for('search') }}" class="action-card">
+                <div class="action-icon search">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="action-content">
+                    <h4>Search Items</h4>
+                    <p>Look for lost or found items across campus</p>
+                </div>
+                <div class="action-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('reporting.report_item') }}" class="action-card">
+                <div class="action-icon report">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="action-content">
+                    <h4>Report Item</h4>
+                    <p>Report lost or submit found items</p>
+                </div>
+                <div class="action-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('reporting.my_items') }}" class="action-card">
+                <div class="action-icon history">
+                    <i class="fas fa-history"></i>
+                </div>
+                <div class="action-content">
+                    <h4>My Reports</h4>
+                    <p>View and manage your reports</p>
+                </div>
+                <div class="action-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('notifications') }}" class="action-card">
+                <div class="action-icon notifications">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="action-content">
+                    <h4>Notifications</h4>
+                    <p>Check your alerts and matches</p>
+                </div>
+                <div class="action-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
             </a>
         </div>
     </div>
-</div>
 
-    <!-- Main Content -->
-    <div class="dashboard-main">
-        <!-- Welcome Header -->
-        <div class="welcome-section">
-            <h1>Welcome back, {{ current_user.username }}! 👋</h1>
-            <p>Manage your lost and found items, search for missing belongings, and help others reunite with their items.</p>
+    <!-- Recent Activity -->
+    <div class="section">
+        <div class="section-header">
+            <h2>Recent Activity</h2>
+            <p>Your latest reported items</p>
         </div>
-
-        <!-- Quick Stats -->
-        <div class="stats-grid">
-            <div class="stat-card stat-primary">
-                <div class="stat-content">
-                    <div class="stat-info">
-                        <h3>{{ current_user.items|length }}</h3>
-                        <p>Total Reports</p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-clipboard-list"></i>
-                    </div>
-                </div>
-                <div class="stat-trend">
-                    <i class="fas fa-chart-line"></i>
-                    <span>All time</span>
-                </div>
-            </div>
-            
-            <div class="stat-card stat-success">
-                <div class="stat-content">
-                    <div class="stat-info">
-                        {% set found_items = [] %}
-                        {% for item in current_user.items %}
-                            {% if item.type == 'found' %}
-                                {% set _ = found_items.append(item) %}
-                            {% endif %}
-                        {% endfor %}
-                        <h3>{{ found_items|length }}</h3>
-                        <p>Found Items</p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-hand-holding-heart"></i>
-                    </div>
-                </div>
-                <div class="stat-trend">
-                    <i class="fas fa-{% if found_items|length > 0 %}arrow-up{% else %}minus{% endif %}"></i>
-                    <span>Helping others</span>
-                </div>
-            </div>
-            
-            <div class="stat-card stat-warning">
-                <div class="stat-content">
-                    <div class="stat-info">
-                        {% set lost_items = [] %}
-                        {% for item in current_user.items %}
-                            {% if item.type == 'lost' %}
-                                {% set _ = lost_items.append(item) %}
-                            {% endif %}
-                        {% endfor %}
-                        <h3>{{ lost_items|length }}</h3>
-                        <p>Lost Items</p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-search-location"></i>
-                    </div>
-                </div>
-                <div class="stat-trend">
-                    <i class="fas fa-{% if lost_items|length > 0 %}exclamation{% else %}check{% endif %}"></i>
-                    <span>{% if lost_items|length > 0 %}Needs attention{% else %}All good{% endif %}</span>
-                </div>
-            </div>
-            
-            <div class="stat-card stat-info">
-                <div class="stat-content">
-                    <div class="stat-info">
-                        {% set new_notifications = [] %}
-                        {% for notification in current_user.notifications %}
-                            {% if not notification.is_seen %}
-                                {% set _ = new_notifications.append(notification) %}
-                            {% endif %}
-                        {% endfor %}
-                        <h3>{{ new_notifications|length }}</h3>
-                        <p>New Alerts</p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-bell"></i>
-                    </div>
-                </div>
-                <div class="stat-trend">
-                    <i class="fas fa-{% if new_notifications|length > 0 %}envelope{% else %}envelope-open{% endif %}"></i>
-                    <span>{% if new_notifications|length > 0 %}Unread{% else %}All read{% endif %}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="section">
-            <div class="section-header">
-                <h2>Quick Actions</h2>
-                <p>Get things done quickly</p>
-            </div>
-            <div class="actions-grid">
-                <a href="{{ url_for('search') }}" class="action-card">
-                    <div class="action-icon search">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <div class="action-content">
-                        <h4>Search Items</h4>
-                        <p>Look for lost or found items across campus</p>
-                    </div>
-                    <div class="action-arrow">
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                </a>
-                
-                <a href="{{ url_for('reporting.report_item') }}" class="action-card">
-                    <div class="action-icon report">
-                        <i class="fas fa-plus"></i>
-                    </div>
-                    <div class="action-content">
-                        <h4>Report Item</h4>
-                        <p>Report lost or submit found items</p>
-                    </div>
-                    <div class="action-arrow">
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                </a>
-                
-                <a href="{{ url_for('reporting.my_items') }}" class="action-card">
-                    <div class="action-icon history">
-                        <i class="fas fa-history"></i>
-                    </div>
-                    <div class="action-content">
-                        <h4>My Reports</h4>
-                        <p>View and manage your reports</p>
-                    </div>
-                    <div class="action-arrow">
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                </a>
-                
-                <a href="{{ url_for('notifications') }}" class="action-card">
-                    <div class="action-icon notifications">
-                        <i class="fas fa-bell"></i>
-                    </div>
-                    <div class="action-content">
-                        <h4>Notifications</h4>
-                        <p>Check your alerts and matches</p>
-                    </div>
-                    <div class="action-arrow">
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                </a>
-            </div>
-        </div>
-
-        <!-- Recent Activity -->
-        <div class="section">
-            <div class="section-header">
-                <h2>Recent Activity</h2>
-                <p>Your latest reported items</p>
-            </div>
-            <div class="activity-card">
-                {% if current_user.items %}
-                    <div class="activity-list">
-                        {% for item in current_user.items %}
-                            {% if loop.index <= 5 %}
-                            <div class="activity-item">
-                                <div class="activity-type {{ item.type }}">
-                                    <i class="fas fa-{% if item.type == 'lost' %}search{% else %}hand-holding{% endif %}"></i>
+        <div class="activity-card">
+            {% if current_user.items %}
+                <div class="activity-list">
+                    {% for item in current_user.items %}
+                        {% if loop.index <= 5 %}
+                        <div class="activity-item">
+                            <div class="activity-type {{ item.type }}">
+                                <i class="fas fa-{% if item.type == 'lost' %}search{% else %}hand-holding{% endif %}"></i>
+                            </div>
+                            <div class="activity-details">
+                                <div class="activity-main">
+                                    <h5>{{ item.title }}</h5>
+                                    <p class="activity-desc">
+                                        {% if item.description|length > 80 %}
+                                            {{ item.description[:80] }}...
+                                        {% else %}
+                                            {{ item.description }}
+                                        {% endif %}
+                                    </p>
+                                    <div class="activity-meta">
+                                        <span class="meta location">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            {{ item.location }}
+                                        </span>
+                                        <span class="meta category">
+                                            <i class="fas fa-tag"></i>
+                                            {{ item.category }}
+                                        </span>
+                                        <span class="meta date">
+                                            <i class="fas fa-calendar"></i>
+                                            {{ item.created_at.strftime('%b %d, %Y') }}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="activity-details">
-                                    <div class="activity-main">
-                                        <h5>{{ item.title }}</h5>
-                                        <p class="activity-desc">
-                                            {% if item.description|length > 80 %}
-                                                {{ item.description[:80] }}...
-                                            {% else %}
-                                                {{ item.description }}
-                                            {% endif %}
-                                        </p>
-                                        <div class="activity-meta">
-                                            <span class="meta location">
-                                                <i class="fas fa-map-marker-alt"></i>
-                                                {{ item.location }}
-                                            </span>
-                                            <span class="meta category">
-                                                <i class="fas fa-tag"></i>
-                                                {{ item.category }}
-                                            </span>
-                                            <span class="meta date">
-                                                <i class="fas fa-calendar"></i>
-                                                {{ item.created_at.strftime('%b %d, %Y') }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="activity-status">
-                                        <span class="status {{ item.status }}">{{ item.status|title }}</span>
-                                    </div>
+                                <div class="activity-status">
+                                    <span class="status {{ item.status }}">{{ item.status|title }}</span>
                                 </div>
                             </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                    <div class="activity-footer">
-                        <a href="{{ url_for('reporting.my_items') }}" class="view-all-btn">
-                            View All Items
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                {% else %}
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="fas fa-inbox"></i>
                         </div>
-                        <h4>No activity yet</h4>
-                        <p>Start by reporting your first lost or found item!</p>
-                        <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary">
-                            Report Your First Item
-                        </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="activity-footer">
+                    <a href="{{ url_for('reporting.my_items') }}" class="view-all-btn">
+                        View All Items
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-inbox"></i>
                     </div>
-                {% endif %}
-            </div>
+                    <h4>No activity yet</h4>
+                    <p>Start by reporting your first lost or found item!</p>
+                    <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary">
+                        Report Your First Item
+                    </a>
+                </div>
+            {% endif %}
         </div>
     </div>
-</div>
 
-<style>
-/* Dashboard Layout */
-.dashboard-container {
-    display: flex;
-    min-height: 100vh;
-    background: #f8fafc;
-}
-
-/* Sidebar Styles */
-.dashboard-sidebar {
-    width: 280px;
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    height: 100vh;
-    left: 0;
-    top: 0;
-    z-index: 1000;
-}
-
-.sidebar-header {
-    padding: 2rem 1.5rem 1rem;
-    border-bottom: 1px solid #475569;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-weight: 700;
-    font-size: 1.25rem;
-}
-
-.logo i {
-    font-size: 1.5rem;
-    color: #60a5fa;
-}
-
-.sidebar-nav {
-    flex: 1;
-    padding: 1.5rem 0;
-}
-
-.nav-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.875rem 1.5rem;
-    color: #cbd5e1;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    position: relative;
-    border-left: 3px solid transparent;
-}
-
-.nav-item:hover {
-    background: rgba(255,255,255,0.1);
-    color: white;
-    border-left-color: #60a5fa;
-}
-
-.nav-item.active {
-    background: rgba(255,255,255,0.15);
-    color: white;
-    border-left-color: #3b82f6;
-}
-
-.nav-item i {
-    width: 20px;
-    text-align: center;
-}
-
-.notification-badge {
-    background: #ef4444;
-    color: white;
-    border-radius: 10px;
-    padding: 0.25em 0.5em;
-    font-size: 0.75rem;
-    margin-left: auto;
-}
-
-.sidebar-footer {
-    padding: 1.5rem;
-    border-top: 1px solid #475569;
-}
-
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.user-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #60a5fa, #3b82f6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.875rem;
-}
-
-.user-details {
-    flex: 1;
-}
-
-.user-details strong {
-    display: block;
-    font-size: 0.875rem;
-}
-
-.user-details small {
-    color: #94a3b8;
-    font-size: 0.75rem;
-}
-
-/* Main Content */
-.dashboard-main {
-    flex: 1;
-    margin-left: 280px;
-    padding: 2rem;
-}
-
-.welcome-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 2.5rem;
-    border-radius: 20px;
-    margin-bottom: 2rem;
-}
-
-.welcome-section h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.welcome-section p {
-    font-size: 1.1rem;
-    opacity: 0.9;
-    margin-bottom: 0;
-}
-
-/* Stats Grid */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.stat-card {
-    background: white;
-    border-radius: 15px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    transition: all 0.3s ease;
-    border: 1px solid #f1f5f9;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-
-.stat-content {
-    display: flex;
-    justify-content: between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.stat-info h3 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-    line-height: 1;
-}
-
-.stat-info p {
-    color: #64748b;
-    font-weight: 500;
-    margin-bottom: 0;
-}
-
-.stat-icon {
-    font-size: 2.5rem;
-    opacity: 0.7;
-    margin-left: auto;
-}
-
-.stat-trend {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: #64748b;
-}
-
-/* Section Styles */
-.section {
-    margin-bottom: 2rem;
-}
-
-.section-header {
-    margin-bottom: 1.5rem;
-}
-
-.section-header h2 {
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 0.5rem;
-}
-
-.section-header p {
-    color: #64748b;
-    margin-bottom: 0;
-}
-
-/* Actions Grid */
-.actions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.action-card {
-    background: white;
-    border-radius: 15px;
-    padding: 1.5rem;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    transition: all 0.3s ease;
-    border: 1px solid #f1f5f9;
-}
-
-.action-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-    text-decoration: none;
-    color: inherit;
-    border-color: #3b82f6;
-}
-
-.action-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-}
-
-.action-icon.search { background: linear-gradient(135deg, #667eea, #764ba2); }
-.action-icon.report { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.action-icon.history { background: linear-gradient(135deg, #06b6d4, #0891b2); }
-.action-icon.notifications { background: linear-gradient(135deg, #10b981, #059669); }
-
-.action-content {
-    flex: 1;
-}
-
-.action-content h4 {
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    color: #1e293b;
-}
-
-.action-content p {
-    color: #64748b;
-    margin-bottom: 0;
-    font-size: 0.875rem;
-}
-
-.action-arrow {
-    color: #cbd5e1;
-    transition: all 0.3s ease;
-}
-
-.action-card:hover .action-arrow {
-    color: #3b82f6;
-    transform: translateX(3px);
-}
-
-/* Activity Card */
-.activity-card {
-    background: white;
-    border-radius: 15px;
-    border: 1px solid #f1f5f9;
-    overflow: hidden;
-}
-
-.activity-list {
-    padding: 1.5rem;
-}
-
-.activity-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    padding: 1rem 0;
-}
-
-.activity-item:not(:last-child) {
-    border-bottom: 1px solid #f1f5f9;
-}
-
-.activity-type {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    color: white;
-    flex-shrink: 0;
-}
-
-.activity-type.lost { background: #f59e0b; }
-.activity-type.found { background: #10b981; }
-
-.activity-details {
-    flex: 1;
-    display: flex;
-    justify-content: between;
-    align-items: flex-start;
-}
-
-.activity-main {
-    flex: 1;
-}
-
-.activity-main h5 {
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: #1e293b;
-}
-
-.activity-desc {
-    color: #64748b;
-    margin-bottom: 0.75rem;
-    font-size: 0.875rem;
-}
-
-.activity-meta {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.meta {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.75rem;
-    color: #64748b;
-}
-
-.activity-status {
-    margin-left: 1rem;
-}
-
-.status {
-    padding: 0.35em 0.65em;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.status.pending { background: #dbeafe; color: #1e40af; }
-.status.claimed { background: #d1fae5; color: #065f46; }
-.status.resolved { background: #f3f4f6; color: #374151; }
-
-.activity-footer {
-    padding: 1.5rem;
-    border-top: 1px solid #f1f5f9;
-    text-align: center;
-}
-
-.view-all-btn {
-    color: #3b82f6;
-    text-decoration: none;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-}
-
-.view-all-btn:hover {
-    gap: 0.75rem;
-    text-decoration: none;
-    color: #1d4ed8;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 3rem 2rem;
-}
-
-.empty-icon {
-    font-size: 4rem;
-    color: #cbd5e1;
-    margin-bottom: 1.5rem;
-}
-
-.empty-state h4 {
-    color: #4a5568;
-    margin-bottom: 1rem;
-}
-
-.empty-state p {
-    color: #718096;
-    margin-bottom: 1.5rem;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-    .dashboard-sidebar {
-        width: 250px;
+    <style>
+    /* ===== DASHBOARD STYLES ===== */
+    
+    /* Welcome Section */
+    .welcome-section {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Emerald green gradient */
+        color: white;
+        padding: 2.5rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
     }
     
-    .dashboard-main {
-        margin-left: 250px;
-    }
-}
-
-@media (max-width: 768px) {
-    .dashboard-sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-    }
-    
-    .dashboard-sidebar.mobile-open {
-        transform: translateX(0);
-    }
-    
-    .dashboard-main {
-        margin-left: 0;
-        padding: 1rem;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .actions-grid {
-        grid-template-columns: 1fr;
+    .welcome-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
     }
     
     .welcome-section h1 {
-        font-size: 2rem;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 1;
     }
     
-    .welcome-section {
-        padding: 1.5rem;
-    }
-}
-
-/* Impressive Sidebar Styles */
-.dashboard-sidebar {
-    width: 300px;
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    height: 100vh;
-    left: 0;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
-    border-right: 1px solid #334155;
-}
-
-/* User Profile at Top */
-.sidebar-user-profile {
-    padding: 2rem 1.5rem 1.5rem;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
-    border-bottom: 1px solid #334155;
-    text-align: center;
-}
-
-.user-avatar-large {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 700;
-    font-size: 1.5rem;
-    margin: 0 auto 1rem;
-    border: 3px solid rgba(255,255,255,0.2);
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
-}
-
-.user-info-main h4 {
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-    color: white;
-}
-
-.user-role {
-    color: #94a3b8;
-    font-size: 0.875rem;
-    margin-bottom: 1rem;
-}
-
-.user-stats {
-    display: flex;
-    justify-content: center;
-    gap: 1.5rem;
-}
-
-.user-stats .stat {
-    text-align: center;
-}
-
-.user-stats .stat strong {
-    display: block;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: white;
-}
-
-.user-stats .stat span {
-    font-size: 0.75rem;
-    color: #94a3b8;
-}
-
-/* App Logo */
-.sidebar-header {
-    padding: 1.5rem 1.5rem 1rem;
-    border-bottom: 1px solid #334155;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-weight: 700;
-    font-size: 1.1rem;
-}
-
-.logo i {
-    font-size: 1.5rem;
-    color: #6366f1;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-/* Navigation */
-.sidebar-nav {
-    flex: 1;
-    padding: 1rem 0;
-}
-
-.nav-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.5rem;
-    color: #cbd5e1;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    position: relative;
-    margin: 0.25rem 0.5rem;
-    border-radius: 12px;
-}
-
-.nav-item:hover {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
-    color: white;
-    transform: translateX(5px);
-}
-
-.nav-item.active {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: white;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-}
-
-.nav-icon {
-    position: relative;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.nav-badge {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #ef4444;
-    color: white;
-    border-radius: 10px;
-    padding: 0.2em 0.5em;
-    font-size: 0.7rem;
-    font-weight: 600;
-    min-width: 18px;
-    text-align: center;
-}
-
-.nav-text {
-    font-weight: 500;
-    flex: 1;
-}
-
-.nav-indicator {
-    width: 4px;
-    height: 20px;
-    background: #6366f1;
-    border-radius: 2px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.nav-item.active .nav-indicator {
-    opacity: 1;
-}
-
-/* Sidebar Footer */
-.sidebar-footer {
-    padding: 1.5rem;
-    border-top: 1px solid #334155;
-}
-
-.app-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-}
-
-.stat-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background: rgba(255,255,255,0.05);
-    border-radius: 8px;
-    font-size: 0.875rem;
-    color: #94a3b8;
-    transition: all 0.3s ease;
-}
-
-.stat-item:hover {
-    background: rgba(255,255,255,0.1);
-    color: white;
-}
-
-.stat-item i {
-    color: #6366f1;
-}
-
-.logout-section {
-    border-top: 1px solid #334155;
-    padding-top: 1rem;
-}
-
-.logout-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    color: #ef4444;
-    text-decoration: none;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.logout-btn:hover {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    text-decoration: none;
-}
-
-/* Main Content Adjustment */
-.dashboard-main {
-    flex: 1;
-    margin-left: 300px;
-    padding: 2rem;
-    background: #f8fafc;
-    min-height: 100vh;
-}
-
-/* Mobile Responsive */
-@media (max-width: 1024px) {
-    .dashboard-sidebar {
-        width: 280px;
+    .welcome-section p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
     }
     
-    .dashboard-main {
-        margin-left: 280px;
-    }
-}
-
-@media (max-width: 768px) {
-    .dashboard-sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-        width: 280px;
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
     }
     
-    .dashboard-sidebar.mobile-open {
-        transform: translateX(0);
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.75rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+        position: relative;
     }
     
-    .dashboard-main {
-        margin-left: 0;
-        padding: 1rem;
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
     }
     
-    /* Mobile menu toggle button */
-    .mobile-menu-toggle {
-        position: fixed;
-        top: 1rem;
-        left: 1rem;
-        z-index: 1001;
-        background: #6366f1;
+    .stat-card.stat-primary::before { background: linear-gradient(90deg, #667eea, #764ba2); }
+    .stat-card.stat-success::before { background: linear-gradient(90deg, #10b981, #059669); }
+    .stat-card.stat-warning::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+    .stat-card.stat-info::before { background: linear-gradient(90deg, #06b6d4, #0891b2); }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .stat-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-info h3 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        line-height: 1;
+        background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-info p {
+        color: #64748b;
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        opacity: 0.9;
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-trend {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+    
+    /* Section Styles */
+    .section {
+        margin-bottom: 2rem;
+    }
+    
+    .section-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .section-header h2 {
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        font-size: 1.75rem;
+    }
+    
+    .section-header p {
+        color: #64748b;
+        margin-bottom: 0;
+        font-size: 1rem;
+    }
+    
+    /* Actions Grid */
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .action-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.75rem;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        transition: all 0.3s ease;
+        border: 1px solid #f1f5f9;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .action-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(168, 85, 247, 0.03) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        text-decoration: none;
+        color: inherit;
+        border-color: var(--accent-color);
+    }
+    
+    .action-card:hover::before {
+        opacity: 1;
+    }
+    
+    .action-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
         color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 0.75rem;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     }
-}
-</style>
+    
+    .action-icon.search { 
+        background: linear-gradient(135deg, #667eea, #764ba2); 
+    }
+    .action-icon.report { 
+        background: linear-gradient(135deg, #f59e0b, #d97706); 
+    }
+    .action-icon.history { 
+        background: linear-gradient(135deg, #06b6d4, #0891b2); 
+    }
+    .action-icon.notifications { 
+        background: linear-gradient(135deg, #10b981, #059669); 
+    }
+    
+    .action-content {
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .action-content h4 {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #1e293b;
+        font-size: 1.25rem;
+    }
+    
+    .action-content p {
+        color: #64748b;
+        margin-bottom: 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    .action-arrow {
+        color: #cbd5e1;
+        transition: all 0.3s ease;
+        font-size: 1.25rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .action-card:hover .action-arrow {
+        color: var(--accent-color);
+        transform: translateX(8px);
+    }
+    
+    /* Activity Card */
+    .activity-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    
+    .activity-list {
+        padding: 0;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .activity-item:not(:last-child) {
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .activity-item:hover {
+        background: #f8fafc;
+    }
+    
+    .activity-type {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .activity-type.lost { 
+        background: linear-gradient(135deg, #f59e0b, #d97706); 
+    }
+    .activity-type.found { 
+        background: linear-gradient(135deg, #10b981, #059669); 
+    }
+    
+    .activity-details {
+        flex: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .activity-main {
+        flex: 1;
+    }
+    
+    .activity-main h5 {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #1e293b;
+        font-size: 1.1rem;
+    }
+    
+    .activity-desc {
+        color: #64748b;
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    .activity-meta {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+    
+    .meta i {
+        font-size: 0.9rem;
+    }
+    
+    .activity-status {
+        margin-left: 1.5rem;
+    }
+    
+    .status {
+        padding: 0.5em 1em;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status.pending { 
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe); 
+        color: #1e40af; 
+    }
+    .status.claimed { 
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0); 
+        color: #065f46; 
+    }
+    .status.resolved { 
+        background: linear-gradient(135deg, #f3f4f6, #e5e7eb); 
+        color: #374151; 
+    }
+    
+    /* Activity Footer */
+    .activity-footer {
+        padding: 1.5rem;
+        border-top: 1px solid #f1f5f9;
+        text-align: center;
+        background: #f8fafc;
+    }
+    
+    .view-all-btn {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s ease;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        background: rgba(99, 102, 241, 0.1);
+    }
+    
+    .view-all-btn:hover {
+        gap: 1rem;
+        text-decoration: none;
+        color: var(--accent-color-hover);
+        background: rgba(99, 102, 241, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+    
+    .empty-icon {
+        font-size: 4.5rem;
+        color: #cbd5e1;
+        margin-bottom: 1.5rem;
+        opacity: 0.7;
+    }
+    
+    .empty-state h4 {
+        color: #4a5568;
+        margin-bottom: 1rem;
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+    
+    .empty-state p {
+        color: #718096;
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .actions-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .welcome-section {
+            padding: 1.75rem;
+        }
+        
+        .welcome-section h1 {
+            font-size: 2rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .actions-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .activity-details {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .activity-status {
+            margin-left: 0;
+            align-self: flex-end;
+        }
+        
+        .activity-meta {
+            gap: 1rem;
+        }
+    }
+    </style>
 {% endblock %}

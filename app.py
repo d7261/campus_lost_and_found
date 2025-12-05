@@ -272,6 +272,18 @@ def view_item(item_id):
     return render_template('item_details.html', 
                          item=item, 
                          is_potential_match=is_potential_match)
+    
+# Add this to your app.py temporarily to see routes
+@app.route('/debug/routes')
+def debug_routes():
+    routes = []
+    for rule in app.url_map.iter_rules():
+        routes.append({
+            'endpoint': rule.endpoint,
+            'methods': list(rule.methods),
+            'rule': str(rule)
+        })
+    return jsonify(routes)
 # ===== MAIN EXECUTION =====
 if __name__ == '__main__':
     with app.app_context():

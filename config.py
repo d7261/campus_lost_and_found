@@ -3,7 +3,11 @@ from datetime import timedelta
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key-here-change-this-in-production'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///database.db'
+    
+    # PostgreSQL configuration
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'postgresql://campus_user:secure_password123@localhost:5432/campus_lost_found'
+    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Image upload settings (disabled for now)
@@ -12,4 +16,4 @@ class Config:
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
     
     # Disable AI features for now
-    AI_ENABLED = False
+    AI_ENABLED = True

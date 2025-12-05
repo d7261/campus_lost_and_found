@@ -1,931 +1,571 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="dashboard-container">
-    <!-- Sidebar -->
-    <div class="dashboard-sidebar">
-        <!-- User Profile at Top -->
-        <div class="sidebar-user-profile">
-            <div class="user-avatar-large">
-                {{ current_user.username[0]|upper }}
-            </div>
-            <div class="user-info-main">
-                <h4>{{ current_user.username }}</h4>
-                <p class="user-role">{{ current_user.role|title }}</p>
-                <div class="user-stats">
-                    <div class="stat">
-                        <strong>{{ current_user.items|length }}</strong>
-                        <span>Reports</span>
-                    </div>
-                    <div class="stat">
-                        {% set new_notifications = [] %}
-                        {% for notification in current_user.notifications %}
-                            {% if not notification.is_seen %}
-                                {% set _ = new_notifications.append(notification) %}
-                            {% endif %}
-                        {% endfor %}
-                        <strong>{{ new_notifications|length }}</strong>
-                        <span>Alerts</span>
-                    </div>
-                </div>
-            </div>
+    <!-- Quick Report Header -->
+    <div class="report-header">
+        <div class="header-content">
+            <h1><i class="fas fa-plus-circle me-3"></i>Quick Report</h1>
+            <p class="lead">Tell us about the item you lost or found - it only takes a minute!</p>
         </div>
+    </div>
 
-        <!-- App Logo -->
-        <div class="sidebar-header">
-            <div class="logo">
-                <i class="fas fa-search-location"></i>
-                <span>Campus Lost & Found</span>
-            </div>
-        </div>
-        
-        <!-- Navigation -->
-        <nav class="sidebar-nav">
-            <a href="{{ url_for('dashboard') }}" class="nav-item">
-                <div class="nav-icon">
-                    <i class="fas fa-home"></i>
+    <!-- Compact Report Form -->
+    <div class="compact-form-container">
+        <form method="POST" enctype="multipart/form-data" class="compact-report-form">
+            <!-- Basic Info Row -->
+            <div class="form-row">
+                <div class="form-group compact">
+                    <label for="type" class="form-label">Item Type *</label>
+                    <select class="form-select" id="type" name="type" required>
+                        <option value="">What happened?</option>
+                        <option value="lost">I lost something</option>
+                        <option value="found">I found something</option>
+                    </select>
                 </div>
-                <span class="nav-text">Dashboard</span>
-                <div class="nav-indicator"></div>
-            </a>
-            
-            <a href="{{ url_for('search') }}" class="nav-item">
-                <div class="nav-icon">
-                    <i class="fas fa-search"></i>
-                </div>
-                <span class="nav-text">Search Items</span>
-                <div class="nav-indicator"></div>
-            </a>
-            
-            <a href="{{ url_for('reporting.report_item') }}" class="nav-item active">
-                <div class="nav-icon">
-                    <i class="fas fa-plus-circle"></i>
-                </div>
-                <span class="nav-text">Report Item</span>
-                <div class="nav-indicator"></div>
-            </a>
-            
-            <a href="{{ url_for('reporting.my_items') }}" class="nav-item">
-                <div class="nav-icon">
-                    <i class="fas fa-clipboard-list"></i>
-                </div>
-                <span class="nav-text">My Reports</span>
-                <div class="nav-indicator"></div>
-            </a>
-            
-            <a href="{{ url_for('notifications') }}" class="nav-item">
-                <div class="nav-icon">
-                    <i class="fas fa-bell"></i>
-                    {% if new_notifications|length > 0 %}
-                    <span class="nav-badge">{{ new_notifications|length }}</span>
-                    {% endif %}
-                </div>
-                <span class="nav-text">Notifications</span>
-                <div class="nav-indicator"></div>
-            </a>
-            
-            <a href="{{ url_for('campus_locations') }}" class="nav-item">
-                <div class="nav-icon">
-                    <i class="fas fa-map-marker-alt"></i>
-                </div>
-                <span class="nav-text">Campus Locations</span>
-                <div class="nav-indicator"></div>
-            </a>
-        </nav>
-
-        <!-- Sidebar Footer -->
-        <div class="sidebar-footer">
-            <div class="app-stats">
-                <div class="stat-item">
-                    <i class="fas fa-users"></i>
-                    <span>Active Community</span>
-                </div>
-                <div class="stat-item">
-                    <i class="fas fa-handshake"></i>
-                    <span>Helping Students</span>
+                
+                <div class="form-group compact">
+                    <label for="category" class="form-label">Category *</label>
+                    <select class="form-select" id="category" name="category" required>
+                        <option value="">What type of item?</option>
+                        <option value="Electronics">📱 Electronics</option>
+                        <option value="Books">📚 Books & Notes</option>
+                        <option value="Clothing">👕 Clothing</option>
+                        <option value="Bags">🎒 Bags & Backpacks</option>
+                        <option value="Keys">🔑 Keys</option>
+                        <option value="ID Cards">🪪 ID Cards</option>
+                        <option value="Water Bottles">💧 Water Bottles</option>
+                        <option value="Jewelry">💍 Jewelry</option>
+                        <option value="Other">📦 Other</option>
+                    </select>
                 </div>
             </div>
-            <div class="logout-section">
-                <a href="{{ url_for('auth.logout') }}" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
+
+            <!-- Item Details -->
+            <div class="form-row">
+                <div class="form-group compact full-width">
+                    <label for="title" class="form-label">Item Title *</label>
+                    <input type="text" class="form-control" id="title" name="title" 
+                           placeholder="e.g., Black iPhone 13, Calculus Textbook, Blue Jacket..." required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group compact full-width">
+                    <label for="description" class="form-label">Description *</label>
+                    <textarea class="form-control" id="description" name="description" 
+                              rows="3" placeholder="Brief description including color, brand, and any distinctive features..." required></textarea>
+                </div>
+            </div>
+
+            <!-- Location & Date -->
+            <div class="form-row">
+                <div class="form-group compact">
+                    <label for="location" class="form-label">Location *</label>
+                    <input type="text" class="form-control" id="location" name="location" 
+                           placeholder="Where? e.g., Library, Cafeteria..." required>
+                </div>
+                
+                <div class="form-group compact">
+                    <label for="date_lost_found" class="form-label">Date *</label>
+                    <input type="date" class="form-control" id="date_lost_found" name="date_lost_found" 
+                           max="{{ today }}" required>
+                </div>
+            </div>
+
+            <!-- Quick Photo Upload -->
+            <div class="form-section compact">
+                <div class="photo-upload-card">
+                    <div class="upload-prompt">
+                        <i class="fas fa-camera"></i>
+                        <div class="upload-text">
+                            <h4>Add a Photo (Optional)</h4>
+                            <p>Items with photos are 3x more likely to be returned!</p>
+                        </div>
+                    </div>
+                    
+                    <div class="upload-actions">
+                        <label for="image" class="upload-btn">
+                            <i class="fas fa-upload"></i>
+                            Choose Photo
+                        </label>
+                        <input type="file" id="image" name="image" accept="image/*" 
+                               onchange="previewImage(this)" style="display: none;">
+                        
+                        <div class="upload-hint">
+                            <small>Photo of the actual item or similar item works best</small>
+                        </div>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div class="image-preview" id="imagePreviewContainer" style="display: none;">
+                        <div class="preview-header">
+                            <span>Photo Preview</span>
+                            <button type="button" class="btn-close" onclick="clearImage()"></button>
+                        </div>
+                        <img id="imagePreview" class="preview-img">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Tips -->
+            <div class="quick-tips">
+                <div class="tips-header">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>Quick Tips for Better Results</span>
+                </div>
+                <div class="tips-grid">
+                    <div class="tip">
+                        <i class="fas fa-search"></i>
+                        <span>Be specific in your description</span>
+                    </div>
+                    <div class="tip">
+                        <i class="fas fa-camera"></i>
+                        <span>Add a photo if possible</span>
+                    </div>
+                    <div class="tip">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Include exact location details</span>
+                    </div>
+                    <div class="tip">
+                        <i class="fas fa-clock"></i>
+                        <span>Report as soon as possible</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-actions compact">
+                <button type="submit" class="submit-btn large">
+                    <i class="fas fa-paper-plane me-2"></i>
+                    Submit Report
+                </button>
+                <a href="{{ url_for('dashboard') }}" class="cancel-btn">
+                    Cancel
                 </a>
             </div>
-        </div>
+        </form>
     </div>
 
-    <!-- Main Content -->
-    <div class="dashboard-main">
-        <!-- Quick Report Header -->
-        <div class="report-header">
-            <div class="header-content">
-                <h1><i class="fas fa-plus-circle me-3"></i>Quick Report</h1>
-                <p class="lead">Tell us about the item you lost or found - it only takes a minute!</p>
-            </div>
-        </div>
+    <script>
+        // Set max date to today
+        document.getElementById('date_lost_found').max = new Date().toISOString().split('T')[0];
 
-        <!-- Compact Report Form -->
-        <div class="compact-form-container">
-            <form method="POST" enctype="multipart/form-data" class="compact-report-form">
-                <!-- Basic Info Row -->
-                <div class="form-row">
-                    <div class="form-group compact">
-                        <label for="type" class="form-label">Item Type *</label>
-                        <select class="form-select" id="type" name="type" required>
-                            <option value="">What happened?</option>
-                            <option value="lost">I lost something</option>
-                            <option value="found">I found something</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group compact">
-                        <label for="category" class="form-label">Category *</label>
-                        <select class="form-select" id="category" name="category" required>
-                            <option value="">What type of item?</option>
-                            <option value="Electronics">📱 Electronics</option>
-                            <option value="Books">📚 Books & Notes</option>
-                            <option value="Clothing">👕 Clothing</option>
-                            <option value="Bags">🎒 Bags & Backpacks</option>
-                            <option value="Keys">🔑 Keys</option>
-                            <option value="ID Cards">🪪 ID Cards</option>
-                            <option value="Water Bottles">💧 Water Bottles</option>
-                            <option value="Jewelry">💍 Jewelry</option>
-                            <option value="Other">📦 Other</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Item Details -->
-                <div class="form-row">
-                    <div class="form-group compact full-width">
-                        <label for="title" class="form-label">Item Title *</label>
-                        <input type="text" class="form-control" id="title" name="title" 
-                               placeholder="e.g., Black iPhone 13, Calculus Textbook, Blue Jacket..." required>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group compact full-width">
-                        <label for="description" class="form-label">Description *</label>
-                        <textarea class="form-control" id="description" name="description" 
-                                  rows="3" placeholder="Brief description including color, brand, and any distinctive features..." required></textarea>
-                    </div>
-                </div>
-
-                <!-- Location & Date -->
-                <div class="form-row">
-                    <div class="form-group compact">
-                        <label for="location" class="form-label">Location *</label>
-                        <input type="text" class="form-control" id="location" name="location" 
-                               placeholder="Where? e.g., Library, Cafeteria..." required>
-                    </div>
-                    
-                    <div class="form-group compact">
-                        <label for="date_lost_found" class="form-label">Date *</label>
-                        <input type="date" class="form-control" id="date_lost_found" name="date_lost_found" 
-                               max="{{ today }}" required>
-                    </div>
-                </div>
-
-                <!-- Quick Photo Upload -->
-                <div class="form-section compact">
-                    <div class="photo-upload-card">
-                        <div class="upload-prompt">
-                            <i class="fas fa-camera"></i>
-                            <div class="upload-text">
-                                <h4>Add a Photo (Optional)</h4>
-                                <p>Items with photos are 3x more likely to be returned!</p>
-                            </div>
-                        </div>
-                        
-                        <div class="upload-actions">
-                            <label for="image" class="upload-btn">
-                                <i class="fas fa-upload"></i>
-                                Choose Photo
-                            </label>
-                            <input type="file" id="image" name="image" accept="image/*" 
-                                   onchange="previewImage(this)" style="display: none;">
-                            
-                            <div class="upload-hint">
-                                <small>Photo of the actual item or similar item works best</small>
-                            </div>
-                        </div>
-
-                        <!-- Image Preview -->
-                        <div class="image-preview" id="imagePreviewContainer" style="display: none;">
-                            <div class="preview-header">
-                                <span>Photo Preview</span>
-                                <button type="button" class="btn-close" onclick="clearImage()"></button>
-                            </div>
-                            <img id="imagePreview" class="preview-img">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Tips -->
-                <div class="quick-tips">
-                    <div class="tips-header">
-                        <i class="fas fa-lightbulb"></i>
-                        <span>Quick Tips for Better Results</span>
-                    </div>
-                    <div class="tips-grid">
-                        <div class="tip">
-                            <i class="fas fa-search"></i>
-                            <span>Be specific in your description</span>
-                        </div>
-                        <div class="tip">
-                            <i class="fas fa-camera"></i>
-                            <span>Add a photo if possible</span>
-                        </div>
-                        <div class="tip">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>Include exact location details</span>
-                        </div>
-                        <div class="tip">
-                            <i class="fas fa-clock"></i>
-                            <span>Report as soon as possible</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Submit Button -->
-                <div class="form-actions compact">
-                    <button type="submit" class="submit-btn large">
-                        <i class="fas fa-paper-plane me-2"></i>
-                        Submit Report
-                    </button>
-                    <a href="{{ url_for('dashboard') }}" class="cancel-btn">
-                        Cancel
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-    // Set max date to today
-    document.getElementById('date_lost_found').max = new Date().toISOString().split('T')[0];
-
-    function previewImage(input) {
-        const previewContainer = document.getElementById('imagePreviewContainer');
-        const previewImage = document.getElementById('imagePreview');
-        
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
+        function previewImage(input) {
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            const previewImage = document.getElementById('imagePreview');
             
-            reader.onload = function(e) {
-                previewImage.src = e.target.result;
-                previewContainer.style.display = 'block';
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                
+                reader.readAsDataURL(input.files[0]);
             }
-            
-            reader.readAsDataURL(input.files[0]);
         }
+
+        function clearImage() {
+            const imageInput = document.getElementById('image');
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            
+            imageInput.value = '';
+            previewContainer.style.display = 'none';
+        }
+
+        // Make upload button work
+        document.querySelector('.upload-btn').addEventListener('click', function() {
+            document.getElementById('image').click();
+        });
+    </script>
+
+    <style>
+    /* Report Form Specific Styles */
+    
+    /* Header Styles */
+    .report-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Emerald green gradient */
+        color: white;
+        padding: 2.5rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
     }
-
-    function clearImage() {
-        const imageInput = document.getElementById('image');
-        const previewContainer = document.getElementById('imagePreviewContainer');
-        
-        imageInput.value = '';
-        previewContainer.style.display = 'none';
+    
+    .report-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
     }
-
-    // Make upload button work
-    document.querySelector('.upload-btn').addEventListener('click', function() {
-        document.getElementById('image').click();
-    });
-</script>
-
-<style>
-/* Compact Form Styles */
-.compact-form-container {
-    max-width: 100%;
-    padding: 0 1rem;
-}
-
-.compact-report-form {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    border: 1px solid #f1f5f9;
-    padding: 2rem;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.form-group.compact {
-    margin-bottom: 0;
-}
-
-.form-group.compact.full-width {
-    grid-column: 1 / -1;
-}
-
-.form-group.compact .form-label {
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-}
-
-.form-group.compact .form-control,
-.form-group.compact .form-select {
-    border: 2px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 0.75rem 1rem;
-    font-size: 0.95rem;
-    transition: all 0.3s ease;
-    width: 100%;
-}
-
-.form-group.compact .form-control:focus,
-.form-group.compact .form-select:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Photo Upload Section */
-.form-section.compact {
-    margin: 2rem 0;
-}
-
-.photo-upload-card {
-    background: #f8fafc;
-    border: 2px dashed #cbd5e1;
-    border-radius: 15px;
-    padding: 1.5rem;
-    text-align: center;
-    transition: all 0.3s ease;
-}
-
-.photo-upload-card:hover {
-    border-color: #3b82f6;
-    background: #f0f9ff;
-}
-
-.upload-prompt {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.upload-prompt i {
-    font-size: 2rem;
-    color: #6b7280;
-}
-
-.upload-text h4 {
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    color: #374151;
-}
-
-.upload-text p {
-    color: #6b7280;
-    margin-bottom: 0;
-    font-size: 0.9rem;
-}
-
-.upload-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.upload-btn {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.upload-btn:hover {
-    background: linear-gradient(135deg, #1d4ed8, #1e40af);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    color: white;
-    text-decoration: none;
-}
-
-.upload-hint small {
-    color: #6b7280;
-    font-size: 0.8rem;
-}
-
-/* Image Preview */
-.image-preview {
-    margin-top: 1.5rem;
-    background: white;
-    border-radius: 10px;
-    border: 1px solid #e5e7eb;
-    overflow: hidden;
-}
-
-.preview-header {
-    display: flex;
-    justify-content: between;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    background: #f8fafc;
-    border-bottom: 1px solid #e5e7eb;
-    font-weight: 600;
-    color: #374151;
-    font-size: 0.9rem;
-}
-
-.preview-img {
-    max-height: 200px;
-    width: auto;
-    max-width: 100%;
-    padding: 1rem;
-    object-fit: contain;
-}
-
-/* Quick Tips */
-.quick-tips {
-    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-    border-radius: 15px;
-    padding: 1.5rem;
-    margin: 2rem 0;
-    border: 1px solid #bae6fd;
-}
-
-.tips-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-    font-weight: 600;
-    color: #0369a1;
-}
-
-.tips-header i {
-    font-size: 1.2rem;
-}
-
-.tips-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-}
-
-.tip {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background: rgba(255,255,255,0.7);
-    border-radius: 8px;
-    font-size: 0.9rem;
-    color: #374151;
-}
-
-.tip i {
-    color: #3b82f6;
-    width: 16px;
-}
-
-/* Form Actions */
-.form-actions.compact {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    align-items: center;
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 1px solid #e5e7eb;
-}
-
-.submit-btn.large {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    border: none;
-    padding: 1rem 3rem;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.submit-btn.large:hover {
-    background: linear-gradient(135deg, #059669, #047857);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-}
-
-.cancel-btn {
-    color: #6b7280;
-    text-decoration: none;
-    font-weight: 500;
-    padding: 1rem 2rem;
-    border-radius: 12px;
-    transition: all 0.3s ease;
-}
-
-.cancel-btn:hover {
-    background: #f3f4f6;
-    color: #374151;
-    text-decoration: none;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .form-row {
-        grid-template-columns: 1fr;
-        gap: 1rem;
+    
+    .header-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .header-content h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .header-content .lead {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    /* Compact Form Styles */
+    .compact-form-container {
+        max-width: 100%;
+        padding: 0 1rem;
     }
     
     .compact-report-form {
-        padding: 1.5rem;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid #f1f5f9;
+        padding: 2.5rem;
     }
     
-    .form-actions.compact {
-        flex-direction: column;
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
     }
     
-    .submit-btn.large,
-    .cancel-btn {
+    .form-group.compact {
+        margin-bottom: 0;
+    }
+    
+    .form-group.compact.full-width {
+        grid-column: 1 / -1;
+    }
+    
+    .form-group.compact .form-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+        display: block;
+    }
+    
+    .form-group.compact .form-control,
+    .form-group.compact .form-select {
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
         width: 100%;
-        justify-content: center;
+        background: white;
     }
     
-    .tips-grid {
-        grid-template-columns: 1fr;
+    .form-group.compact .form-control:focus,
+    .form-group.compact .form-select:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        outline: none;
+    }
+    
+    /* Photo Upload Section */
+    .form-section.compact {
+        margin: 2rem 0;
+    }
+    
+    .photo-upload-card {
+        background: #f8fafc;
+        border: 2px dashed #cbd5e1;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .photo-upload-card:hover {
+        border-color: var(--accent-color);
+        background: #f0f9ff;
     }
     
     .upload-prompt {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .upload-prompt i {
+        font-size: 2.5rem;
+        color: var(--accent-color);
+        opacity: 0.8;
+    }
+    
+    .upload-text h4 {
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: #374151;
+        font-size: 1.25rem;
+    }
+    
+    .upload-text p {
+        color: #6b7280;
+        margin-bottom: 0;
+        font-size: 0.95rem;
+    }
+    
+    .upload-actions {
+        display: flex;
         flex-direction: column;
-        text-align: center;
-    }
-}
-
-/* Header Styles */
-.report-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 2rem;
-    border-radius: 20px;
-    margin-bottom: 2rem;
-    text-align: center;
-}
-
-.header-content h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.header-content .lead {
-    font-size: 1.2rem;
-    opacity: 0.9;
-    margin-bottom: 0;
-}
-</style>
-
-<style>
-    /* Impressive Sidebar Styles */
-.dashboard-container { 
-    display: flex; 
-    min-height: 100vh; 
-    background: #f8fafc; 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.dashboard-sidebar {
-    width: 320px;
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    height: 100vh;
-    left: 0;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
-    border-right: 1px solid #334155;
-}
-
-/* User Profile at Top */
-.sidebar-user-profile {
-    padding: 2rem 1.5rem 1.5rem;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
-    border-bottom: 1px solid #334155;
-    text-align: center;
-    backdrop-filter: blur(10px);
-}
-
-.user-avatar-large {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 700;
-    font-size: 1.8rem;
-    margin: 0 auto 1rem;
-    border: 3px solid rgba(255,255,255,0.3);
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-    transition: all 0.3s ease;
-}
-
-.user-avatar-large:hover {
-    transform: scale(1.05);
-    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.6);
-}
-
-.user-info-main h4 {
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-    color: white;
-    font-size: 1.3rem;
-}
-
-.user-role {
-    color: #cbd5e1;
-    font-size: 0.9rem;
-    margin-bottom: 1.5rem;
-    font-weight: 500;
-}
-
-.user-stats {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-}
-
-.user-stats .stat {
-    text-align: center;
-}
-
-.user-stats .stat strong {
-    display: block;
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 0.25rem;
-}
-
-.user-stats .stat span {
-    font-size: 0.8rem;
-    color: #94a3b8;
-    font-weight: 500;
-}
-
-/* App Logo */
-.sidebar-header {
-    padding: 1.5rem 1.5rem 1rem;
-    border-bottom: 1px solid #334155;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-weight: 700;
-    font-size: 1.2rem;
-}
-
-.logo i {
-    font-size: 1.8rem;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.logo span {
-    background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 800;
-}
-
-/* Navigation */
-.sidebar-nav {
-    flex: 1;
-    padding: 1.5rem 0;
-}
-
-.nav-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.1rem 1.5rem;
-    color: #cbd5e1;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    position: relative;
-    margin: 0.25rem 0.75rem;
-    border-radius: 12px;
-    border: 1px solid transparent;
-}
-
-.nav-item:hover {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
-    color: white;
-    transform: translateX(8px);
-    border-color: rgba(99, 102, 241, 0.3);
-}
-
-.nav-item.active {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: white;
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-    transform: translateX(8px);
-    border-color: rgba(255,255,255,0.1);
-}
-
-.nav-icon {
-    position: relative;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-}
-
-.nav-badge {
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    background: #ef4444;
-    color: white;
-    border-radius: 10px;
-    padding: 0.2em 0.6em;
-    font-size: 0.7rem;
-    font-weight: 700;
-    min-width: 20px;
-    text-align: center;
-    border: 2px solid #1e293b;
-}
-
-.nav-text {
-    font-weight: 600;
-    flex: 1;
-    font-size: 1rem;
-}
-
-.nav-indicator {
-    width: 6px;
-    height: 24px;
-    background: white;
-    border-radius: 3px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    box-shadow: 0 2px 8px rgba(255,255,255,0.3);
-}
-
-.nav-item.active .nav-indicator {
-    opacity: 1;
-}
-
-/* Sidebar Footer */
-.sidebar-footer {
-    padding: 1.5rem;
-    border-top: 1px solid #334155;
-    background: rgba(15, 23, 42, 0.8);
-}
-
-.app-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-}
-
-.stat-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.85rem;
-    background: rgba(255,255,255,0.05);
-    border-radius: 10px;
-    font-size: 0.9rem;
-    color: #94a3b8;
-    transition: all 0.3s ease;
-    border: 1px solid transparent;
-}
-
-.stat-item:hover {
-    background: rgba(255,255,255,0.1);
-    color: white;
-    border-color: rgba(99, 102, 241, 0.3);
-}
-
-.stat-item i {
-    color: #6366f1;
-    font-size: 1rem;
-}
-
-.logout-section {
-    border-top: 1px solid #334155;
-    padding-top: 1rem;
-}
-
-.logout-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.85rem 1rem;
-    color: #ef4444;
-    text-decoration: none;
-    border-radius: 10px;
-    transition: all 0.3s ease;
-    font-weight: 600;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.logout-btn:hover {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-    text-decoration: none;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-/* Main Content Adjustment */
-.dashboard-main {
-    flex: 1;
-    margin-left: 320px;
-    padding: 2rem;
-    background: #f8fafc;
-    min-height: 100vh;
-}
-
-/* Mobile Responsive */
-@media (max-width: 1024px) {
-    .dashboard-sidebar {
-        width: 280px;
+        align-items: center;
+        gap: 1rem;
     }
     
-    .dashboard-main {
-        margin-left: 280px;
-    }
-}
-
-@media (max-width: 768px) {
-    .dashboard-sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-        width: 280px;
-    }
-    
-    .dashboard-sidebar.mobile-open {
-        transform: translateX(0);
-    }
-    
-    .dashboard-main {
-        margin-left: 0;
-        padding: 1rem;
+    .upload-btn {
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-color-hover));
+        color: white;
+        padding: 0.875rem 2rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1rem;
+        border: none;
     }
     
-    /* Mobile menu toggle button - you can add this later */
-    .mobile-menu-toggle {
-        position: fixed;
-        top: 1rem;
-        left: 1rem;
-        z-index: 1001;
-        background: #6366f1;
+    .upload-btn:hover {
+        background: linear-gradient(135deg, var(--accent-color-hover), var(--accent-color));
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .upload-hint small {
+        color: #6b7280;
+        font-size: 0.85rem;
+    }
+    
+    /* Image Preview */
+    .image-preview {
+        margin-top: 1.5rem;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.95rem;
+    }
+    
+    .preview-img {
+        max-height: 250px;
+        width: auto;
+        max-width: 100%;
+        padding: 1.5rem;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+    
+    /* Quick Tips */
+    .quick-tips {
+        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+        border-radius: 15px;
+        padding: 2rem;
+        margin: 2.5rem 0;
+        border: 1px solid #bae6fd;
+    }
+    
+    .tips-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+        color: #0369a1;
+        font-size: 1.1rem;
+    }
+    
+    .tips-header i {
+        font-size: 1.5rem;
+    }
+    
+    .tips-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem;
+    }
+    
+    .tip {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: rgba(255,255,255,0.8);
+        border-radius: 10px;
+        font-size: 0.95rem;
+        color: #374151;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+    
+    .tip:hover {
+        background: white;
+        border-color: #bae6fd;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .tip i {
+        color: var(--accent-color);
+        width: 20px;
+        font-size: 1.1rem;
+    }
+    
+    /* Form Actions */
+    .form-actions.compact {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        align-items: center;
+        margin-top: 2.5rem;
+        padding-top: 2.5rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .submit-btn.large {
+        background: linear-gradient(135deg, #10b981, #059669);
         color: white;
         border: none;
-        border-radius: 8px;
-        padding: 0.75rem;
+        padding: 1.125rem 3.5rem;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 1.1rem;
         cursor: pointer;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
     }
-}
-
-/* Ensure body has no margin */
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-</style>
+    
+    .submit-btn.large:hover {
+        background: linear-gradient(135deg, #059669, #047857);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    }
+    
+    .cancel-btn {
+        color: #6b7280;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 1.125rem 2.5rem;
+        border-radius: 14px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .cancel-btn:hover {
+        background: #f3f4f6;
+        color: #374151;
+        text-decoration: none;
+        border-color: #e5e7eb;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .compact-report-form {
+            padding: 2rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .report-header {
+            padding: 2rem 1.5rem;
+        }
+        
+        .header-content h1 {
+            font-size: 2rem;
+        }
+        
+        .header-content .lead {
+            font-size: 1.1rem;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+        
+        .compact-report-form {
+            padding: 1.75rem;
+        }
+        
+        .form-actions.compact {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .submit-btn.large,
+        .cancel-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .tips-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .upload-prompt {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .photo-upload-card {
+            padding: 1.75rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .report-header {
+            padding: 1.5rem 1rem;
+        }
+        
+        .header-content h1 {
+            font-size: 1.75rem;
+        }
+        
+        .compact-report-form {
+            padding: 1.5rem;
+        }
+    }
+    </style>
 {% endblock %}
