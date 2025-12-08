@@ -1,71 +1,178 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-bell"></i> Notification Management</h1>
-        <div>
-            <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
-            </a>
+<!-- Admin Header -->
+<div class="admin-header">
+    <div class="header-content">
+        <h1><i class="fas fa-bell me-3"></i>Notification Logs</h1>
+        <p class="lead">System-wide alerts and match notifications</p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="action-btn">
+            <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="content-card mt-4">
+    <div class="card-header-custom">
+        <h3><i class="fas fa-list me-2"></i>System Notifications ({{ notifications|length }})</h3>
+        
+        <!-- Search bar -->
+        <div class="search-wrapper">
+            <input type="text" placeholder="Search logs..." class="admin-search">
+            <i class="fas fa-search"></i>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header bg-warning text-white">
-            <h5 class="mb-0">System Notifications ({{ notifications|length }})</h5>
+    <div class="table-responsive">
+        {% if notifications %}
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Message</th>
+                    <th>User</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for notification in notifications %}
+                <tr>
+                    <td>
+                        <!-- Type Badge -->
+                        {% if notification.notification_type == 'potential_match' %}
+                            <span class="type-badge match"><i class="fas fa-handshake me-1"></i> Match</span>
+                        {% elif notification.notification_type == 'visual_match' %}
+                            <span class="type-badge visual"><i class="fas fa-camera me-1"></i> Visual</span>
+                        {% else %}
+                            <span class="type-badge system"><i class="fas fa-info-circle me-1"></i> System</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="msg-content">
+                            <!-- FIX: Used notification.notification_message -->
+                            {{ notification.notification_message }}
+                        </div>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin.view_user', user_id=notification.user.user_id) }}" class="user-link">
+                            <div class="user-cell-sm">
+                                <div class="user-avatar-xs">{{ notification.user.user_username[0]|upper }}</div>
+                                <!-- FIX: Used notification.user.user_username -->
+                                <span>{{ notification.user.user_username }}</span>
+                            </div>
+                        </a>
+                    </td>
+                    <td>
+                        <!-- FIX: Used notification.notification_is_seen -->
+                        {% if notification.notification_is_seen %}
+                            <span class="status-badge read">Read</span>
+                        {% else %}
+                            <span class="status-badge unread">Unread</span>
+                        {% endif %}
+                    </td>
+                    <td class="date-cell">
+                        <!-- FIX: Used notification.notification_created_at -->
+                        {{ notification.notification_created_at.strftime('%b %d, %H:%M') }}
+                    </td>
+                    <td>
+                        <!-- FIX: Used notification.notification_id -->
+                        <form method="POST" action="{{ url_for('admin.delete_notification', notification_id=notification.notification_id) }}" 
+                              onsubmit="return confirm('Delete this log entry?');">
+                            <button type="submit" class="icon-btn delete" title="Delete Log">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state-admin">
+            <i class="fas fa-bell-slash"></i>
+            <p>No notifications found in the system.</p>
         </div>
-        <div class="card-body">
-            {% if notifications %}
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Message</th>
-                            <th>Type</th>
-                            <th>User</th>
-                            <th>Status</th>
-                            <th>Created</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for notification in notifications %}
-                        <tr>
-                            <td>{{ notification.id }}</td>
-                            <td>{{ notification.message }}</td>
-                            <td>
-                                <span class="badge bg-info">{{ notification.notification_type }}</span>
-                            </td>
-                            <td>{{ notification.user.username }}</td>
-                            <td>
-                                <span class="badge bg-{% if notification.is_seen %}success{% else %}warning{% endif %}">
-                                    {{ 'Read' if notification.is_seen else 'Unread' }}
-                                </span>
-                            </td>
-                            <td>{{ notification.created_at.strftime('%m/%d/%Y %H:%M') }}</td>
-                            <td>
-                                <form method="POST" action="{{ url_for('admin.delete_notification', notification_id=notification.id) }}" class="d-inline">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" 
-                                            onclick="return confirm('Delete this notification?')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="text-center py-4">
-                <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
-                <h5>No Notifications</h5>
-                <p class="text-muted">No system notifications found.</p>
-            </div>
-            {% endif %}
-        </div>
+        {% endif %}
     </div>
 </div>
+
+<style>
+/* Re-using Admin Theme */
+.admin-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white; padding: 2.5rem; border-radius: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15); margin-bottom: 2rem;
+}
+.header-content h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+.header-content .lead { margin: 0; opacity: 0.9; }
+
+.action-btn {
+    background: rgba(255, 255, 255, 0.2); color: white; padding: 0.8rem 1.5rem;
+    border-radius: 12px; text-decoration: none; font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.3); transition: 0.3s;
+}
+.action-btn:hover { background: white; color: #059669; transform: translateY(-2px); }
+
+.content-card {
+    background: white; border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden;
+}
+
+.card-header-custom {
+    padding: 1.5rem; border-bottom: 1px solid #f1f5f9;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.card-header-custom h3 { margin: 0; font-size: 1.2rem; font-weight: 700; color: #334155; }
+
+/* Search Bar */
+.search-wrapper { position: relative; }
+.admin-search {
+    padding: 0.6rem 1rem 0.6rem 2.5rem; border: 1px solid #e2e8f0;
+    border-radius: 8px; width: 250px; outline: none;
+}
+.search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+
+/* Table */
+.custom-table { width: 100%; border-collapse: collapse; }
+.custom-table th { text-align: left; padding: 1rem 1.5rem; background: #f8fafc; color: #64748b; font-size: 0.85rem; text-transform: uppercase; }
+.custom-table td { padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.custom-table tr:hover { background: #fcfcfc; }
+
+/* Badges */
+.type-badge { padding: 0.3em 0.8em; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+.type-badge.match { background: #ecfdf5; color: #10b981; }
+.type-badge.visual { background: #eff6ff; color: #3b82f6; }
+.type-badge.system { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+
+.status-badge { padding: 0.2em 0.6em; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+.status-badge.read { background: #f1f5f9; color: #94a3b8; }
+.status-badge.unread { background: #fff7ed; color: #f97316; }
+
+/* User Link */
+.user-link { text-decoration: none; color: inherit; }
+.user-cell-sm { display: flex; align-items: center; gap: 0.5rem; }
+.user-avatar-xs {
+    width: 24px; height: 24px; border-radius: 50%; background: #6366f1;
+    color: white; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: 700;
+}
+.user-link:hover span { color: #10b981; text-decoration: underline; }
+
+/* Actions */
+.icon-btn {
+    width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: 0.2s;
+}
+.icon-btn.delete { background: #fef2f2; color: #ef4444; }
+.icon-btn.delete:hover { background: #ef4444; color: white; }
+
+.msg-content { max-width: 350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #334155; }
+.date-cell { color: #64748b; font-size: 0.85rem; }
+.empty-state-admin { text-align: center; padding: 3rem; color: #94a3b8; }
+.empty-state-admin i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+</style>
 {% endblock %}

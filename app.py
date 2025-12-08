@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from sqlalchemy.orm import joinedload # Don't forget this import from before!
 from datetime import datetime, timedelta
 import secrets
 import os
@@ -10,48 +11,86 @@ from modules.auth import auth_bp
 from modules.reporting import reporting_bp
 from modules.matching_simple import matching_engine
 from modules.admin import admin_bp
+from config import Config # Import your config file
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'campus-lost-found-secret-key-2024'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///campus.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-import os
+# ✅ CORRECT: Load configuration from config.py (PostgreSQL)
+app.config.from_object(Config)
 
 # Ensure upload folder exists
-UPLOAD_FOLDER = 'static/uploads'
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+# (You can also move this logic to config.py if you want, but it's fine here)
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Initialize extensions
 db.init_app(app)
 login_manager = LoginManager(app)
-# Register Blueprints WITHOUT name parameter
+login_manager.login_view = 'auth.login' # Add this to handle redirects properly
+
+# ... rest of your app.py ...
+
+# Register Blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(reporting_bp)
 app.register_blueprint(admin_bp)
 
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.get(User, int(user_id))  # Fixed SQLAlchemy 2.0 warning
+    return db.session.get(User, int(user_id))
 
-# ... rest of your app.py routes remain the same ...
-
-# ===== ROUTES THAT STAY IN APP.PY =====
+# ==========================
+# ROUTES
+# ==========================
 
 @app.route('/')
 def index():
     if current_user.is_authenticated:
-        return render_template('dashboard/index.html')
+        # Get some basic data for the dashboard
+        recent_items = Item.query.order_by(Item.item_created_at.desc()).limit(5).all()
+        user_items = Item.query.filter_by(owner_id=current_user.user_id).count()
+        unread_notifications = Notification.query.filter_by(
+            user_id=current_user.user_id,
+            notification_is_seen=False
+        ).count()
+        
+        return render_template('dashboard/index.html',
+                              recent_items=recent_items,
+                              user_items=user_items,
+                              unread_notifications=unread_notifications)
     return render_template('landing.html')
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard/index.html')
-
+    """Dashboard page"""
+    # Get recent items
+    recent_items = Item.query.order_by(Item.item_created_at.desc()).limit(10).all()
+    
+    # Get statistics
+    total_items = Item.query.count()
+    pending_items = Item.query.filter_by(item_status='pending').count()
+    resolved_items = Item.query.filter_by(item_status='resolved').count()
+    
+    # Get user's own items
+    user_items = Item.query.filter_by(owner_id=current_user.user_id).order_by(
+        Item.item_created_at.desc()
+    ).limit(5).all()
+    
+    # Get user's notifications
+    user_notifications = Notification.query.filter_by(
+        user_id=current_user.user_id,
+        notification_is_seen=False
+    ).order_by(Notification.notification_created_at.desc()).limit(5).all()
+    
+    return render_template('dashboard/index.html',
+                          recent_items=recent_items,
+                          total_items=total_items,
+                          pending_items=pending_items,
+                          resolved_items=resolved_items,
+                          user_items=user_items,
+                          user_notifications=user_notifications)
 @app.route('/search')
 def search():
     query = request.args.get('q', '')
@@ -59,11 +98,11 @@ def search():
     
     if query:
         items = Item.query.filter(
-            (Item.title.ilike(f'%{query}%')) |
-            (Item.description.ilike(f'%{query}%')) |
-            (Item.category.ilike(f'%{query}%')) |
-            (Item.location.ilike(f'%{query}%'))
-        ).filter_by(status='pending').all()
+            (Item.item_title.ilike(f'%{query}%')) |
+            (Item.item_description.ilike(f'%{query}%')) |
+            (Item.item_category.ilike(f'%{query}%')) |
+            (Item.item_location.ilike(f'%{query}%'))
+        ).filter_by(item_status='pending').all()
     
     return render_template('search.html', items=items, query=query)
 
@@ -74,18 +113,20 @@ def notifications():
     user_notifications = Notification.query.options(
         joinedload(Notification.item).joinedload(Item.owner)
     ).filter_by(
-        user_id=current_user.id
-    ).order_by(Notification.created_at.desc()).all()
+        user_id=current_user.user_id
+    ).order_by(Notification.notification_created_at.desc()).all()
+
     return render_template('notifications/list.html', notifications=user_notifications)
+
 @app.route('/notifications/mark_seen/<int:notification_id>', methods=['POST'])
 @login_required
 def mark_notification_seen(notification_id):
     notification = Notification.query.get_or_404(notification_id)
     
-    if notification.user_id != current_user.id:
+    if notification.user_id != current_user.user_id:
         return jsonify({'error': 'Unauthorized'}), 403
     
-    notification.is_seen = True
+    notification.notification_is_seen = True
     db.session.commit()
     
     return redirect(url_for('notifications'))
@@ -94,9 +135,11 @@ def mark_notification_seen(notification_id):
 @login_required
 def mark_all_notifications_seen():
     try:
-        Notification.query.filter_by(user_id=current_user.id, is_seen=False).update(
-            {'is_seen': True}
-        )
+        Notification.query.filter_by(
+            user_id=current_user.user_id,
+            notification_is_seen=False
+        ).update({'notification_is_seen': True})
+
         db.session.commit()
         flash('All notifications marked as read', 'success')
     except Exception as e:
@@ -112,31 +155,39 @@ def claim_item(item_id):
     try:
         item = Item.query.get_or_404(item_id)
         
-        if item.type != 'found':
+        if item.item_type != 'found':
             flash('Only found items can be claimed', 'error')
             return redirect(url_for('search'))
         
-        if item.status != 'pending':
+        if item.item_status != 'pending':
             flash('This item has already been claimed or resolved', 'error')
             return redirect(url_for('search'))
         
-        item.status = 'claimed'
+        item.item_status = 'claimed'
         
-        # Get recommended location
         recommended_location = recommend_location(item)
         
         # Create notification for the finder
         notification = Notification(
-            message=f"Your found item '{item.title}' has been claimed by {current_user.username}. 🎓 REQUIRED: Both parties must bring valid student ID. Recommended pickup: {recommended_location}. Contact them at {current_user.email} to arrange handoff.",
+            notification_message=(
+                f"Your found item '{item.item_title}' has been claimed by "
+                f"{current_user.user_username}. 🎓 REQUIRED: Both parties must bring valid student ID. "
+                f"Recommended pickup: {recommended_location}. Contact them at "
+                f"{current_user.user_email} to arrange handoff."
+            ),
             notification_type='item_claimed',
-            user_id=item.user_id,
-            item_id=item.id
+            user_id=item.owner_id,
+            item_id=item.item_id
         )
         
         db.session.add(notification)
         db.session.commit()
         
-        flash(f'Item claimed successfully! 🎓 REQUIRED: Bring your student ID. Recommended pickup: {recommended_location}. Check your items page for details.', 'success')
+        flash(
+            f'Item claimed successfully! 🎓 REQUIRED: Bring your student ID. '
+            f'Recommended pickup: {recommended_location}.',
+            'success'
+        )
         
     except Exception as e:
         flash('Error claiming item', 'error')
@@ -144,6 +195,7 @@ def claim_item(item_id):
         db.session.rollback()
     
     return redirect(url_for('my_items'))
+
 @app.route('/item/<int:item_id>/resolve', methods=['POST'])
 @login_required
 def resolve_item(item_id):
@@ -151,11 +203,11 @@ def resolve_item(item_id):
     try:
         item = Item.query.get_or_404(item_id)
         
-        if item.user_id != current_user.id:
+        if item.owner_id != current_user.user_id:
             flash('You are not authorized to resolve this item', 'error')
             return redirect(url_for('my_items'))
         
-        item.status = 'resolved'
+        item.item_status = 'resolved'
         db.session.commit()
         
         flash('Item marked as resolved!', 'success')
@@ -191,7 +243,7 @@ def campus_locations():
             'contact': 'Circulation Desk Staff',
             'phone': 'x2001',
             'specialties': 'Textbooks, laptops, academic materials, research items, calculators',
-            'notes': 'Ideal for academic items. Bring student ID for verification. Most convenient location for students.',
+            'notes': 'Ideal for academic items. Bring student ID for verification.',
             'icon': 'fas fa-book',
             'color': 'success'
         },
@@ -208,11 +260,9 @@ def campus_locations():
             'color': 'warning'
         }
     ]
-    return render_template('campus_locations.html', locations=locations)@app.route('/forgot-password', methods=['GET', 'POST'])
+    return render_template('campus_locations.html', locations=locations)
 
-
-
-# TEMPORARY COMPATIBILITY ROUTES - Add this to your app.py
+# Compatibility Routes
 @app.route('/report')
 @login_required
 def report():
@@ -223,57 +273,51 @@ def report():
 def my_items():
     return redirect(url_for('reporting.my_items'))
 
-
 def recommend_location(item):
     """Recommend the best campus location based on item type"""
-    item_lower = item.title.lower()
+    item_lower = item.item_title.lower()
     
-    # Academic items -> Library
     academic_keywords = ['book', 'textbook', 'laptop', 'calculator', 'notes', 'pen', 'academic', 'research']
     if any(keyword in item_lower for keyword in academic_keywords):
         return 'Main Library Help Desk'
     
-    # Food-related items -> Cafeteria  
     food_keywords = ['lunch', 'bottle', 'water', 'food', 'container', 'thermos']
     if any(keyword in item_lower for keyword in food_keywords):
         return 'Cafeteria Reception Desk'
     
-    # Valuable items -> Main Gate (most secure)
     valuable_keywords = ['phone', 'wallet', 'money', 'card', 'id', 'passport', 'key']
     if any(keyword in item_lower for keyword in valuable_keywords):
         return 'Main Gate Office'
     
-    # Default to Library (most convenient for students)
     return 'Main Library Help Desk'
 
-# Add this temporary debug route to app.py
 @app.route('/debug/notifications')
 @login_required
 def debug_notifications():
-    notifications = Notification.query.filter_by(user_id=current_user.id).all()
-    return f"User {current_user.username} has {len(notifications)} notifications: {[n.message for n in notifications]}"
+    notifications = Notification.query.filter_by(user_id=current_user.user_id).all()
+    return f"User {current_user.user_username} has {len(notifications)} notifications: {[n.notification_message for n in notifications]}"
 
 @app.route('/item/<int:item_id>')
 @login_required
 def view_item(item_id):
-    """View detailed information about a specific item"""
     item = Item.query.get_or_404(item_id)
     
-    # Check if this is a potential match for the current user's items
     is_potential_match = False
-    user_items = Item.query.filter_by(user_id=current_user.id).all()
+    user_items = Item.query.filter_by(owner_id=current_user.user_id).all()
+
     for user_item in user_items:
-        if user_item.type != item.type:  # One is lost, other is found
-            similarity_score = matching_engine.calculate_text_similarity(user_item, item)
-            if similarity_score >= matching_engine.text_threshold:
+        # Check if types are opposite (Lost vs Found)
+        if user_item.item_type != item.item_type:
+            # ✅ FIX: Use the correct function name 'calculate_similarity'
+            similarity_score = matching_engine.calculate_similarity(user_item, item)
+            
+            # ✅ FIX: Use the correct variable name 'similarity_threshold'
+            if similarity_score >= matching_engine.similarity_threshold:
                 is_potential_match = True
                 break
     
-    return render_template('item_details.html', 
-                         item=item, 
-                         is_potential_match=is_potential_match)
-    
-# Add this to your app.py temporarily to see routes
+    return render_template('item_details.html', item=item, is_potential_match=is_potential_match)
+
 @app.route('/debug/routes')
 def debug_routes():
     routes = []
@@ -284,14 +328,63 @@ def debug_routes():
             'rule': str(rule)
         })
     return jsonify(routes)
-# ===== MAIN EXECUTION =====
+@app.route('/debug/images')
+@login_required
+def debug_images():
+    """Debug page to check image issues"""
+    import os
+    from models import Item
+    
+    # Get all items with their image info
+    items = Item.query.all()
+    debug_info = []
+    
+    for item in items:
+        image_info = {
+            'item_id': item.item_id,
+            'item_title': item.item_title,
+            'image_path_in_db': item.item_image_path,
+            'has_image': bool(item.item_image_path)
+        }
+        
+        if item.item_image_path:
+            # Check if file exists on disk
+            upload_dir = app.config.get('UPLOAD_FOLDER', 'static/uploads')
+            full_path = os.path.join(upload_dir, item.item_image_path)
+            image_info['file_exists'] = os.path.exists(full_path)
+            image_info['full_path'] = full_path
+            
+            if os.path.exists(full_path):
+                image_info['file_size'] = os.path.getsize(full_path)
+        
+        debug_info.append(image_info)
+    
+    # Check upload directory
+    upload_dir = app.config.get('UPLOAD_FOLDER', 'static/uploads')
+    upload_dir_exists = os.path.exists(upload_dir)
+    files_in_uploads = []
+    
+    if upload_dir_exists:
+        files_in_uploads = os.listdir(upload_dir)
+    
+    return render_template('debug_images.html',
+                         debug_info=debug_info,
+                         upload_dir=upload_dir,
+                         upload_dir_exists=upload_dir_exists,
+                         files_in_uploads=files_in_uploads)
+# MAIN EXEC
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         
-        admin_user = User.query.filter_by(username='admin').first()
+        # Fix admin creation
+        admin_user = User.query.filter_by(user_username='admin').first()
         if not admin_user:
-            admin = User(username='admin', email='admin@campus.edu', role='admin')
+            admin = User(
+                user_username='admin',
+                user_email='admin@campus.edu',
+                user_role='admin'
+            )
             admin.set_password('admin123')
             db.session.add(admin)
             db.session.commit()
@@ -300,8 +393,6 @@ if __name__ == '__main__':
         print("=" * 50)
         print("🎓 Campus Lost & Found Application - UNIFIED VERSION")
         print("✅ Database initialized successfully!")
-        print("✅ Modular system integrated!")
-        print("✅ Matching engine activated!")
         print("🌐 Running on: http://localhost:5000")
         print("=" * 50)
     

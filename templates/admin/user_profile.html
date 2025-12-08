@@ -1,183 +1,280 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-user"></i> User Profile: {{ user.username }}</h1>
-        <div>
-            <a href="{{ url_for('admin.manage_users') }}" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left"></i> Back to Users
-            </a>
-        </div>
+<!-- Admin Header -->
+<div class="admin-header">
+    <div class="header-content">
+        <h1><i class="fas fa-user-circle me-3"></i>User Profile</h1>
+        <p class="lead">Viewing details for {{ user.user_username }}</p>
     </div>
-
-    <!-- User Info Card -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> User Information</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table table-sm">
-                        <tr>
-                            <th>Username:</th>
-                            <td>{{ user.username }}</td>
-                        </tr>
-                        <tr>
-                            <th>Email:</th>
-                            <td>{{ user.email }}</td>
-                        </tr>
-                        <tr>
-                            <th>Role:</th>
-                            <td>
-                                <span class="badge bg-{% if user.role == 'admin' %}danger{% else %}secondary{% endif %}">
-                                    {{ user.role }}
-                                </span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Joined:</th>
-                            <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                        </tr>
-                        <tr>
-                            <th>User ID:</th>
-                            <td>#{{ user.id }}</td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- User Statistics -->
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> User Statistics</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3 mb-3">
-                            <div class="border rounded p-3">
-                                <h4 class="text-primary">{{ user_items|length }}</h4>
-                                <small>Total Items</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="border rounded p-3">
-                                <h4 class="text-danger">{{ lost_items|length }}</h4>
-                                <small>Lost Items</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="border rounded p-3">
-                                <h4 class="text-success">{{ found_items|length }}</h4>
-                                <small>Found Items</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="border rounded p-3">
-                                <h4 class="text-info">{{ resolved_items|length }}</h4>
-                                <small>Resolved</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- User's Items -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-clipboard-list"></i> User's Items ({{ user_items|length }})</h5>
-                </div>
-                <div class="card-body">
-                    {% if user_items %}
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Title</th>
-                                    <th>Type</th>
-                                    <th>Category</th>
-                                    <th>Status</th>
-                                    <th>Location</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in user_items %}
-                                <tr>
-                                    <td>{{ item.id }}</td>
-                                    <td>
-                                        <strong>{{ item.title }}</strong>
-                                        <br>
-                                        <small class="text-muted">{{ item.description[:50] }}...</small>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{% if item.type == 'lost' %}danger{% else %}success{% endif %}">
-                                            {{ item.type }}
-                                        </span>
-                                    </td>
-                                    <td>{{ item.category }}</td>
-                                    <td>
-                                        <span class="badge bg-{% if item.status == 'pending' %}warning{% elif item.status == 'claimed' %}info{% else %}success{% endif %}">
-                                            {{ item.status }}
-                                        </span>
-                                    </td>
-                                    <td>{{ item.location }}</td>
-                                    <td>{{ item.created_at.strftime('%m/%d/%Y') }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <h5>No Items Reported</h5>
-                        <p class="text-muted">This user hasn't reported any items yet.</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Recent Notifications -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="fas fa-bell"></i> Recent Notifications ({{ user_notifications|length }})</h5>
-                </div>
-                <div class="card-body">
-                    {% if user_notifications %}
-                    <div class="list-group">
-                        {% for notification in user_notifications %}
-                        <div class="list-group-item {% if not notification.is_seen %}bg-light{% endif %}">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">{{ notification.message }}</h6>
-                                <small>{{ notification.created_at.strftime('%m/%d %H:%M') }}</small>
-                            </div>
-                            <small class="text-muted">
-                                Type: {{ notification.notification_type }} • 
-                                Status: {% if notification.is_seen %}Read{% else %}Unread{% endif %}
-                            </small>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <p class="text-muted text-center">No notifications for this user.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+    <div class="header-actions">
+        <a href="{{ url_for('admin.manage_users') }}" class="action-btn">
+            <i class="fas fa-arrow-left me-2"></i> Back to Users
+        </a>
     </div>
 </div>
+
+<div class="profile-layout mt-4">
+    <!-- Left Column: User Info -->
+    <div class="profile-sidebar">
+        <div class="content-card profile-card">
+            <div class="profile-avatar-lg">
+                {{ user.user_username[0]|upper }}
+            </div>
+            <h3 class="profile-name">{{ user.user_username }}</h3>
+            <p class="profile-email">{{ user.user_email }}</p>
+            
+            <div class="profile-meta">
+                <div class="meta-row">
+                    <span class="label">Role</span>
+                    <span class="role-badge {{ 'admin' if user.user_role == 'admin' else 'student' }}">
+                        {{ user.user_role|upper }}
+                    </span>
+                </div>
+                <div class="meta-row">
+                    <span class="label">Joined</span>
+                    <span class="value">{{ user.user_created_at.strftime('%b %d, %Y') }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="label">User ID</span>
+                    <span class="value">#{{ user.user_id }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Stats & Data -->
+    <div class="profile-main">
+        
+        <!-- Stats Grid -->
+        <div class="stats-grid-mini mb-4">
+            <div class="mini-stat">
+                <div class="mini-icon blue"><i class="fas fa-layer-group"></i></div>
+                <div class="mini-text">
+                    <h4>{{ user_items|length }}</h4>
+                    <span>Total Items</span>
+                </div>
+            </div>
+            <div class="mini-stat">
+                <div class="mini-icon orange"><i class="fas fa-search"></i></div>
+                <div class="mini-text">
+                    <h4>{{ lost_items|length }}</h4>
+                    <span>Lost</span>
+                </div>
+            </div>
+            <div class="mini-stat">
+                <div class="mini-icon green"><i class="fas fa-hand-holding-heart"></i></div>
+                <div class="mini-text">
+                    <h4>{{ found_items|length }}</h4>
+                    <span>Found</span>
+                </div>
+            </div>
+            <div class="mini-stat">
+                <div class="mini-icon teal"><i class="fas fa-check-circle"></i></div>
+                <div class="mini-text">
+                    <h4>{{ resolved_items|length }}</h4>
+                    <span>Resolved</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Items Table -->
+        <div class="content-card mb-4">
+            <div class="card-header-custom">
+                <h3><i class="fas fa-clipboard-list me-2"></i>Reported Items</h3>
+            </div>
+            <div class="table-responsive">
+                {% if user_items %}
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in user_items %}
+                        <tr>
+                            <td>
+                                <div class="item-cell">
+                                    <div class="item-text">
+                                        <span class="item-name">{{ item.item_title }}</span>
+                                        <span class="item-cat">{{ item.item_category }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ item.item_type }}">
+                                    {{ item.item_type|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ item.item_status }}">
+                                    {{ item.item_status|title }}
+                                </span>
+                            </td>
+                            <td class="date-cell">
+                                {{ item.item_created_at.strftime('%b %d, %Y') }}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin.view_item', item_id=item.item_id) }}" class="icon-btn view">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state-admin">
+                    <i class="fas fa-inbox"></i>
+                    <p>No items reported by this user.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Notifications -->
+        <div class="content-card">
+            <div class="card-header-custom">
+                <h3><i class="fas fa-bell me-2"></i>Recent Activity Logs</h3>
+            </div>
+            <div class="notifications-list-admin">
+                {% if user_notifications %}
+                    {% for notification in user_notifications %}
+                    <div class="notif-item">
+                        <div class="notif-icon">
+                            {% if notification.notification_type == 'potential_match' %}
+                                <i class="fas fa-handshake text-success"></i>
+                            {% elif notification.notification_type == 'visual_match' %}
+                                <i class="fas fa-camera text-info"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle text-primary"></i>
+                            {% endif %}
+                        </div>
+                        <div class="notif-content">
+                            <p>{{ notification.notification_message }}</p>
+                            <span class="notif-time">{{ notification.notification_created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </div>
+                        <span class="notif-status {{ 'seen' if notification.notification_is_seen else 'unseen' }}">
+                            {{ 'Read' if notification.notification_is_seen else 'Unread' }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state-admin">
+                        <p>No recent activity logs.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+/* Layout */
+.profile-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 1.5rem;
+}
+
+/* Sidebar Profile Card */
+.profile-card {
+    padding: 2rem;
+    text-align: center;
+}
+
+.profile-avatar-lg {
+    width: 100px; height: 100px; border-radius: 50%;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem; font-weight: 700; margin: 0 auto 1.5rem;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+.profile-name { font-size: 1.4rem; font-weight: 700; margin: 0; color: #1e293b; }
+.profile-email { color: #64748b; font-size: 0.9rem; margin-bottom: 2rem; }
+
+.profile-meta { text-align: left; }
+.meta-row { display: flex; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px solid #f1f5f9; }
+.meta-row:last-child { border-bottom: none; }
+.meta-row .label { color: #64748b; font-size: 0.9rem; font-weight: 500; }
+.meta-row .value { color: #1e293b; font-weight: 600; font-size: 0.9rem; }
+
+/* Mini Stats Grid */
+.stats-grid-mini { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.mini-stat {
+    background: white; padding: 1.2rem; border-radius: 12px;
+    display: flex; align-items: center; gap: 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
+}
+.mini-icon {
+    width: 45px; height: 45px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;
+}
+.mini-icon.blue { background: #3b82f6; }
+.mini-icon.orange { background: #f59e0b; }
+.mini-icon.green { background: #10b981; }
+.mini-icon.teal { background: #14b8a6; }
+
+.mini-text h4 { margin: 0; font-size: 1.2rem; font-weight: 700; color: #1e293b; }
+.mini-text span { font-size: 0.8rem; color: #64748b; }
+
+/* Notifications List */
+.notif-item {
+    display: flex; gap: 1rem; padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9; align-items: flex-start;
+}
+.notif-icon {
+    width: 35px; height: 35px; background: #f8fafc; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.notif-content { flex: 1; }
+.notif-content p { margin: 0 0 0.3rem; font-size: 0.95rem; color: #334155; }
+.notif-time { font-size: 0.8rem; color: #94a3b8; }
+.notif-status { font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 4px; }
+.notif-status.seen { background: #f0fdf4; color: #166534; }
+.notif-status.unseen { background: #fff7ed; color: #c2410c; }
+
+/* Reuse styles from Dashboard */
+.admin-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white; padding: 2.5rem; border-radius: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.header-content h1 { font-size: 2rem; font-weight: 700; margin: 0; }
+.header-content .lead { margin: 0; opacity: 0.9; }
+.action-btn {
+    background: rgba(255,255,255,0.2); color: white; padding: 0.7rem 1.5rem;
+    border-radius: 10px; text-decoration: none; font-weight: 600;
+    transition: 0.3s;
+}
+.action-btn:hover { background: white; color: #059669; }
+.content-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden; }
+.card-header-custom { padding: 1.5rem; border-bottom: 1px solid #f1f5f9; }
+.card-header-custom h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #334155; }
+.custom-table { width: 100%; border-collapse: collapse; }
+.custom-table th { padding: 1rem 1.5rem; background: #f8fafc; color: #64748b; font-size: 0.85rem; text-align: left; }
+.custom-table td { padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9; }
+.status-badge { padding: 0.3em 0.8em; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+.status-lost { background: #fef2f2; color: #ef4444; }
+.status-found { background: #ecfdf5; color: #10b981; }
+.status-pending { background: #fff7ed; color: #f59e0b; }
+.status-resolved { background: #f1f5f9; color: #475569; }
+.role-badge.admin { background: #fef2f2; color: #ef4444; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 700; }
+.role-badge.student { background: #f0f9ff; color: #0284c7; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 700; }
+.icon-btn.view { background: #eff6ff; color: #3b82f6; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.empty-state-admin { text-align: center; padding: 2rem; color: #94a3b8; }
+
+/* Responsive */
+@media (max-width: 992px) {
+    .profile-layout { grid-template-columns: 1fr; }
+    .stats-grid-mini { grid-template-columns: 1fr 1fr; }
+}
+</style>
 {% endblock %}

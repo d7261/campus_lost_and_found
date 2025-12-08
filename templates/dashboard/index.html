@@ -155,73 +155,72 @@
 
     <!-- Recent Activity -->
     <div class="section">
-        <div class="section-header">
-            <h2>Recent Activity</h2>
-            <p>Your latest reported items</p>
-        </div>
-        <div class="activity-card">
-            {% if current_user.items %}
-                <div class="activity-list">
-                    {% for item in current_user.items %}
-                        {% if loop.index <= 5 %}
-                        <div class="activity-item">
-                            <div class="activity-type {{ item.type }}">
-                                <i class="fas fa-{% if item.type == 'lost' %}search{% else %}hand-holding{% endif %}"></i>
+    <div class="section-header">
+        <h2>Recent Activity</h2>
+        <p>Your latest reported items</p>
+    </div>
+    <div class="activity-card">
+        {% if current_user.items %}
+            <div class="activity-list">
+                {% for item in current_user.items %}
+                    {% if loop.index <= 5 %}
+                    <div class="activity-item">
+                        <div class="activity-type {{ item.item_type }}">  <!-- ✅ Fixed -->
+                            <i class="fas fa-{% if item.item_type == 'lost' %}search{% else %}hand-holding{% endif %}"></i>  <!-- ✅ Fixed -->
+                        </div>
+                        <div class="activity-details">
+                            <div class="activity-main">
+                                <h5>{{ item.item_title }}</h5>  <!-- ✅ Fixed -->
+                                <p class="activity-desc">
+                                    {% if item.item_description|length > 80 %}  <!-- ✅ Fixed -->
+                                        {{ item.item_description[:80] }}...  <!-- ✅ Fixed -->
+                                    {% else %}
+                                        {{ item.item_description }}  <!-- ✅ Fixed -->
+                                    {% endif %}
+                                </p>
+                                <div class="activity-meta">
+                                    <span class="meta location">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        {{ item.item_location }}  <!-- ✅ Fixed -->
+                                    </span>
+                                    <span class="meta category">
+                                        <i class="fas fa-tag"></i>
+                                        {{ item.item_category }}  <!-- ✅ Fixed -->
+                                    </span>
+                                    <span class="meta date">
+                                        <i class="fas fa-calendar"></i>
+                                        {{ item.item_created_at.strftime('%b %d, %Y') }}  <!-- ✅ Fixed -->
+                                    </span>
+                                </div>
                             </div>
-                            <div class="activity-details">
-                                <div class="activity-main">
-                                    <h5>{{ item.title }}</h5>
-                                    <p class="activity-desc">
-                                        {% if item.description|length > 80 %}
-                                            {{ item.description[:80] }}...
-                                        {% else %}
-                                            {{ item.description }}
-                                        {% endif %}
-                                    </p>
-                                    <div class="activity-meta">
-                                        <span class="meta location">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            {{ item.location }}
-                                        </span>
-                                        <span class="meta category">
-                                            <i class="fas fa-tag"></i>
-                                            {{ item.category }}
-                                        </span>
-                                        <span class="meta date">
-                                            <i class="fas fa-calendar"></i>
-                                            {{ item.created_at.strftime('%b %d, %Y') }}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="activity-status">
-                                    <span class="status {{ item.status }}">{{ item.status|title }}</span>
-                                </div>
+                            <div class="activity-status">
+                                <span class="status {{ item.item_status }}">{{ item.item_status|title }}</span>  <!-- ✅ Fixed -->
                             </div>
                         </div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-                <div class="activity-footer">
-                    <a href="{{ url_for('reporting.my_items') }}" class="view-all-btn">
-                        View All Items
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-            {% else %}
-                <div class="empty-state">
-                    <div class="empty-icon">
-                        <i class="fas fa-inbox"></i>
                     </div>
-                    <h4>No activity yet</h4>
-                    <p>Start by reporting your first lost or found item!</p>
-                    <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary">
-                        Report Your First Item
-                    </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="activity-footer">
+                <a href="{{ url_for('reporting.my_items') }}" class="view-all-btn">
+                    View All Items
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-inbox"></i>
                 </div>
-            {% endif %}
-        </div>
+                <h4>No activity yet</h4>
+                <p>Start by reporting your first lost or found item!</p>
+                <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary">
+                    Report Your First Item
+                </a>
+            </div>
+        {% endif %}
     </div>
-
+</div>
     <style>
     /* ===== DASHBOARD STYLES ===== */
     

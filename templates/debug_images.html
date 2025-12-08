@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Image Debug Information</h1>
+
+<h2>Upload Directory Status</h2>
+<p><strong>Upload Directory:</strong> {{ upload_dir }}</p>
+<p><strong>Directory Exists:</strong> {{ upload_dir_exists }}</p>
+<p><strong>Files in uploads:</strong> {{ files_in_uploads|length }} files</p>
+<ul>
+    {% for file in files_in_uploads %}
+    <li>{{ file }}</li>
+    {% endfor %}
+</ul>
+
+<h2>Database Items</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Item ID</th>
+            <th>Title</th>
+            <th>Image Path in DB</th>
+            <th>File Exists</th>
+            <th>Full Path</th>
+            <th>File Size</th>
+            <th>Test URL</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in debug_info %}
+        <tr>
+            <td>{{ item.item_id }}</td>
+            <td>{{ item.item_title }}</td>
+            <td>{{ item.image_path_in_db or 'None' }}</td>
+            <td>
+                {% if item.image_path_in_db %}
+                    {% if item.file_exists %}
+                        <span class="text-success">✅ Yes</span>
+                    {% else %}
+                        <span class="text-danger">❌ No</span>
+                    {% endif %}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>{{ item.full_path or 'N/A' }}</td>
+            <td>{{ item.file_size|default('N/A') }} bytes</td>
+            <td>
+                {% if item.image_path_in_db and item.file_exists %}
+                    <a href="/static/uploads/{{ item.image_path_in_db }}" target="_blank">
+                        View Image
+                    </a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

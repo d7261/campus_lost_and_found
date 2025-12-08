@@ -1,78 +1,202 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-users"></i> User Management</h1>
-        <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-primary">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
+<!-- Header (Matches Dashboard Style) -->
+<div class="admin-header">
+    <div class="header-content">
+        <h1><i class="fas fa-users-cog me-3"></i>User Management</h1>
+        <p class="lead">View, manage, and monitor user accounts</p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="action-btn">
+            <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
         </a>
     </div>
+</div>
 
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">All Users ({{ users|length }})</h5>
-        </div>
-        <div class="card-body">
-            {% if users %}
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Items</th>
-                            <th>Joined</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td>{{ user.id }}</td>
-                            <td>
-                                <strong>{{ user.username }}</strong>
-                                {% if user.role == 'admin' %}
-                                <span class="badge bg-danger ms-1">Admin</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ user.email }}</td>
-                            <td>
-                                <span class="badge bg-{% if user.role == 'admin' %}danger{% else %}secondary{% endif %}">
-                                    {{ user.role }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="badge bg-info">{{ user.items|length }}</span>
-                            </td>
-                            <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-<a href="{{ url_for('admin.view_user', user_id=user.id) }}" class="btn btn-outline-info" title="View Profile">                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    {% if user.role != 'admin' %}
-                                    <a href="{{ url_for('admin.toggle_user', user_id=user.id) }}" 
-                                       class="btn btn-outline-warning" title="Toggle Status">
-                                        <i class="fas fa-cog"></i>
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="text-center py-4">
-                <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                <h5>No Users Found</h5>
-                <p class="text-muted">No users have registered yet.</p>
-            </div>
-            {% endif %}
+<div class="content-card mt-4">
+    <div class="card-header-custom">
+        <h3><i class="fas fa-list me-2"></i>Registered Users ({{ users|length }})</h3>
+        
+        <!-- Search bar (Visual only for now) -->
+        <div class="search-wrapper">
+            <input type="text" placeholder="Search users..." class="admin-search">
+            <i class="fas fa-search"></i>
         </div>
     </div>
+
+    <div class="table-responsive">
+        {% if users %}
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Reports</th>
+                    <th>Joined Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <!-- FIX: Used user.user_username for avatar letter -->
+                            <div class="user-avatar-md">{{ user.user_username[0]|upper }}</div>
+                            <div class="user-info-text">
+                                <!-- FIX: Used user.user_username -->
+                                <span class="user-name">{{ user.user_username }}</span>
+                                <!-- FIX: Used user.user_email -->
+                                <span class="user-email">{{ user.user_email }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <!-- FIX: Used user.user_role -->
+                        <span class="role-badge {% if user.user_role == 'admin' %}admin{% else %}student{% endif %}">
+                            {{ user.user_role|upper }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="count-badge">
+                            <i class="fas fa-clipboard-list me-1"></i> {{ user.items|length }}
+                        </span>
+                    </td>
+                    <td class="date-cell">
+                        <!-- FIX: Used user.user_created_at -->
+                        {{ user.user_created_at.strftime('%b %d, %Y') }}
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <!-- FIX: Used user.user_id -->
+                            <a href="{{ url_for('admin.view_user', user_id=user.user_id) }}" 
+                               class="icon-btn view" title="View Profile">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            
+                            {% if user.user_role != 'admin' %}
+                            <!-- FIX: Used user.user_id -->
+                            <a href="{{ url_for('admin.toggle_user', user_id=user.user_id) }}" 
+                               class="icon-btn edit" title="Toggle Status">
+                                <i class="fas fa-user-shield"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state-admin">
+            <i class="fas fa-users"></i>
+            <p>No users found in the database.</p>
+        </div>
+        {% endif %}
+    </div>
 </div>
+
+<style>
+/* Re-using the Admin Styles defined in Dashboard + specific User Styles */
+
+.admin-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15);
+}
+
+.header-content h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+.header-content .lead { font-size: 1.1rem; opacity: 0.9; margin: 0; }
+
+.action-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
+}
+.action-btn:hover { background: white; color: #059669; transform: translateY(-2px); }
+
+.content-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+}
+
+.card-header-custom {
+    padding: 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header-custom h3 { font-size: 1.2rem; font-weight: 700; margin: 0; color: #334155; }
+
+/* Search Bar */
+.search-wrapper { position: relative; }
+.admin-search {
+    padding: 0.6rem 1rem 0.6rem 2.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    width: 250px;
+    transition: border-color 0.3s;
+}
+.admin-search:focus { outline: none; border-color: #10b981; }
+.search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+
+/* Table Styles */
+.custom-table { width: 100%; border-collapse: collapse; }
+.custom-table th { text-align: left; padding: 1rem 1.5rem; background: #f8fafc; color: #64748b; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+.custom-table td { padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.custom-table tr:hover { background: #fcfcfc; }
+
+/* User Cell Info */
+.user-cell { display: flex; align-items: center; gap: 1rem; }
+.user-avatar-md {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1rem;
+}
+.user-info-text { display: flex; flex-direction: column; }
+.user-name { font-weight: 600; color: #1e293b; }
+.user-email { font-size: 0.85rem; color: #64748b; }
+
+/* Badges */
+.role-badge { padding: 0.3em 0.8em; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+.role-badge.admin { background: #fef2f2; color: #ef4444; }
+.role-badge.student { background: #f0f9ff; color: #0284c7; }
+
+.count-badge { background: #f1f5f9; color: #475569; padding: 0.3em 0.8em; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+.date-cell { color: #64748b; font-size: 0.9rem; }
+
+/* Actions */
+.action-group { display: flex; gap: 0.5rem; }
+.icon-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; text-decoration: none;
+}
+.icon-btn.view { background: #eff6ff; color: #3b82f6; }
+.icon-btn.view:hover { background: #3b82f6; color: white; }
+.icon-btn.edit { background: #fff7ed; color: #f97316; }
+.icon-btn.edit:hover { background: #f97316; color: white; }
+
+.empty-state-admin { text-align: center; padding: 3rem; color: #94a3b8; }
+.empty-state-admin i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+</style>
 {% endblock %}

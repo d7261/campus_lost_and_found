@@ -621,7 +621,21 @@
                 <i class="fas fa-exclamation-circle me-2"></i>
                 <span id="errorText">Invalid username or password</span>
             </div>
-            
+            <!-- Add this RIGHT AFTER your existing error-message div -->
+<!-- Flash Messages from Flask -->
+<div class="flash-container" style="max-width: 400px; margin: 0 auto 1.5rem;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show mb-3">
+                    <i class="fas fa-{% if category == 'error' %}exclamation-circle{% else %}check-circle{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
             <form method="POST" class="login-form">
                 <div class="form-group">
                     <label for="username" class="form-label">Username or Email</label>

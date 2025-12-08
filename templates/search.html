@@ -1,256 +1,256 @@
 {% extends "base.html" %}
 
 {% block content %}
+    <!-- Search Header -->
+    <div class="search-header">
+        <div class="header-content">
+            <h1><i class="fas fa-search me-3"></i>Search Lost & Found Items</h1>
+            <p class="lead">Find missing items or discover found belongings across campus</p>
+        </div>
+        
+        <div class="search-form-container">
+            <form method="GET" action="{{ url_for('search') }}" class="search-form">
+                <div class="search-input-group">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" name="q" class="search-input" 
+                           placeholder="Search by item name, description, category, or location..." 
+                           value="{{ query }}" required>
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i>
+                        Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-        <!-- Search Header -->
-        <div class="search-header">
-            <div class="header-content">
-                <h1><i class="fas fa-search me-3"></i>Search Lost & Found Items</h1>
-                <p class="lead">Find missing items or discover found belongings across campus</p>
+    <!-- Search Results -->
+    {% if query %}
+    <div class="results-section">
+        <div class="section-header">
+            <div class="results-info">
+                <h2>
+                    {% if items %}
+                    Search Results for "{{ query }}"
+                    <span class="results-count">{{ items|length }} items found</span>
+                    {% else %}
+                    No results found for "{{ query }}"
+                    {% endif %}
+                </h2>
             </div>
-            
-            <div class="search-form-container">
-                <form method="GET" action="{{ url_for('search') }}" class="search-form">
-                    <div class="search-input-group">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" name="q" class="search-input" 
-                               placeholder="Search by item name, description, category, or location..." 
-                               value="{{ query }}" required>
-                        <button type="submit" class="search-btn">
-                            <i class="fas fa-search"></i>
-                            Search
+        </div>
+
+        {% if items %}
+        <div class="items-grid">
+            {% for item in items %}
+            <div class="item-card">
+                <!-- Card Header -->
+                <div class="card-header">
+                    <div class="item-badges">
+                        <span class="type-badge type-{{ item.item_type }}">  <!-- ✅ Fixed -->
+                            <i class="fas fa-{% if item.item_type == 'lost' %}search{% else %}hand-holding{% endif %} me-1"></i>  <!-- ✅ Fixed -->
+                            {{ item.item_type|title }}  <!-- ✅ Fixed -->
+                        </span>
+                        <span class="status-badge status-{{ item.item_status }}">  <!-- ✅ Fixed -->
+                            {{ item.item_status|title }}  <!-- ✅ Fixed -->
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Item Image -->
+                 <div class="card-image">
+                    {% if item.item_image_path %}
+                    <div class="image-container">
+                        <!-- Removed the comments from inside the tag -->
+                        <img src="{{ url_for('static', filename='uploads/' + item.item_image_path) }}"
+                             class="item-image" 
+                             alt="{{ item.item_title }}"
+                             onerror="this.style.display='none'">
+                        
+                        {% if item.embedding %}
+                        <div class="ai-badge" title="AI Image Recognition Enabled">
+                            <i class="fas fa-robot"></i>
+                            AI
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="no-image">
+                        <i class="fas fa-image"></i>
+                        <span>No image available</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Card Content -->
+                <div class="card-content">
+                    <h3 class="item-title">{{ item.item_title }}</h3>  <!-- ✅ Fixed -->
+                    <p class="item-description">{{ item.item_description }}</p>  <!-- ✅ Fixed -->
+                    
+                    <div class="item-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-tag"></i>
+                            <span>{{ item.item_category }}</span>  <!-- ✅ Fixed -->
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>{{ item.item_location }}</span>  <!-- ✅ Fixed -->
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>{{ item.item_date_lost_found.strftime('%b %d, %Y') }}</span>  <!-- ✅ Fixed -->
+                        </div>
+                    </div>
+                    
+                    <div class="reporter-info">
+                        <div class="reporter-avatar">
+                            {{ item.owner.user_username[0]|upper }}  <!-- ✅ Fixed -->
+                        </div>
+                        <div class="reporter-details">
+                            <strong>Reported by {{ item.owner.user_username }}</strong>  <!-- ✅ Fixed -->
+                            <small>{{ item.item_created_at.strftime('%b %d, %Y') }}</small>  <!-- ✅ Fixed -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card Actions -->
+                <div class="card-actions">
+                    {% if item.item_type == 'found' and item.item_status == 'pending' %}  <!-- ✅ Fixed -->
+                    <form method="POST" action="{{ url_for('claim_item', item_id=item.item_id) }}" class="claim-form">  <!-- ✅ Fixed -->
+                        <button type="submit" class="claim-btn" 
+                                onclick="return confirm('Are you sure this is your item? This will notify the finder.')">
+                            <i class="fas fa-hand-paper me-2"></i>
+                            Claim This Item
                         </button>
+                    </form>
+                    {% elif item.item_type == 'lost' %}  <!-- ✅ Fixed -->
+                    <div class="contact-notice">
+                        <i class="fas fa-info-circle me-2"></i>
+                        If found, please contact the reporter
                     </div>
-                </form>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('view_item', item_id=item.item_id) }}" class="view-details-btn">  <!-- ✅ Fixed -->
+                        <i class="fas fa-eye me-2"></i>
+                        View Details
+                    </a>
+                </div>
             </div>
+            {% endfor %}
         </div>
-
-        <!-- Search Results -->
-        {% if query %}
-        <div class="results-section">
-            <div class="section-header">
-                <div class="results-info">
-                    <h2>
-                        {% if items %}
-                        Search Results for "{{ query }}"
-                        <span class="results-count">{{ items|length }} items found</span>
-                        {% else %}
-                        No results found for "{{ query }}"
-                        {% endif %}
-                    </h2>
-                </div>
+        {% else %}
+        <!-- No Results Message -->
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-search"></i>
             </div>
-
-            {% if items %}
-            <div class="items-grid">
-                {% for item in items %}
-                <div class="item-card">
-                    <!-- Card Header -->
-                    <div class="card-header">
-                        <div class="item-badges">
-                            <span class="type-badge type-{{ item.type }}">
-                                <i class="fas fa-{% if item.type == 'lost' %}search{% else %}hand-holding{% endif %} me-1"></i>
-                                {{ item.type|title }}
-                            </span>
-                            <span class="status-badge status-{{ item.status }}">
-                                {{ item.status|title }}
-                            </span>
-                        </div>
+            <h3>No items found matching "{{ query }}"</h3>
+            <p class="text-muted">
+                Try searching with different keywords or check the spelling.
+            </p>
+            <div class="search-tips">
+                <h4>Search Tips:</h4>
+                <div class="tips-grid">
+                    <div class="tip-card">
+                        <i class="fas fa-keyboard"></i>
+                        <h5>Use General Terms</h5>
+                        <p>Try "phone" instead of "iPhone 13"</p>
                     </div>
-                    
-                    <!-- Item Image -->
-                    <div class="card-image">
-                        {% if item.image_path %}
-                        <div class="image-container">
-                            <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
-                                 class="item-image" 
-                                 alt="{{ item.title }}"
-                                 onerror="this.style.display='none'">
-                            {% if item.embedding %}
-                            <div class="ai-badge" title="AI Image Recognition Enabled">
-                                <i class="fas fa-robot"></i>
-                                AI
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% else %}
-                        <div class="no-image">
-                            <i class="fas fa-image"></i>
-                            <span>No image available</span>
-                        </div>
-                        {% endif %}
+                    <div class="tip-card">
+                        <i class="fas fa-map"></i>
+                        <h5>Search by Location</h5>
+                        <p>Try "library", "cafeteria", "lab"</p>
                     </div>
-                    
-                    <!-- Card Content -->
-                    <div class="card-content">
-                        <h3 class="item-title">{{ item.title }}</h3>
-                        <p class="item-description">{{ item.description }}</p>
-                        
-                        <div class="item-meta">
-                            <div class="meta-item">
-                                <i class="fas fa-tag"></i>
-                                <span>{{ item.category }}</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>{{ item.location }}</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-calendar"></i>
-                                <span>{{ item.date_lost_found.strftime('%b %d, %Y') }}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="reporter-info">
-                            <div class="reporter-avatar">
-                                {{ item.owner.username[0]|upper }}
-                            </div>
-                            <div class="reporter-details">
-                                <strong>Reported by {{ item.owner.username }}</strong>
-                                <small>{{ item.created_at.strftime('%b %d, %Y') }}</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Card Actions -->
-                    <div class="card-actions">
-                        {% if item.type == 'found' and item.status == 'pending' %}
-                        <form method="POST" action="{{ url_for('claim_item', item_id=item.id) }}" class="claim-form">
-                            <button type="submit" class="claim-btn" 
-                                    onclick="return confirm('Are you sure this is your item? This will notify the finder.')">
-                                <i class="fas fa-hand-paper me-2"></i>
-                                Claim This Item
-                            </button>
-                        </form>
-                        {% elif item.type == 'lost' %}
-                        <div class="contact-notice">
-                            <i class="fas fa-info-circle me-2"></i>
-                            If found, please contact the reporter
-                        </div>
-                        {% endif %}
-                        
-                        <a href="{{ url_for('view_item', item_id=item.id) }}" class="view-details-btn">
-                            <i class="fas fa-eye me-2"></i>
-                            View Details
-                        </a>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <!-- No Results Message -->
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <i class="fas fa-search"></i>
-                </div>
-                <h3>No items found matching "{{ query }}"</h3>
-                <p class="text-muted">
-                    Try searching with different keywords or check the spelling.
-                </p>
-                <div class="search-tips">
-                    <h4>Search Tips:</h4>
-                    <div class="tips-grid">
-                        <div class="tip-card">
-                            <i class="fas fa-keyboard"></i>
-                            <h5>Use General Terms</h5>
-                            <p>Try "phone" instead of "iPhone 13"</p>
-                        </div>
-                        <div class="tip-card">
-                            <i class="fas fa-map"></i>
-                            <h5>Search by Location</h5>
-                            <p>Try "library", "cafeteria", "lab"</p>
-                        </div>
-                        <div class="tip-card">
-                            <i class="fas fa-tags"></i>
-                            <h5>Browse Categories</h5>
-                            <p>Search by item type like "book", "jacket"</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-        {% endif %}
-
-        <!-- Browse Categories (when no search query) -->
-        {% if not query %}
-        <div class="categories-section">
-            <div class="section-header">
-                <h2>Browse Categories</h2>
-                <p>Start by searching or explore common categories</p>
-            </div>
-            
-            <div class="categories-grid">
-                <div class="category-card electronics">
-                    <div class="category-icon">
-                        <i class="fas fa-mobile-alt"></i>
-                    </div>
-                    <div class="category-content">
-                        <h4>Electronics</h4>
-                        <p>Phones, laptops, headphones, chargers</p>
-                        <small>Most common category</small>
-                    </div>
-                </div>
-                
-                <div class="category-card books">
-                    <div class="category-icon">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <div class="category-content">
-                        <h4>Books & Notes</h4>
-                        <p>Textbooks, notebooks, documents</p>
-                        <small>Academic materials</small>
-                    </div>
-                </div>
-                
-                <div class="category-card clothing">
-                    <div class="category-icon">
-                        <i class="fas fa-tshirt"></i>
-                    </div>
-                    <div class="category-content">
-                        <h4>Clothing</h4>
-                        <p>Jackets, bags, hats, accessories</p>
-                        <small>Personal items</small>
-                    </div>
-                </div>
-                
-                <div class="category-card personal">
-                    <div class="category-icon">
-                        <i class="fas fa-wallet"></i>
-                    </div>
-                    <div class="category-content">
-                        <h4>Personal Items</h4>
-                        <p>Wallets, keys, ID cards, glasses</p>
-                        <small>Important documents</small>
-                    </div>
-                </div>
-                
-                <div class="category-card accessories">
-                    <div class="category-icon">
-                        <i class="fas fa-mug-hot"></i>
-                    </div>
-                    <div class="category-content">
-                        <h4>Accessories</h4>
-                        <p>Water bottles, lunch boxes, umbrellas</p>
-                        <small>Everyday items</small>
-                    </div>
-                </div>
-                
-                <div class="category-card other">
-                    <div class="category-icon">
-                        <i class="fas fa-ellipsis-h"></i>
-                    </div>
-                    <div class="category-content">
-                        <h4>Other Items</h4>
-                        <p>Sports equipment, instruments, etc.</p>
-                        <small>Miscellaneous items</small>
+                    <div class="tip-card">
+                        <i class="fas fa-tags"></i>
+                        <h5>Browse Categories</h5>
+                        <p>Search by item type like "book", "jacket"</p>
                     </div>
                 </div>
             </div>
         </div>
         {% endif %}
     </div>
-</div>
+    {% endif %}
+
+    <!-- Browse Categories (when no search query) -->
+    {% if not query %}
+    <div class="categories-section">
+        <div class="section-header">
+            <h2>Browse Categories</h2>
+            <p>Start by searching or explore common categories</p>
+        </div>
+        
+        <div class="categories-grid">
+            <div class="category-card electronics">
+                <div class="category-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <div class="category-content">
+                    <h4>Electronics</h4>
+                    <p>Phones, laptops, headphones, chargers</p>
+                    <small>Most common category</small>
+                </div>
+            </div>
+            
+            <div class="category-card books">
+                <div class="category-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="category-content">
+                    <h4>Books & Notes</h4>
+                    <p>Textbooks, notebooks, documents</p>
+                    <small>Academic materials</small>
+                </div>
+            </div>
+            
+            <div class="category-card clothing">
+                <div class="category-icon">
+                    <i class="fas fa-tshirt"></i>
+                </div>
+                <div class="category-content">
+                    <h4>Clothing</h4>
+                    <p>Jackets, bags, hats, accessories</p>
+                    <small>Personal items</small>
+                </div>
+            </div>
+            
+            <div class="category-card personal">
+                <div class="category-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="category-content">
+                    <h4>Personal Items</h4>
+                    <p>Wallets, keys, ID cards, glasses</p>
+                    <small>Important documents</small>
+                </div>
+            </div>
+            
+            <div class="category-card accessories">
+                <div class="category-icon">
+                    <i class="fas fa-mug-hot"></i>
+                </div>
+                <div class="category-content">
+                    <h4>Accessories</h4>
+                    <p>Water bottles, lunch boxes, umbrellas</p>
+                    <small>Everyday items</small>
+                </div>
+            </div>
+            
+            <div class="category-card other">
+                <div class="category-icon">
+                    <i class="fas fa-ellipsis-h"></i>
+                </div>
+                <div class="category-content">
+                    <h4>Other Items</h4>
+                    <p>Sports equipment, instruments, etc.</p>
+                    <small>Miscellaneous items</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
 
 <style>
 /* Search Page Specific Styles */

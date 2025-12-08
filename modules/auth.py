@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
-from models import db, User  # ← Change this import
+from models import db, User
 
 auth_bp = Blueprint('auth', __name__) 
 
@@ -24,15 +24,21 @@ def register():
             flash('Passwords do not match', 'error')
             return render_template('auth/register.html')
         
-        if User.query.filter_by(username=username).first():
+        # Updated field names
+        if User.query.filter_by(user_username=username).first():
             flash('Username already exists', 'error')
             return render_template('auth/register.html')
         
-        if User.query.filter_by(email=email).first():
+        if User.query.filter_by(user_email=email).first():
             flash('Email already registered', 'error')
             return render_template('auth/register.html')
         
-        user = User(username=username, email=email, role=role)
+        # Updated constructor with new prefixes
+        user = User(
+            user_username=username,
+            user_email=email,
+            user_role=role
+        )
         user.set_password(password)
         
         db.session.add(user)
@@ -53,11 +59,12 @@ def login():
         password = request.form.get('password')
         remember = bool(request.form.get('remember'))
         
-        user = User.query.filter_by(username=username).first()
+        # Updated lookup
+        user = User.query.filter_by(user_username=username).first()  # ✅ NEW
         
         if user and user.check_password(password):
             login_user(user, remember=remember)
-            flash(f'Welcome back, {user.username}!', 'success')
+            flash(f'Welcome back, {user.user_username}!', 'success')
             
             next_page = request.args.get('next')
             return redirect(next_page or url_for('index'))

@@ -1,104 +1,205 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-clipboard-list"></i> Item Management</h1>
-        <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-primary">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
+<!-- Admin Header -->
+<div class="admin-header">
+    <div class="header-content">
+        <h1><i class="fas fa-boxes me-3"></i>Item Management</h1>
+        <p class="lead">Monitor, manage, and audit reported items</p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="action-btn">
+            <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
         </a>
     </div>
-
-    <div class="card">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0">All Items ({{ items|length }})</h5>
-        </div>
-        <div class="card-body">
-            {% if items %}
-  <div class="table-responsive">
-    <table class="table table-striped table-hover">
-        <thead>
-            <tr>
-                <th>Image</th>
-                <th>ID</th>
-                <th>Title</th>
-                <th>Type</th>
-                <th>Category</th>
-                <th>User</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in items %}
-            <tr>
-                <td>
-                    {% if item.image_path %}
-                    <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
-                         class="admin-thumbnail" 
-                         alt="{{ item.title }}"
-                         onerror="this.style.display='none'"
-                         data-bs-toggle="tooltip" 
-                         data-bs-title="Click to view larger">
-                    {% else %}
-                    <div class="no-image-placeholder" data-bs-toggle="tooltip" data-bs-title="No image">
-                        <i class="fas fa-image text-muted"></i>
-                    </div>
-                    {% endif %}
-                </td>
-                <td>{{ item.id }}</td>
-                <td>
-                    <strong>{{ item.title }}</strong>
-                    <br>
-                    <small class="text-muted">{{ item.description[:50] }}...</small>
-                </td>
-                <td>
-                    <span class="badge bg-{% if item.type == 'lost' %}danger{% else %}success{% endif %}">
-                        {{ item.type }}
-                    </span>
-                </td>
-                <td>{{ item.category }}</td>
-                <td>
-                    <a href="{{ url_for('admin.view_user', user_id=item.owner.id) }}" 
-                       class="text-decoration-none">
-                        {{ item.owner.username }}
-                    </a>
-                </td>
-                <td>
-                    <span class="badge bg-{% if item.status == 'pending' %}warning{% elif item.status == 'claimed' %}info{% else %}success{% endif %}">
-                        {{ item.status }}
-                    </span>
-                </td>
-                <td>{{ item.created_at.strftime('%m/%d/%Y') }}</td>
-                <td>
-                    <div class="btn-group btn-group-sm">
-                        <a href="{{ url_for('admin.view_item', item_id=item.id) }}" 
-                           class="btn btn-outline-info" title="View Details">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <form method="POST" action="{{ url_for('admin.delete_item', item_id=item.id) }}" class="d-inline">
-                            <button type="submit" class="btn btn-outline-danger" 
-                                    onclick="return confirm('Are you sure you want to delete this item?')"
-                                    title="Delete Item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
 </div>
-            {% else %}
-            <div class="text-center py-4">
-                <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
-                <h5>No Items Found</h5>
-                <p class="text-muted">No items have been reported yet.</p>
-            </div>
-            {% endif %}
+
+<div class="content-card mt-4">
+    <div class="card-header-custom">
+        <h3><i class="fas fa-list me-2"></i>All Items ({{ items|length }})</h3>
+        
+        <!-- Search bar -->
+        <div class="search-wrapper">
+            <input type="text" placeholder="Search items..." class="admin-search">
+            <i class="fas fa-search"></i>
         </div>
     </div>
+
+    <div class="table-responsive">
+        {% if items %}
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Item Details</th>
+                    <th>Type</th>
+                    <th>Reported By</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>
+                        <div class="item-cell">
+                            <!-- FIX: Used item.item_image_path -->
+                            {% if item.item_image_path %}
+                            <img src="{{ url_for('static', filename='uploads/' ~ item.item_image_path) }}" 
+                                 class="table-thumb" 
+                                 alt="Item"
+                                 onerror="this.style.display='none'">
+                            {% else %}
+                            <div class="table-thumb-placeholder">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="item-text">
+                                <!-- FIX: Used item.item_title -->
+                                <span class="item-name">{{ item.item_title }}</span>
+                                <!-- FIX: Used item.item_category -->
+                                <span class="item-cat">{{ item.item_category }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <!-- FIX: Used item.item_type -->
+                        <span class="type-badge {{ item.item_type }}">
+                            {{ item.item_type|title }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin.view_user', user_id=item.owner.user_id) }}" class="user-link">
+                            <div class="user-cell-sm">
+                                <div class="user-avatar-xs">{{ item.owner.user_username[0]|upper }}</div>
+                                <span>{{ item.owner.user_username }}</span>
+                            </div>
+                        </a>
+                    </td>
+                    <td>
+                        <!-- FIX: Used item.item_status -->
+                        <span class="status-badge status-{{ item.item_status }}">
+                            {{ item.item_status|title }}
+                        </span>
+                    </td>
+                    <td class="date-cell">
+                        <!-- FIX: Used item.item_created_at -->
+                        {{ item.item_created_at.strftime('%b %d, %Y') }}
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <!-- FIX: Used item.item_id -->
+                            <a href="{{ url_for('admin.view_item', item_id=item.item_id) }}" 
+                               class="icon-btn view" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            
+                            <!-- Delete Form -->
+                            <form method="POST" action="{{ url_for('admin.delete_item', item_id=item.item_id) }}" 
+                                  onsubmit="return confirm('Are you sure? This will delete the item, image, and all notifications.');">
+                                <button type="submit" class="icon-btn delete" title="Delete Item">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state-admin">
+            <i class="fas fa-box-open"></i>
+            <p>No items have been reported yet.</p>
+        </div>
+        {% endif %}
+    </div>
 </div>
+
+<style>
+/* Re-using Admin Theme */
+.admin-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white; padding: 2.5rem; border-radius: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15); margin-bottom: 2rem;
+}
+.header-content h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+.header-content .lead { margin: 0; opacity: 0.9; }
+
+.action-btn {
+    background: rgba(255, 255, 255, 0.2); color: white; padding: 0.8rem 1.5rem;
+    border-radius: 12px; text-decoration: none; font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.3); transition: 0.3s;
+}
+.action-btn:hover { background: white; color: #059669; transform: translateY(-2px); }
+
+.content-card {
+    background: white; border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden;
+}
+
+.card-header-custom {
+    padding: 1.5rem; border-bottom: 1px solid #f1f5f9;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.card-header-custom h3 { margin: 0; font-size: 1.2rem; font-weight: 700; color: #334155; }
+
+/* Search Bar */
+.search-wrapper { position: relative; }
+.admin-search {
+    padding: 0.6rem 1rem 0.6rem 2.5rem; border: 1px solid #e2e8f0;
+    border-radius: 8px; width: 250px; outline: none;
+}
+.search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+
+/* Table */
+.custom-table { width: 100%; border-collapse: collapse; }
+.custom-table th { text-align: left; padding: 1rem 1.5rem; background: #f8fafc; color: #64748b; font-size: 0.85rem; text-transform: uppercase; }
+.custom-table td { padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.custom-table tr:hover { background: #fcfcfc; }
+
+/* Item Cell */
+.item-cell { display: flex; align-items: center; gap: 1rem; }
+.table-thumb { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
+.table-thumb-placeholder { width: 45px; height: 45px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: #cbd5e1; }
+.item-text { display: flex; flex-direction: column; }
+.item-name { font-weight: 600; color: #334155; }
+.item-cat { font-size: 0.8rem; color: #94a3b8; }
+
+/* Badges */
+.type-badge { padding: 0.3em 0.8em; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+.type-badge.lost { background: #fef2f2; color: #ef4444; }
+.type-badge.found { background: #ecfdf5; color: #10b981; }
+
+.status-badge { padding: 0.3em 0.8em; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.status-pending { background: #fff7ed; color: #f59e0b; }
+.status-resolved { background: #f1f5f9; color: #475569; }
+.status-claimed { background: #eff6ff; color: #3b82f6; }
+
+/* User Link */
+.user-link { text-decoration: none; color: inherit; }
+.user-cell-sm { display: flex; align-items: center; gap: 0.5rem; }
+.user-avatar-xs {
+    width: 24px; height: 24px; border-radius: 50%; background: #6366f1;
+    color: white; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: 700;
+}
+.user-link:hover span { color: #10b981; text-decoration: underline; }
+
+/* Actions */
+.action-group { display: flex; gap: 0.5rem; }
+.icon-btn {
+    width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: 0.2s; text-decoration: none;
+}
+.icon-btn.view { background: #eff6ff; color: #3b82f6; }
+.icon-btn.view:hover { background: #3b82f6; color: white; }
+.icon-btn.delete { background: #fef2f2; color: #ef4444; }
+.icon-btn.delete:hover { background: #ef4444; color: white; }
+
+.date-cell { color: #64748b; font-size: 0.9rem; }
+.empty-state-admin { text-align: center; padding: 3rem; color: #94a3b8; }
+.empty-state-admin i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+</style>
 {% endblock %}

@@ -22,7 +22,8 @@
                     <i class="fas fa-eye-slash"></i>
                 </div>
                 <div class="stat-info">
-                    {% set unread_count = notifications|selectattr('is_seen', 'equalto', false)|list|length %}
+                    <!-- Fixed: Used 'notification_is_seen' -->
+                    {% set unread_count = notifications|selectattr('notification_is_seen', 'equalto', false)|list|length %}
                     <h3>{{ unread_count }}</h3>
                     <span>Unread</span>
                 </div>
@@ -46,7 +47,8 @@
 
         <div class="notifications-list">
             {% for notification in notifications %}
-            <div class="notification-card {% if not notification.is_seen %}unread{% endif %}">
+            <!-- Fixed: Used 'notification_is_seen' -->
+            <div class="notification-card {% if not notification.notification_is_seen %}unread{% endif %}">
                 <div class="notification-header">
                     <div class="notification-type">
                         {% if notification.notification_type == 'potential_match' %}
@@ -68,8 +70,10 @@
                     </div>
                     
                     <div class="notification-actions">
-                        {% if not notification.is_seen %}
-                        <form method="POST" action="{{ url_for('mark_notification_seen', notification_id=notification.id) }}" class="mark-read-form">
+                        <!-- Fixed: Used 'notification_is_seen' -->
+                        {% if not notification.notification_is_seen %}
+                        <!-- 🔴 CRITICAL FIX HERE: Used 'notification_id' -->
+                        <form method="POST" action="{{ url_for('mark_notification_seen', notification_id=notification.notification_id) }}" class="mark-read-form">
                             <button type="submit" class="mark-read-btn" title="Mark as read">
                                 <i class="fas fa-check"></i>
                             </button>
@@ -81,12 +85,14 @@
                 </div>
 
                 <div class="notification-content">
-                    <p class="notification-message">{{ notification.message }}</p>
+                    <!-- Fixed: Used 'notification_message' -->
+                    <p class="notification-message">{{ notification.notification_message }}</p>
                     
                     <div class="notification-meta">
                         <span class="timestamp">
                             <i class="fas fa-clock me-1"></i>
-                            {{ notification.created_at.strftime('%Y-%m-%d at %H:%M') }}
+                            <!-- Fixed: Used 'notification_created_at' -->
+                            {{ notification.notification_created_at.strftime('%Y-%m-%d at %H:%M') }}
                         </span>
                     </div>
 
@@ -100,11 +106,13 @@
                                 View {% if notification.notification_type == 'potential_match' %}Potential{% else %}Visual{% endif %} Match
                             </a>
                             
-                            {% if notification.item.owner.id != current_user.id %}
-                            <a href="mailto:{{ notification.item.owner.email }}?subject=Regarding your item: {{ notification.item.title }}&body=Hello {{ notification.item.owner.username }}, I saw your item '{{ notification.item.title }}' on Campus Lost & Found..." 
+                            <!-- Fixed: Used 'user_id' instead of 'id' -->
+                            {% if notification.item.owner.user_id != current_user.user_id %}
+                            <!-- Fixed: Used correct User model fields (user_email, item_title, user_username) -->
+                            <a href="mailto:{{ notification.item.owner.user_email }}?subject=Regarding your item: {{ notification.item.item_title }}&body=Hello {{ notification.item.owner.user_username }}, I saw your item '{{ notification.item.item_title }}' on Campus Lost & Found..." 
                                class="action-btn secondary">
                                 <i class="fas fa-envelope me-2"></i>
-                                Contact {{ notification.item.owner.username }}
+                                Contact {{ notification.item.owner.user_username }}
                             </a>
                             {% endif %}
                         </div>
@@ -147,6 +155,7 @@
         {% endif %}
     </div>
 
+    <!-- Keep your style section exactly as it was -->
     <style>
     /* Notifications Specific Styles */
     .notifications-header {

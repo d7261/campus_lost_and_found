@@ -1,192 +1,194 @@
 {% extends "base.html" %}
 
 {% block content %}
-
     <!-- Main Content -->
-   
-        <div class="item-details-header">
-            <div class="header-content">
-                <div class="item-title-section">
-                    <h1>
-                        <i class="fas fa-{% if item.type == 'lost' %}search{% else %}hand-holding{% endif %} me-3"></i>
-                        {{ item.title }}
-                    </h1>
-                    <div class="item-badges">
-                        <span class="type-badge type-{{ item.type }}">
-                            {{ item.type|title }}
-                        </span>
-                        <span class="status-badge status-{{ item.status }}">
-                            {{ item.status|title }}
-                        </span>
-                    </div>
+    <div class="item-details-header">
+        <div class="header-content">
+            <div class="item-title-section">
+                <h1>
+                    <i class="fas fa-{% if item.item_type == 'lost' %}search{% else %}hand-holding{% endif %} me-3"></i>
+                    {{ item.item_title }}
+                </h1>
+                <div class="item-badges">
+                    <span class="type-badge type-{{ item.item_type }}">
+                        {{ item.item_type|title }}
+                    </span>
+                    <span class="status-badge status-{{ item.item_status }}">
+                        {{ item.item_status|title }}
+                    </span>
                 </div>
-                <p class="item-subtitle">Item details and actions</p>
             </div>
+            <p class="item-subtitle">Item details and actions</p>
         </div>
+    </div>
 
-        <!-- Item Details Content -->
-        <div class="item-details-container">
-            <div class="details-grid">
-                <!-- Left Column - Image -->
-                <div class="image-column">
-                    {% if item.image_path %}
-                    <div class="item-image-card">
-                        <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
-                             class="item-image-large" 
-                             alt="{{ item.title }}">
-                        {% if item.embedding %}
-                        <div class="ai-feature-badge">
-                            <i class="fas fa-robot me-1"></i>
-                            AI Image Recognition Enabled
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% else %}
-                    <div class="no-image-card">
-                        <i class="fas fa-image"></i>
-                        <h4>No Image Available</h4>
-                        <p>This item was reported without a photo</p>
+    <!-- Item Details Content -->
+    <div class="item-details-container">
+        <div class="details-grid">
+            <!-- Left Column - Image -->
+            <div class="image-column">
+                {% if item.item_image_path %}
+                <div class="item-image-card">
+                    <!-- FIX: Removed comments from inside the img tag -->
+                    <img src="{{ url_for('static', filename='uploads/' + item.item_image_path) }}"
+                         class="item-image-large" 
+                         alt="{{ item.item_title }}">
+                    
+                    {% if item.embedding %}
+                    <div class="ai-feature-badge">
+                        <i class="fas fa-robot me-1"></i>
+                        AI Image Recognition Enabled
                     </div>
                     {% endif %}
                 </div>
+                {% else %}
+                <div class="no-image-card">
+                    <i class="fas fa-image"></i>
+                    <h4>No Image Available</h4>
+                    <p>This item was reported without a photo</p>
+                </div>
+                {% endif %}
+            </div>
 
-                <!-- Right Column - Details & Actions -->
-                <div class="details-column">
-                    <!-- Quick Info Cards -->
-                    <div class="info-cards-grid">
-                        <div class="info-card">
-                            <div class="info-icon category">
-                                <i class="fas fa-tag"></i>
-                            </div>
-                            <div class="info-content">
-                                <label>Category</label>
-                                <h4>{{ item.category }}</h4>
-                            </div>
+            <!-- Right Column - Details & Actions -->
+            <div class="details-column">
+                <!-- Quick Info Cards -->
+                <div class="info-cards-grid">
+                    <div class="info-card">
+                        <div class="info-icon category">
+                            <i class="fas fa-tag"></i>
                         </div>
-                        
-                        <div class="info-card">
-                            <div class="info-icon location">
-                                <i class="fas fa-map-marker-alt"></i>
-                            </div>
-                            <div class="info-content">
-                                <label>Location</label>
-                                <h4>{{ item.location }}</h4>
-                            </div>
-                        </div>
-                        
-                        <div class="info-card">
-                            <div class="info-icon date">
-                                <i class="fas fa-calendar"></i>
-                            </div>
-                            <div class="info-content">
-                                <label>Date</label>
-                                <h4>{{ item.date_lost_found.strftime('%b %d, %Y') }}</h4>
-                            </div>
-                        </div>
-                        
-                        <div class="info-card">
-                            <div class="info-icon reporter">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="info-content">
-                                <label>Reported by</label>
-                                <h4>{{ item.owner.username }}</h4>
-                            </div>
+                        <div class="info-content">
+                            <label>Category</label>
+                            <h4>{{ item.item_category }}</h4>
                         </div>
                     </div>
-
-                    <!-- Description -->
-                    <div class="description-card">
-                        <div class="card-header">
-                            <i class="fas fa-align-left me-2"></i>
-                            <h3>Description</h3>
+                    
+                    <div class="info-card">
+                        <div class="info-icon location">
+                            <i class="fas fa-map-marker-alt"></i>
                         </div>
-                        <div class="card-content">
-                            <p>{{ item.description }}</p>
+                        <div class="info-content">
+                            <label>Location</label>
+                            <h4>{{ item.item_location }}</h4>
                         </div>
                     </div>
-
-                    <!-- Action Section -->
-                    <div class="action-section">
-                        {% if is_potential_match %}
-                        <div class="match-alert">
-                            <i class="fas fa-handshake me-3"></i>
-                            <div>
-                                <h4>Potential Match Found!</h4>
-                                <p>This item might match one of your reported items.</p>
-                            </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon date">
+                            <i class="fas fa-calendar"></i>
                         </div>
+                        <div class="info-content">
+                            <label>Date</label>
+                            <h4>{{ item.item_date_lost_found.strftime('%b %d, %Y') }}</h4>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon reporter">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="info-content">
+                            <label>Reported by</label>
+                            <h4>{{ item.owner.user_username }}</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="description-card">
+                    <div class="card-header">
+                        <i class="fas fa-align-left me-2"></i>
+                        <h3>Description</h3>
+                    </div>
+                    <div class="card-content">
+                        <p>{{ item.item_description }}</p>
+                    </div>
+                </div>
+
+                <!-- Action Section -->
+                <div class="action-section">
+                    {% if is_potential_match %}
+                    <div class="match-alert">
+                        <i class="fas fa-handshake me-3"></i>
+                        <div>
+                            <h4>Potential Match Found!</h4>
+                            <p>This item might match one of your reported items.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Primary Actions -->
+                    <div class="primary-actions">
+                        <!-- Only show Claim button if it's a found item and user didn't report it -->
+                        {% if item.item_type == 'found' and item.owner_id != current_user.user_id and item.item_status == 'pending' %}
+                        <form method="POST" action="{{ url_for('claim_item', item_id=item.item_id) }}" class="claim-form">
+                            <button type="submit" class="action-btn claim-btn" 
+                                    onclick="return confirm('Are you sure this is your item? This will notify the finder and help coordinate the return.')">
+                                <i class="fas fa-check me-2"></i>
+                                Claim This Item
+                            </button>
+                        </form>
                         {% endif %}
+                        
+                        <!-- Show Resolve button only to owner -->
+                        {% if item.owner_id == current_user.user_id and item.item_status == 'pending' %}
+                        <form method="POST" action="{{ url_for('resolve_item', item_id=item.item_id) }}" class="resolve-form">
+                            <button type="submit" class="action-btn resolve-btn"
+                                    onclick="return confirm('Mark this item as resolved? This will remove it from active searches.')">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Mark as Resolved
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
 
-                        <!-- Primary Actions -->
-                        <div class="primary-actions">
-                            {% if can_claim %}
-<form method="POST" action="{{ url_for('claim_item', item_id=item.id) }}" class="claim-form">
-                                <button type="submit" class="action-btn claim-btn" 
-                                        onclick="return confirm('Are you sure this is your item? This will notify the finder and help coordinate the return.')">
-                                    <i class="fas fa-check me-2"></i>
-                                    Claim This Item
-                                </button>
-                            </form>
-                            {% endif %}
-                            
-                            {% if item.user_id == current_user.id and item.status == 'pending' %}
-<form method="POST" action="{{ url_for('resolve_item', item_id=item.id) }}" class="resolve-form">
-                                <button type="submit" class="action-btn resolve-btn"
-                                        onclick="return confirm('Mark this item as resolved? This will remove it from active searches.')">
-                                    <i class="fas fa-check-circle me-2"></i>
-                                    Mark as Resolved
-                                </button>
-                            </form>
-                            {% endif %}
-                        </div>
-
-                        <!-- Secondary Actions -->
-                        <div class="secondary-actions">
-                            {% if item.user_id != current_user.id %}
-                            <a href="mailto:{{ item.owner.email }}?subject=Regarding your {{ item.type }} item: {{ item.title }}&body=Hello {{ item.owner.username }}, I saw your {{ item.type }} item '{{ item.title }}' on Campus Lost & Found..." 
-                               class="action-btn contact-btn">
-                                <i class="fas fa-envelope me-2"></i>
-                                Contact {{ item.owner.username }}
+                    <!-- Secondary Actions -->
+                    <div class="secondary-actions">
+                        {% if item.owner_id != current_user.user_id %}
+                        <!-- FIX: Removed comments from inside the 'a' tag -->
+                        <a href="mailto:{{ item.owner.user_email }}?subject=Regarding your {{ item.item_type }} item: {{ item.item_title }}&body=Hello {{ item.owner.user_username }}, I saw your {{ item.item_type }} item '{{ item.item_title }}' on Campus Lost & Found..."
+                           class="action-btn contact-btn">
+                            <i class="fas fa-envelope me-2"></i>
+                            Contact {{ item.owner.user_username }}
+                        </a>
+                        {% endif %}
+                        
+                        <div class="navigation-actions">
+                            <a href="{{ url_for('search') }}" class="nav-btn">
+                                <i class="fas fa-search me-2"></i>
+                                Back to Search
                             </a>
-                            {% endif %}
-                            
-                            <div class="navigation-actions">
-                                <a href="{{ url_for('search') }}" class="nav-btn">
-                                    <i class="fas fa-search me-2"></i>
-                                    Back to Search
-                                </a>
-                                <a href="{{ url_for('reporting.my_items') }}" class="nav-btn">
-                                    <i class="fas fa-list me-2"></i>
-                                    My Items
-                                </a>
-                            </div>
+                            <a href="{{ url_for('reporting.my_items') }}" class="nav-btn">
+                                <i class="fas fa-list me-2"></i>
+                                My Items
+                            </a>
                         </div>
-
-                        <!-- Status Messages -->
-                        {% if item.status == 'claimed' %}
-                        <div class="status-alert claimed">
-                            <i class="fas fa-check-circle me-3"></i>
-                            <div>
-                                <h4>Item Claimed</h4>
-                                <p>The owner has claimed this item and is coordinating the return with the finder.</p>
-                            </div>
-                        </div>
-                        {% elif item.status == 'resolved' %}
-                        <div class="status-alert resolved">
-                            <i class="fas fa-archive me-3"></i>
-                            <div>
-                                <h4>Case Resolved</h4>
-                                <p>This item has been successfully returned or the case has been closed.</p>
-                            </div>
-                        </div>
-                        {% endif %}
                     </div>
+
+                    <!-- Status Messages -->
+                    {% if item.item_status == 'claimed' %}
+                    <div class="status-alert claimed">
+                        <i class="fas fa-check-circle me-3"></i>
+                        <div>
+                            <h4>Item Claimed</h4>
+                            <p>The owner has claimed this item and is coordinating the return with the finder.</p>
+                        </div>
+                    </div>
+                    {% elif item.item_status == 'resolved' %}
+                    <div class="status-alert resolved">
+                        <i class="fas fa-archive me-3"></i>
+                        <div>
+                            <h4>Case Resolved</h4>
+                            <p>This item has been successfully returned or the case has been closed.</p>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
-</div>
+    
 
 <style>
 /* Item Details Specific Styles */
@@ -197,6 +199,26 @@
     border-radius: 20px;
     margin-bottom: 2rem;
 }
+
+ 
+    /* Add this CSS to ensure the image displays nicely */
+    .item-image-large {
+        width: 100%;
+        max-width: 500px;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        object-fit: contain;
+        background-color: #f8f9fa;
+    }
+    
+    .item-image-card {
+        text-align: center;
+        padding: 1rem;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
 
 .item-title-section {
     display: flex;

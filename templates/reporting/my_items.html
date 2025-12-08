@@ -1,210 +1,214 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-
     <!-- Main Content -->
-  
-        <div class="my-items-header">
-            <div class="header-content">
-                <h1><i class="fas fa-clipboard-list me-3"></i>My Reported Items</h1>
-                <p class="lead">Manage your lost and found items, track their status, and help others reunite with their belongings</p>
-            </div>
-            <div class="header-actions">
-                <a href="{{ url_for('reporting.report_item') }}" class="report-new-btn">
-                    <i class="fas fa-plus-circle me-2"></i>
-                    Report New Item
-                </a>
-            </div>
+    <div class="my-items-header">
+        <div class="header-content">
+            <h1><i class="fas fa-clipboard-list me-3"></i>My Reported Items</h1>
+            <p class="lead">Manage your lost and found items, track their status, and help others reunite with their belongings</p>
         </div>
+        
+        <!-- CORRECTED: Single container for both buttons -->
+        <div class="header-actions">
+            <!-- Download PDF Button -->
+            <a href="{{ url_for('reporting.download_my_items_pdf') }}" class="btn-download">
+                <i class="fas fa-file-pdf me-2"></i>
+                Download Report
+            </a>
 
-        <!-- Statistics Cards -->
-        <div class="stats-grid">
-            <div class="stat-card total">
-                <div class="stat-icon">
-                    <i class="fas fa-list"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>{{ items|length }}</h3>
-                    <p>Total Reports</p>
-                </div>
-            </div>
-            
-            <div class="stat-card lost">
-                <div class="stat-icon">
-                    <i class="fas fa-search"></i>
-                </div>
-                <div class="stat-content">
-                    {% set lost_items = items|selectattr('type', 'equalto', 'lost')|list %}
-                    <h3>{{ lost_items|length }}</h3>
-                    <p>Lost Items</p>
-                </div>
-            </div>
-            
-            <div class="stat-card found">
-                <div class="stat-icon">
-                    <i class="fas fa-hand-holding-heart"></i>
-                </div>
-                <div class="stat-content">
-                    {% set found_items = items|selectattr('type', 'equalto', 'found')|list %}
-                    <h3>{{ found_items|length }}</h3>
-                    <p>Found Items</p>
-                </div>
-            </div>
-            
-            <div class="stat-card pending">
-                <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-content">
-                    {% set pending_items = items|selectattr('status', 'equalto', 'pending')|list %}
-                    <h3>{{ pending_items|length }}</h3>
-                    <p>Pending</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Items Content -->
-        <div class="items-container">
-            {% if items %}
-            <div class="items-header">
-                <div class="filter-tabs">
-                    <button class="filter-tab active" data-filter="all">All Items ({{ items|length }})</button>
-                    <button class="filter-tab" data-filter="lost">Lost ({{ lost_items|length }})</button>
-                    <button class="filter-tab" data-filter="found">Found ({{ found_items|length }})</button>
-                    <button class="filter-tab" data-filter="pending">Pending ({{ pending_items|length }})</button>
-                </div>
-                
-                <div class="sort-options">
-                    <select class="sort-select" id="sortItems">
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                        <option value="title">Title A-Z</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="items-grid" id="itemsGrid">
-                {% for item in items %}
-                <div class="item-card" data-type="{{ item.type }}" data-status="{{ item.status }}">
-                    <!-- Card Header -->
-                    <div class="card-header">
-                        <div class="item-badges">
-                            <span class="type-badge type-{{ item.type }}">
-                                <i class="fas fa-{% if item.type == 'lost' %}search{% else %}hand-holding{% endif %} me-1"></i>
-                                {{ item.type|title }}
-                            </span>
-                            <span class="status-badge status-{{ item.status }}">
-                                {{ item.status|title }}
-                            </span>
-                        </div>
-                        <div class="item-actions">
-                            {% if item.status == 'pending' %}
-                            <form method="POST" action="{{ url_for('resolve_item', item_id=item.id) }}" class="resolve-form">
-                                <button type="submit" class="resolve-btn" title="Mark as resolved"
-                                        onclick="return confirm('Mark this item as resolved? This will remove it from search results.')">
-                                    <i class="fas fa-check-circle"></i>
-                                </button>
-                            </form>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <!-- Item Image -->
-                    <div class="card-image">
-                        {% if item.image_path %}
-                        <div class="image-container">
-                            <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
-                                 class="item-image" 
-                                 alt="{{ item.title }}"
-                                 onerror="this.style.display='none'">
-                            {% if item.embedding %}
-                            <div class="ai-badge" title="AI Image Recognition Enabled">
-                                <i class="fas fa-robot"></i>
-                                AI
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% else %}
-                        <div class="no-image">
-                            <i class="fas fa-image"></i>
-                            <span>No image available</span>
-                        </div>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Card Content -->
-                    <div class="card-content">
-                        <h3 class="item-title">{{ item.title }}</h3>
-                        <p class="item-description">{{ item.description }}</p>
-                        
-                        <div class="item-meta">
-                            <div class="meta-item">
-                                <i class="fas fa-tag"></i>
-                                <span>{{ item.category }}</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>{{ item.location }}</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-calendar"></i>
-                                <span>{{ item.date_lost_found.strftime('%b %d, %Y') }}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="item-dates">
-                            <small>Reported {{ item.created_at.strftime('%b %d, %Y') }}</small>
-                        </div>
-                    </div>
-                    
-                    <!-- Card Actions -->
-                    <div class="card-actions">
-                        <a href="{{ url_for('view_item', item_id=item.id) }}" class="view-details-btn">
-                            <i class="fas fa-eye me-2"></i>
-                            View Details
-                        </a>
-                        
-                        {% if item.type == 'found' and item.status == 'pending' %}
-                        <div class="claim-info">
-                            <i class="fas fa-info-circle me-1"></i>
-                            Waiting for owner to claim
-                        </div>
-                        {% elif item.type == 'lost' and item.status == 'pending' %}
-                        <div class="search-info">
-                            <i class="fas fa-search me-1"></i>
-                            Actively searching for matches
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <!-- Empty State -->
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <i class="fas fa-inbox"></i>
-                </div>
-                <div class="empty-content">
-                    <h3>No items reported yet</h3>
-                    <p>Start by reporting your first lost or found item to help others in the campus community.</p>
-                    <div class="empty-actions">
-                        <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>
-                            Report Your First Item
-                        </a>
-                        <a href="{{ url_for('search') }}" class="btn btn-outline">
-                            <i class="fas fa-search me-2"></i>
-                            Browse Items
-                        </a>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
+            <!-- Report Item Button -->
+            <a href="{{ url_for('reporting.report_item') }}" class="report-new-btn">
+                <i class="fas fa-plus-circle me-2"></i>
+                Report New Item
+            </a>
         </div>
     </div>
-</div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card total">
+            <div class="stat-icon">
+                <i class="fas fa-list"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ items|length }}</h3>
+                <p>Total Reports</p>
+            </div>
+        </div>
+        
+        <div class="stat-card lost">
+            <div class="stat-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="stat-content">
+                {% set lost_items = items|selectattr('item_type', 'equalto', 'lost')|list %}  <!-- ✅ Fixed -->
+                <h3>{{ lost_items|length }}</h3>
+                <p>Lost Items</p>
+            </div>
+        </div>
+        
+        <div class="stat-card found">
+            <div class="stat-icon">
+                <i class="fas fa-hand-holding-heart"></i>
+            </div>
+            <div class="stat-content">
+                {% set found_items = items|selectattr('item_type', 'equalto', 'found')|list %}  <!-- ✅ Fixed -->
+                <h3>{{ found_items|length }}</h3>
+                <p>Found Items</p>
+            </div>
+        </div>
+        
+        <div class="stat-card pending">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-content">
+                {% set pending_items = items|selectattr('item_status', 'equalto', 'pending')|list %}  <!-- ✅ Fixed -->
+                <h3>{{ pending_items|length }}</h3>
+                <p>Pending</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Content -->
+    <div class="items-container">
+        {% if items %}
+        <div class="items-header">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All Items ({{ items|length }})</button>
+                <button class="filter-tab" data-filter="lost">Lost ({{ lost_items|length }})</button>
+                <button class="filter-tab" data-filter="found">Found ({{ found_items|length }})</button>
+                <button class="filter-tab" data-filter="pending">Pending ({{ pending_items|length }})</button>
+            </div>
+            
+            <div class="sort-options">
+                <select class="sort-select" id="sortItems">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="title">Title A-Z</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="items-grid" id="itemsGrid">
+            {% for item in items %}
+            <div class="item-card" data-type="{{ item.item_type }}" data-status="{{ item.item_status }}">  <!-- ✅ Fixed -->
+                <!-- Card Header -->
+                <div class="card-header">
+                    <div class="item-badges">
+                        <span class="type-badge type-{{ item.item_type }}">  <!-- ✅ Fixed -->
+                            <i class="fas fa-{% if item.item_type == 'lost' %}search{% else %}hand-holding{% endif %} me-1"></i>  <!-- ✅ Fixed -->
+                            {{ item.item_type|title }}  <!-- ✅ Fixed -->
+                        </span>
+                        <span class="status-badge status-{{ item.item_status }}">  <!-- ✅ Fixed -->
+                            {{ item.item_status|title }}  <!-- ✅ Fixed -->
+                        </span>
+                    </div>
+                    <div class="item-actions">
+                        {% if item.item_status == 'pending' %}  <!-- ✅ Fixed -->
+                        <form method="POST" action="{{ url_for('resolve_item', item_id=item.item_id) }}" class="resolve-form">  <!-- ✅ Fixed -->
+                            <button type="submit" class="resolve-btn" title="Mark as resolved"
+                                    onclick="return confirm('Mark this item as resolved? This will remove it from search results.')">
+                                <i class="fas fa-check-circle"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Item Image -->
+                <div class="card-image">
+                    {% if item.item_image_path %}  <!-- ✅ Fixed -->
+                    <div class="image-container">
+                        <img src="{{ url_for('static', filename='uploads/' + item.item_image_path) }}" 
+     class="item-image" 
+     alt="{{ item.item_title }}" 
+     onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'no-image\'><i class=\'fas fa-exclamation-triangle\'></i><span>File not found</span></div>';">
+                        {% if item.embedding %}
+                        <div class="ai-badge" title="AI Image Recognition Enabled">
+                            <i class="fas fa-robot"></i>
+                            AI
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="no-image">
+                        <i class="fas fa-image"></i>
+                        <span>No image available</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Card Content -->
+                <div class="card-content">
+                    <h3 class="item-title">{{ item.item_title }}</h3>  <!-- ✅ Fixed -->
+                    <p class="item-description">{{ item.item_description }}</p>  <!-- ✅ Fixed -->
+                    
+                    <div class="item-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-tag"></i>
+                            <span>{{ item.item_category }}</span>  <!-- ✅ Fixed -->
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>{{ item.item_location }}</span>  <!-- ✅ Fixed -->
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>{{ item.item_date_lost_found.strftime('%b %d, %Y') }}</span>  <!-- ✅ Fixed -->
+                        </div>
+                    </div>
+                    
+                    <div class="item-dates">
+                        <small>Reported {{ item.item_created_at.strftime('%b %d, %Y') }}</small>  <!-- ✅ Fixed -->
+                    </div>
+                </div>
+                
+                <!-- Card Actions -->
+                <div class="card-actions">
+                    <a href="{{ url_for('view_item', item_id=item.item_id) }}" class="view-details-btn">  <!-- ✅ Fixed -->
+                        <i class="fas fa-eye me-2"></i>
+                        View Details
+                    </a>
+                    
+                    {% if item.item_type == 'found' and item.item_status == 'pending' %}  <!-- ✅ Fixed -->
+                    <div class="claim-info">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Waiting for owner to claim
+                    </div>
+                    {% elif item.item_type == 'lost' and item.item_status == 'pending' %}  <!-- ✅ Fixed -->
+                    <div class="search-info">
+                        <i class="fas fa-search me-1"></i>
+                        Actively searching for matches
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-inbox"></i>
+            </div>
+            <div class="empty-content">
+                <h3>No items reported yet</h3>
+                <p>Start by reporting your first lost or found item to help others in the campus community.</p>
+                <div class="empty-actions">
+                    <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        Report Your First Item
+                    </a>
+                    <a href="{{ url_for('search') }}" class="btn btn-outline">
+                        <i class="fas fa-search me-2"></i>
+                        Browse Items
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -265,17 +269,21 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+
+
 <style>
-/* My Items Specific Styles */
+/* My Items Header Styles */
 .my-items-header {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Emerald green gradient */
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
     padding: 2.5rem;
     border-radius: 20px;
     margin-bottom: 2rem;
     display: flex;
-    justify-content: between;
-    align-items: flex-start;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
 }
 
 .header-content h1 {
@@ -292,28 +300,55 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .header-actions {
-    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
-.report-new-btn {
-    background: rgba(255,255,255,0.2);
+/* Button Styles */
+.btn-download {
+    background: rgba(255, 255, 255, 0.2);
     color: white;
-    padding: 1rem 2rem;
+    padding: 1rem 1.5rem;
     border-radius: 12px;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
-    border: 2px solid rgba(255,255,255,0.3);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     display: flex;
     align-items: center;
+    white-space: nowrap;
+}
+
+.btn-download:hover {
+    background: white;
+    color: #059669;
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.report-new-btn {
+    background: white;
+    color: #059669;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    border: 2px solid white;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .report-new-btn:hover {
-    background: rgba(255,255,255,0.3);
-    color: white;
+    background: #f0fdf4;
+    color: #047857;
     text-decoration: none;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255,255,255,0.2);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.15);
 }
 
 /* Statistics Grid */
@@ -389,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
     border-bottom: 1px solid #f1f5f9;
     background: #f8fafc;
     display: flex;
-    justify-content: between;
+    justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
@@ -464,7 +499,7 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid #f1f5f9;
     display: flex;
-    justify-content: between;
+    justify-content: space-between;
     align-items: center;
 }
 
@@ -693,16 +728,22 @@ document.addEventListener('DOMContentLoaded', function() {
     text-decoration: none;
 }
 
-/* Responsive */
+/* Mobile Responsive */
 @media (max-width: 768px) {
     .my-items-header {
         flex-direction: column;
         text-align: center;
-        gap: 1.5rem;
+        align-items: stretch;
     }
     
     .header-actions {
-        margin-left: 0;
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-download, .report-new-btn {
+        justify-content: center;
+        width: 100%;
     }
     
     .items-header {
@@ -728,6 +769,5 @@ document.addEventListener('DOMContentLoaded', function() {
         align-items: center;
     }
 }
-
 </style>
 {% endblock %}
