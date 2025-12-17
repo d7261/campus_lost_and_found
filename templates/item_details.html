@@ -1,584 +1,615 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <!-- Main Content -->
-    <div class="item-details-header">
-        <div class="header-content">
-            <div class="item-title-section">
-                <h1>
-                    <i class="fas fa-{% if item.item_type == 'lost' %}search{% else %}hand-holding{% endif %} me-3"></i>
-                    {{ item.item_title }}
-                </h1>
-                <div class="item-badges">
-                    <span class="type-badge type-{{ item.item_type }}">
-                        {{ item.item_type|title }}
-                    </span>
-                    <span class="status-badge status-{{ item.item_status }}">
-                        {{ item.item_status|title }}
-                    </span>
-                </div>
+<!-- Main Content -->
+<div class="item-details-header">
+    <div class="header-content">
+        <div class="item-title-section">
+            <h1>
+                <i class="fas fa-{% if item.item_type == 'lost' %}search{% else %}hand-holding{% endif %} me-3"></i>
+                {{ item.item_title }}
+            </h1>
+            <div class="item-badges">
+                <span class="type-badge type-{{ item.item_type }}">
+                    {{ item.item_type|title }}
+                </span>
+                <span class="status-badge status-{{ item.item_status }}">
+                    {{ item.item_status|title }}
+                </span>
             </div>
-            <p class="item-subtitle">Item details and actions</p>
         </div>
+        <p class="item-subtitle">Item details and actions</p>
     </div>
+</div>
 
-    <!-- Item Details Content -->
-    <div class="item-details-container">
-        <div class="details-grid">
-            <!-- Left Column - Image -->
-            <div class="image-column">
-                {% if item.item_image_path %}
-                <div class="item-image-card">
-                    <!-- FIX: Removed comments from inside the img tag -->
-                    <img src="{{ url_for('static', filename='uploads/' + item.item_image_path) }}"
-                         class="item-image-large" 
-                         alt="{{ item.item_title }}">
-                    
-                    {% if item.embedding %}
-                    <div class="ai-feature-badge">
-                        <i class="fas fa-robot me-1"></i>
-                        AI Image Recognition Enabled
-                    </div>
-                    {% endif %}
-                </div>
-                {% else %}
-                <div class="no-image-card">
-                    <i class="fas fa-image"></i>
-                    <h4>No Image Available</h4>
-                    <p>This item was reported without a photo</p>
+<!-- Item Details Content -->
+<div class="item-details-container">
+    <div class="details-grid">
+        <!-- Left Column - Image -->
+        <div class="image-column">
+            {% if item.item_image_path %}
+            <div class="item-image-card">
+                <!-- FIX: Removed comments from inside the img tag -->
+                <img src="{{ url_for('static', filename='uploads/' + item.item_image_path) }}" class="item-image-large"
+                    alt="{{ item.item_title }}">
+
+                {% if item.embedding %}
+                <div class="ai-feature-badge">
+                    <i class="fas fa-robot me-1"></i>
+                    AI Image Recognition Enabled
                 </div>
                 {% endif %}
             </div>
+            {% else %}
+            <div class="no-image-card">
+                <i class="fas fa-image"></i>
+                <h4>No Image Available</h4>
+                <p>This item was reported without a photo</p>
+            </div>
+            {% endif %}
+        </div>
 
-            <!-- Right Column - Details & Actions -->
-            <div class="details-column">
-                <!-- Quick Info Cards -->
-                <div class="info-cards-grid">
-                    <div class="info-card">
-                        <div class="info-icon category">
-                            <i class="fas fa-tag"></i>
-                        </div>
-                        <div class="info-content">
-                            <label>Category</label>
-                            <h4>{{ item.item_category }}</h4>
-                        </div>
+        <!-- Right Column - Details & Actions -->
+        <div class="details-column">
+            <!-- Quick Info Cards -->
+            <div class="info-cards-grid">
+                <div class="info-card">
+                    <div class="info-icon category">
+                        <i class="fas fa-tag"></i>
                     </div>
-                    
-                    <div class="info-card">
-                        <div class="info-icon location">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                        <div class="info-content">
-                            <label>Location</label>
-                            <h4>{{ item.item_location }}</h4>
-                        </div>
-                    </div>
-                    
-                    <div class="info-card">
-                        <div class="info-icon date">
-                            <i class="fas fa-calendar"></i>
-                        </div>
-                        <div class="info-content">
-                            <label>Date</label>
-                            <h4>{{ item.item_date_lost_found.strftime('%b %d, %Y') }}</h4>
-                        </div>
-                    </div>
-                    
-                    <div class="info-card">
-                        <div class="info-icon reporter">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="info-content">
-                            <label>Reported by</label>
-                            <h4>{{ item.owner.user_username }}</h4>
-                        </div>
+                    <div class="info-content">
+                        <label>Category</label>
+                        <h4>{{ item.item_category }}</h4>
                     </div>
                 </div>
 
-                <!-- Description -->
-                <div class="description-card">
-                    <div class="card-header">
-                        <i class="fas fa-align-left me-2"></i>
-                        <h3>Description</h3>
+                <div class="info-card">
+                    <div class="info-icon location">
+                        <i class="fas fa-map-marker-alt"></i>
                     </div>
-                    <div class="card-content">
-                        <p>{{ item.item_description }}</p>
+                    <div class="info-content">
+                        <label>Location</label>
+                        <h4>{{ item.item_location }}</h4>
                     </div>
                 </div>
 
-                <!-- Action Section -->
-                <div class="action-section">
-                    {% if is_potential_match %}
-                    <div class="match-alert">
-                        <i class="fas fa-handshake me-3"></i>
-                        <div>
-                            <h4>Potential Match Found!</h4>
-                            <p>This item might match one of your reported items.</p>
-                        </div>
+                <div class="info-card">
+                    <div class="info-icon date">
+                        <i class="fas fa-calendar"></i>
                     </div>
+                    <div class="info-content">
+                        <label>Date</label>
+                        <h4>{{ item.item_date_lost_found.strftime('%b %d, %Y') }}</h4>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon reporter">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="info-content">
+                        <label>Reported by</label>
+                        <h4>{{ item.owner.user_username }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="description-card">
+                <div class="card-header">
+                    <i class="fas fa-align-left me-2"></i>
+                    <h3>Description</h3>
+                </div>
+                <div class="card-content">
+                    <p>{{ item.item_description }}</p>
+                </div>
+            </div>
+
+            <!-- Action Section -->
+            <div class="action-section">
+                {% if is_potential_match %}
+                <div class="match-alert">
+                    <i class="fas fa-handshake me-3"></i>
+                    <div>
+                        <h4>Potential Match Found!</h4>
+                        <p>This item might match one of your reported items.</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Primary Actions -->
+                <div class="primary-actions">
+                    <!-- Only show Claim button if it's a found item and user didn't report it -->
+                    {% if item.item_type == 'found' and item.owner_id != current_user.user_id and item.item_status ==
+                    'pending' %}
+                    <form method="POST" action="{{ url_for('claim_item', item_id=item.item_id) }}" class="claim-form">
+                        <button type="submit" class="action-btn claim-btn"
+                            onclick="return confirm('Are you sure this is your item? This will notify the finder and help coordinate the return.')">
+                            <i class="fas fa-check me-2"></i>
+                            Claim This Item
+                        </button>
+                    </form>
                     {% endif %}
 
-                    <!-- Primary Actions -->
-                    <div class="primary-actions">
-                        <!-- Only show Claim button if it's a found item and user didn't report it -->
-                        {% if item.item_type == 'found' and item.owner_id != current_user.user_id and item.item_status == 'pending' %}
-                        <form method="POST" action="{{ url_for('claim_item', item_id=item.item_id) }}" class="claim-form">
-                            <button type="submit" class="action-btn claim-btn" 
-                                    onclick="return confirm('Are you sure this is your item? This will notify the finder and help coordinate the return.')">
-                                <i class="fas fa-check me-2"></i>
-                                Claim This Item
-                            </button>
-                        </form>
-                        {% endif %}
-                        
-                        <!-- Show Resolve button only to owner -->
-                        {% if item.owner_id == current_user.user_id and item.item_status == 'pending' %}
-                        <form method="POST" action="{{ url_for('resolve_item', item_id=item.item_id) }}" class="resolve-form">
-                            <button type="submit" class="action-btn resolve-btn"
-                                    onclick="return confirm('Mark this item as resolved? This will remove it from active searches.')">
-                                <i class="fas fa-check-circle me-2"></i>
-                                Mark as Resolved
-                            </button>
-                        </form>
-                        {% endif %}
-                    </div>
+                    <!-- Show Resolve button only to owner -->
+                    {% if item.owner_id == current_user.user_id and item.item_status == 'pending' %}
+                    <form method="POST" action="{{ url_for('resolve_item', item_id=item.item_id) }}"
+                        class="resolve-form">
+                        <button type="submit" class="action-btn resolve-btn"
+                            onclick="return confirm('Mark this item as resolved? This will remove it from active searches.')">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Mark as Resolved
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
 
-                    <!-- Secondary Actions -->
-                    <div class="secondary-actions">
-                        {% if item.owner_id != current_user.user_id %}
-                        <!-- FIX: Removed comments from inside the 'a' tag -->
-                        <a href="mailto:{{ item.owner.user_email }}?subject=Regarding your {{ item.item_type }} item: {{ item.item_title }}&body=Hello {{ item.owner.user_username }}, I saw your {{ item.item_type }} item '{{ item.item_title }}' on Campus Lost & Found..."
-                           class="action-btn contact-btn">
-                            <i class="fas fa-envelope me-2"></i>
-                            Contact {{ item.owner.user_username }}
+                <!-- Secondary Actions -->
+                <div class="secondary-actions">
+                    {% if item.owner_id != current_user.user_id %}
+                    <!-- FIX: Removed comments from inside the 'a' tag -->
+                    <a href="{{ url_for('messaging.conversation', user_id=item.owner_id, item_id=item.item_id) }}"
+                        class="action-btn contact-btn">
+                        <i class="fas fa-comment-alt me-2"></i>
+                        Message {{ item.owner.user_username }}
+                    </a>
+                    {% endif %}
+
+                    <div class="navigation-actions">
+                        <a href="{{ url_for('search') }}" class="nav-btn">
+                            <i class="fas fa-search me-2"></i>
+                            Back to Search
                         </a>
-                        {% endif %}
-                        
-                        <div class="navigation-actions">
-                            <a href="{{ url_for('search') }}" class="nav-btn">
-                                <i class="fas fa-search me-2"></i>
-                                Back to Search
-                            </a>
-                            <a href="{{ url_for('reporting.my_items') }}" class="nav-btn">
-                                <i class="fas fa-list me-2"></i>
-                                My Items
-                            </a>
-                        </div>
+                        <a href="{{ url_for('reporting.my_items') }}" class="nav-btn">
+                            <i class="fas fa-list me-2"></i>
+                            My Items
+                        </a>
                     </div>
-
-                    <!-- Status Messages -->
-                    {% if item.item_status == 'claimed' %}
-                    <div class="status-alert claimed">
-                        <i class="fas fa-check-circle me-3"></i>
-                        <div>
-                            <h4>Item Claimed</h4>
-                            <p>The owner has claimed this item and is coordinating the return with the finder.</p>
-                        </div>
-                    </div>
-                    {% elif item.item_status == 'resolved' %}
-                    <div class="status-alert resolved">
-                        <i class="fas fa-archive me-3"></i>
-                        <div>
-                            <h4>Case Resolved</h4>
-                            <p>This item has been successfully returned or the case has been closed.</p>
-                        </div>
-                    </div>
-                    {% endif %}
                 </div>
+
+                <!-- Status Messages -->
+                {% if item.item_status == 'claimed' %}
+                <div class="status-alert claimed">
+                    <i class="fas fa-check-circle me-3"></i>
+                    <div>
+                        <h4>Item Claimed</h4>
+                        <p>The owner has claimed this item and is coordinating the return with the finder.</p>
+                    </div>
+                </div>
+                {% elif item.item_status == 'resolved' %}
+                <div class="status-alert resolved">
+                    <i class="fas fa-archive me-3"></i>
+                    <div>
+                        <h4>Case Resolved</h4>
+                        <p>This item has been successfully returned or the case has been closed.</p>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
-    
+</div>
+
 
 <style>
-/* Item Details Specific Styles */
-.item-details-header {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Emerald green gradient */
-    color: white;
-    padding: 2.5rem;
-    border-radius: 20px;
-    margin-bottom: 2rem;
-}
+    /* Item Details Specific Styles */
+    .item-details-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        /* Emerald green gradient */
+        color: white;
+        padding: 2.5rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
 
- 
+
     /* Add this CSS to ensure the image displays nicely */
     .item-image-large {
         width: 100%;
         max-width: 500px;
         height: auto;
         border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         object-fit: contain;
         background-color: #f8f9fa;
     }
-    
+
     .item-image-card {
         text-align: center;
         padding: 1rem;
         background: white;
         border-radius: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
-.item-title-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-}
+    .item-title-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
 
-.item-title-section h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    flex: 1;
-}
+    .item-title-section h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        flex: 1;
+    }
 
-.item-subtitle {
-    font-size: 1.2rem;
-    opacity: 0.9;
-    margin-bottom: 0;
-}
+    .item-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
 
-.item-badges {
-    display: flex;
-    gap: 0.75rem;
-    margin-left: 2rem;
-}
+    .item-badges {
+        display: flex;
+        gap: 0.75rem;
+        margin-left: 2rem;
+    }
 
-.type-badge, .status-badge {
-    padding: 0.5em 1em;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
+    .type-badge,
+    .status-badge {
+        padding: 0.5em 1em;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
 
-.type-lost { background: #fef3c7; color: #92400e; }
-.type-found { background: #d1fae5; color: #065f46; }
-.status-pending { background: #dbeafe; color: #1e40af; }
-.status-claimed { background: #f3e8ff; color: #6b21a8; }
-.status-resolved { background: #f1f5f9; color: #475569; }
+    .type-lost {
+        background: #fef3c7;
+        color: #92400e;
+    }
 
-/* Details Container */
-.item-details-container {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    border: 1px solid #f1f5f9;
-    overflow: hidden;
-}
+    .type-found {
+        background: #d1fae5;
+        color: #065f46;
+    }
 
-.details-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-    min-height: 600px;
-}
+    .status-pending {
+        background: #dbeafe;
+        color: #1e40af;
+    }
 
-/* Image Column */
-.image-column {
-    background: #f8fafc;
-    padding: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-right: 1px solid #f1f5f9;
-}
+    .status-claimed {
+        background: #f3e8ff;
+        color: #6b21a8;
+    }
 
-.item-image-card {
-    text-align: center;
-    max-width: 100%;
-}
+    .status-resolved {
+        background: #f1f5f9;
+        color: #475569;
+    }
 
-.item-image-large {
-    max-height: 400px;
-    max-width: 100%;
-    border-radius: 15px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-    object-fit: contain;
-}
+    /* Details Container */
+    .item-details-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+    }
 
-.ai-feature-badge {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    padding: 0.5em 1em;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-top: 1rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
+    .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        min-height: 600px;
+    }
 
-.no-image-card {
-    text-align: center;
-    color: #94a3b8;
-    padding: 3rem 2rem;
-}
+    /* Image Column */
+    .image-column {
+        background: #f8fafc;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid #f1f5f9;
+    }
 
-.no-image-card i {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    display: block;
-}
+    .item-image-card {
+        text-align: center;
+        max-width: 100%;
+    }
 
-.no-image-card h4 {
-    color: #64748b;
-    margin-bottom: 0.5rem;
-}
+    .item-image-large {
+        max-height: 400px;
+        max-width: 100%;
+        border-radius: 15px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        object-fit: contain;
+    }
 
-.no-image-card p {
-    margin-bottom: 0;
-}
+    .ai-feature-badge {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 0.5em 1em;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-top: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
 
-/* Details Column */
-.details-column {
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
+    .no-image-card {
+        text-align: center;
+        color: #94a3b8;
+        padding: 3rem 2rem;
+    }
 
-/* Info Cards Grid */
-.info-cards-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
+    .no-image-card i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
 
-.info-card {
-    background: #f8fafc;
-    border-radius: 12px;
-    padding: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    border: 1px solid #e2e8f0;
-    transition: all 0.3s ease;
-}
+    .no-image-card h4 {
+        color: #64748b;
+        margin-bottom: 0.5rem;
+    }
 
-.info-card:hover {
-    background: #f1f5f9;
-    transform: translateY(-2px);
-}
+    .no-image-card p {
+        margin-bottom: 0;
+    }
 
-.info-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    color: white;
-}
+    /* Details Column */
+    .details-column {
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
 
-.info-icon.category { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
-.info-icon.location { background: linear-gradient(135deg, #10b981, #059669); }
-.info-icon.date { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.info-icon.reporter { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    /* Info Cards Grid */
+    .info-cards-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
 
-.info-content label {
-    font-size: 0.8rem;
-    color: #64748b;
-    font-weight: 500;
-    margin-bottom: 0.25rem;
-    display: block;
-}
+    .info-card {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
 
-.info-content h4 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 0;
-}
+    .info-card:hover {
+        background: #f1f5f9;
+        transform: translateY(-2px);
+    }
 
-/* Description Card */
-.description-card {
-    background: white;
-    border: 1px solid #f1f5f9;
-    border-radius: 15px;
-    overflow: hidden;
-}
+    .info-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+    }
 
-.description-card .card-header {
-    background: #f8fafc;
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-}
+    .info-icon.category {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    }
 
-.description-card .card-header h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 0;
-}
+    .info-icon.location {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
 
-.description-card .card-content {
-    padding: 1.5rem;
-}
+    .info-icon.date {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
 
-.description-card .card-content p {
-    color: #374151;
-    line-height: 1.6;
-    margin-bottom: 0;
-    font-size: 1.05rem;
-}
+    .info-icon.reporter {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
 
-/* Action Section */
-.action-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
+    .info-content label {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
 
-.match-alert {
-    background: linear-gradient(135deg, #dbeafe, #e0f2fe);
-    border: 1px solid #bae6fd;
-    border-radius: 12px;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    color: #0369a1;
-}
+    .info-content h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0;
+    }
 
-.match-alert i {
-    font-size: 1.5rem;
-}
+    /* Description Card */
+    .description-card {
+        background: white;
+        border: 1px solid #f1f5f9;
+        border-radius: 15px;
+        overflow: hidden;
+    }
 
-.match-alert h4 {
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-}
+    .description-card .card-header {
+        background: #f8fafc;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+    }
 
-.match-alert p {
-    margin-bottom: 0;
-    opacity: 0.9;
-}
+    .description-card .card-header h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0;
+    }
 
-.primary-actions {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
+    .description-card .card-content {
+        padding: 1.5rem;
+    }
 
-.action-btn {
-    padding: 1rem 2rem;
-    border-radius: 10px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    min-width: 200px;
-}
+    .description-card .card-content p {
+        color: #374151;
+        line-height: 1.6;
+        margin-bottom: 0;
+        font-size: 1.05rem;
+    }
 
-.claim-btn {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-}
+    /* Action Section */
+    .action-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
 
-.claim-btn:hover {
-    background: linear-gradient(135deg, #059669, #047857);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-}
+    .match-alert {
+        background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+        border: 1px solid #bae6fd;
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        color: #0369a1;
+    }
 
-.resolve-btn {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-}
+    .match-alert i {
+        font-size: 1.5rem;
+    }
 
-.resolve-btn:hover {
-    background: linear-gradient(135deg, #d97706, #b45309);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
-}
+    .match-alert h4 {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
 
-.contact-btn {
-    background: white;
-    color: #374151;
-    border: 2px solid #e5e7eb;
-}
+    .match-alert p {
+        margin-bottom: 0;
+        opacity: 0.9;
+    }
 
-.contact-btn:hover {
-    background: #f8fafc;
-    border-color: #6366f1;
-    color: #6366f1;
-    text-decoration: none;
-    transform: translateY(-2px);
-}
+    .primary-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
 
-.secondary-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
+    .action-btn {
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        min-width: 200px;
+    }
 
-.navigation-actions {
-    display: flex;
-    gap: 1rem;
-}
+    .claim-btn {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
 
-.nav-btn {
-    background: #f8fafc;
-    color: #374151;
-    text-decoration: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    flex: 1;
-    justify-content: center;
-}
+    .claim-btn:hover {
+        background: linear-gradient(135deg, #059669, #047857);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+    }
 
-.nav-btn:hover {
-    background: #e2e8f0;
-    color: #1e293b;
-    text-decoration: none;
-    transform: translateY(-1px);
-}
+    .resolve-btn {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
 
-.status-alert {
-    padding: 1.5rem;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    color: white;
-}
+    .resolve-btn:hover {
+        background: linear-gradient(135deg, #d97706, #b45309);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+    }
 
-.status-alert.claimed {
-    background: linear-gradient(135deg, #10b981, #059669);
-}
+    .contact-btn {
+        background: white;
+        color: #374151;
+        border: 2px solid #e5e7eb;
+    }
 
-.status-alert.resolved {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-}
+    .contact-btn:hover {
+        background: #f8fafc;
+        border-color: #6366f1;
+        color: #6366f1;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
 
-.status-alert i {
-    font-size: 1.5rem;
-}
+    .secondary-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
 
-.status-alert h4 {
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-}
+    .navigation-actions {
+        display: flex;
+        gap: 1rem;
+    }
 
-.status-alert p {
-    margin-bottom: 0;
-    opacity: 0.9;
-}
+    .nav-btn {
+        background: #f8fafc;
+        color: #374151;
+        text-decoration: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        flex: 1;
+        justify-content: center;
+    }
 
+    .nav-btn:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
 
+    .status-alert {
+        padding: 1.5rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        color: white;
+    }
+
+    .status-alert.claimed {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .status-alert.resolved {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    }
+
+    .status-alert i {
+        font-size: 1.5rem;
+    }
+
+    .status-alert h4 {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .status-alert p {
+        margin-bottom: 0;
+        opacity: 0.9;
+    }
 </style>
 
 {% endblock %}

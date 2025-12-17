@@ -17,7 +17,8 @@ class User(UserMixin, db.Model):
     
     # Relationships (these stay the same)
     items = db.relationship('Item', backref='owner', lazy=True)
-    notifications = db.relationship('Notification', backref='user', lazy=True)
+    # Explicitly specify foreign_keys to resolve ambiguity between user_id and notification_sender_id
+    notifications = db.relationship('Notification', foreign_keys='Notification.user_id', backref='user', lazy=True)
     
     # Flask-Login requires get_id() to return the primary key as string
     def get_id(self):
@@ -68,7 +69,11 @@ class Notification(db.Model):
     
     # Foreign keys with new column names
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
-    item_id = db.Column(db.Integer, db.ForeignKey('items.item_id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.item_id'), nullable=True) # Changed default nullable=False to True to avoid issues if generic notification
+    notification_sender_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True) # Optional link to sender
+
+    # Relationship
+    sender = db.relationship('User', foreign_keys=[notification_sender_id], backref='triggered_notifications')
 
 class Match(db.Model):
     __tablename__ = 'matches'
@@ -83,3 +88,19 @@ class Match(db.Model):
     # Relationships
     lost_item = db.relationship('Item', foreign_keys=[lost_item_id])
     found_item = db.relationship('Item', foreign_keys=[found_item_id])
+
+class Message(db.Model):
+    __tablename__ = 'messages'
+    
+    message_id = db.Column(db.Integer, primary_key=True)
+    message_sender_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    message_recipient_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    message_item_id = db.Column(db.Integer, db.ForeignKey('items.item_id'), nullable=True)  # Optional context
+    message_body = db.Column(db.Text, nullable=False)
+    message_created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    message_is_read = db.Column(db.Boolean, default=False)
+    
+    # Relationships
+    sender = db.relationship('User', foreign_keys=[message_sender_id], backref='sent_messages')
+    recipient = db.relationship('User', foreign_keys=[message_recipient_id], backref='received_messages')
+    item = db.relationship('Item', backref='messages')

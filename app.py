@@ -11,6 +11,7 @@ from modules.auth import auth_bp
 from modules.reporting import reporting_bp
 from modules.matching_simple import matching_engine
 from modules.admin import admin_bp
+from modules.messaging import messaging_bp
 from config import Config # Import your config file
 
 # Initialize Flask app
@@ -35,6 +36,7 @@ login_manager.login_view = 'auth.login' # Add this to handle redirects properly
 app.register_blueprint(auth_bp)
 app.register_blueprint(reporting_bp)
 app.register_blueprint(admin_bp)
+app.register_blueprint(messaging_bp)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -129,6 +131,10 @@ def mark_notification_seen(notification_id):
     notification.notification_is_seen = True
     db.session.commit()
     
+    # Check if this is an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+        return jsonify({'success': True, 'message': 'Marked as read'})
+        
     return redirect(url_for('notifications'))
 
 @app.route('/notifications/mark_all_seen', methods=['POST'])

@@ -1,165 +1,183 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <!-- Notifications Header -->
-    <div class="notifications-header">
-        <div class="header-content">
-            <h1><i class="fas fa-bell me-3"></i>Notifications</h1>
-            <p class="lead">Stay updated with matches, claims, and important updates</p>
-        </div>
-        <div class="header-stats">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-bell"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>{{ notifications|length }}</h3>
-                    <span>Total Notifications</span>
-                </div>
+<!-- Notifications Header -->
+<div class="notifications-header">
+    <div class="header-content">
+        <h1><i class="fas fa-bell me-3"></i>Notifications</h1>
+        <p class="lead">Stay updated with matches, claims, and important updates</p>
+    </div>
+    <div class="header-stats">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-bell"></i>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-eye-slash"></i>
-                </div>
-                <div class="stat-info">
-                    <!-- Fixed: Used 'notification_is_seen' -->
-                    {% set unread_count = notifications|selectattr('notification_is_seen', 'equalto', false)|list|length %}
-                    <h3>{{ unread_count }}</h3>
-                    <span>Unread</span>
-                </div>
+            <div class="stat-info">
+                <h3>{{ notifications|length }}</h3>
+                <span>Total Notifications</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-eye-slash"></i>
+            </div>
+            <div class="stat-info">
+                <!-- Fixed: Used 'notification_is_seen' -->
+                {% set unread_count = notifications|selectattr('notification_is_seen', 'equalto', false)|list|length %}
+                <h3>{{ unread_count }}</h3>
+                <span>Unread</span>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Notifications Content -->
-    <div class="notifications-container">
-        {% if notifications %}
-        <div class="notifications-actions">
-            {% if unread_count > 0 %}
-            <form method="POST" action="{{ url_for('mark_all_notifications_seen') }}" class="mark-all-form">
-                <button type="submit" class="mark-all-btn">
-                    <i class="fas fa-check-double me-2"></i>
-                    Mark All as Read
-                </button>
-            </form>
-            {% endif %}
-        </div>
-
-        <div class="notifications-list">
-            {% for notification in notifications %}
-            <!-- Fixed: Used 'notification_is_seen' -->
-            <div class="notification-card {% if not notification.notification_is_seen %}unread{% endif %}">
-                <div class="notification-header">
-                    <div class="notification-type">
-                        {% if notification.notification_type == 'potential_match' %}
-                            <div class="type-icon match">
-                                <i class="fas fa-handshake"></i>
-                            </div>
-                            <span class="type-label">Potential Match</span>
-                        {% elif notification.notification_type == 'visual_match' %}
-                            <div class="type-icon visual">
-                                <i class="fas fa-camera"></i>
-                            </div>
-                            <span class="type-label">Visual Match</span>
-                        {% else %}
-                            <div class="type-icon info">
-                                <i class="fas fa-info-circle"></i>
-                            </div>
-                            <span class="type-label">Information</span>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="notification-actions">
-                        <!-- Fixed: Used 'notification_is_seen' -->
-                        {% if not notification.notification_is_seen %}
-                        <!-- 🔴 CRITICAL FIX HERE: Used 'notification_id' -->
-                        <form method="POST" action="{{ url_for('mark_notification_seen', notification_id=notification.notification_id) }}" class="mark-read-form">
-                            <button type="submit" class="mark-read-btn" title="Mark as read">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        </form>
-                        {% else %}
-                        <span class="read-badge">Read</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="notification-content">
-                    <!-- Fixed: Used 'notification_message' -->
-                    <p class="notification-message">{{ notification.notification_message }}</p>
-                    
-                    <div class="notification-meta">
-                        <span class="timestamp">
-                            <i class="fas fa-clock me-1"></i>
-                            <!-- Fixed: Used 'notification_created_at' -->
-                            {{ notification.notification_created_at.strftime('%Y-%m-%d at %H:%M') }}
-                        </span>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    {% if notification.notification_type in ['potential_match', 'visual_match'] %}
-                    <div class="notification-actions-full">
-                        <div class="action-buttons">
-                            <a href="{{ url_for('view_item', item_id=notification.item_id) }}" 
-                               class="action-btn primary">
-                                <i class="fas {% if notification.notification_type == 'potential_match' %}fa-handshake{% else %}fa-camera{% endif %} me-2"></i>
-                                View {% if notification.notification_type == 'potential_match' %}Potential{% else %}Visual{% endif %} Match
-                            </a>
-                            
-                            <!-- Fixed: Used 'user_id' instead of 'id' -->
-                            {% if notification.item.owner.user_id != current_user.user_id %}
-                            <!-- Fixed: Used correct User model fields (user_email, item_title, user_username) -->
-                            <a href="mailto:{{ notification.item.owner.user_email }}?subject=Regarding your item: {{ notification.item.item_title }}&body=Hello {{ notification.item.owner.user_username }}, I saw your item '{{ notification.item.item_title }}' on Campus Lost & Found..." 
-                               class="action-btn secondary">
-                                <i class="fas fa-envelope me-2"></i>
-                                Contact {{ notification.item.owner.user_username }}
-                            </a>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="match-info">
-                            <i class="fas {% if notification.notification_type == 'potential_match' %}fa-handshake{% else %}fa-camera{% endif %} me-2"></i>
-                            {% if notification.notification_type == 'potential_match' %}
-                            Text-based similarity match
-                            {% else %}
-                            AI-powered image recognition match
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <!-- Empty State -->
-        <div class="empty-state">
-            <div class="empty-icon">
-                <i class="fas fa-bell-slash"></i>
-            </div>
-            <div class="empty-content">
-                <h3>No notifications yet</h3>
-                <p>You'll see notifications here when we find potential matches for your items or when there are updates to your reports.</p>
-                <div class="empty-actions">
-                    <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>
-                        Report an Item
-                    </a>
-                    <a href="{{ url_for('search') }}" class="btn btn-outline">
-                        <i class="fas fa-search me-2"></i>
-                        Search Items
-                    </a>
-                </div>
-            </div>
-        </div>
+<!-- Notifications Content -->
+<div class="notifications-container">
+    {% if notifications %}
+    <div class="notifications-actions">
+        {% if unread_count > 0 %}
+        <form method="POST" action="{{ url_for('mark_all_notifications_seen') }}" class="mark-all-form">
+            <button type="submit" class="mark-all-btn">
+                <i class="fas fa-check-double me-2"></i>
+                Mark All as Read
+            </button>
+        </form>
         {% endif %}
     </div>
 
-    <!-- Keep your style section exactly as it was -->
-    <style>
+    <div class="notifications-list">
+        {% for notification in notifications %}
+        <!-- Fixed: Used 'notification_is_seen' -->
+        <div class="notification-card {% if not notification.notification_is_seen %}unread{% endif %}">
+            <div class="notification-header">
+                <div class="notification-type">
+                    {% if notification.notification_type == 'potential_match' %}
+                    <div class="type-icon match">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <span class="type-label">Potential Match</span>
+                    {% elif notification.notification_type == 'visual_match' %}
+                    <div class="type-icon visual">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <span class="type-label">Visual Match</span>
+                    {% else %}
+                    <div class="type-icon info">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <span class="type-label">Information</span>
+                    {% endif %}
+                </div>
+
+                <div class="notification-actions">
+                    <!-- Fixed: Used 'notification_is_seen' -->
+                    {% if not notification.notification_is_seen %}
+                    <!-- 🔴 CRITICAL FIX HERE: Used 'notification_id' -->
+                    <form method="POST"
+                        action="{{ url_for('mark_notification_seen', notification_id=notification.notification_id) }}"
+                        class="mark-read-form">
+                        <button type="submit" class="mark-read-btn" title="Mark as read">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </form>
+                    {% else %}
+                    <span class="read-badge">Read</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="notification-content">
+                <!-- Fixed: Used 'notification_message' -->
+                <p class="notification-message">{{ notification.notification_message }}</p>
+
+                <div class="notification-meta">
+                    <span class="timestamp">
+                        <i class="fas fa-clock me-1"></i>
+                        <!-- Fixed: Used 'notification_created_at' -->
+                        {{ notification.notification_created_at.strftime('%Y-%m-%d at %H:%M') }}
+                    </span>
+                </div>
+
+                <!-- Action Buttons -->
+                <!-- Action Buttons -->
+                {% if notification.notification_type in ['potential_match', 'visual_match', 'message'] %}
+                <div class="notification-actions-full">
+                    <div class="action-buttons">
+                        <a href="{{ url_for('view_item', item_id=notification.item_id) }}" class="action-btn primary">
+                            <i
+                                class="fas {% if notification.notification_type == 'potential_match' %}fa-handshake{% else %}fa-camera{% endif %} me-2"></i>
+                            View {% if notification.notification_type == 'potential_match' %}Potential{% else %}Visual{%
+                            endif %} Match
+                        </a>
+
+                        <!-- Fixed: Used 'user_id' instead of 'id' -->
+                        {% if notification.item.owner.user_id != current_user.user_id %}
+                        <!-- Fixed: Used correct User model fields (user_email, item_title, user_username) -->
+                        <a href="{{ url_for('messaging.conversation', user_id=notification.item.owner.user_id, item_id=notification.item.item_id) }}"
+                            class="action-btn secondary">
+                            <i class="fas fa-comment-alt me-2"></i>
+                            Message {{ notification.item.owner.user_username }}
+                        </a>
+                        {% endif %}
+
+                        <!-- Reply Action for Messages -->
+                        {% if notification.notification_type == 'message' %}
+                        <a href="{{ url_for('messaging.conversation', user_id=notification.notification_sender_id if notification.notification_sender_id else notification.item.owner.user_id) }}"
+                            class="action-btn primary">
+                            <i class="fas fa-reply me-2"></i>
+                            Reply
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="match-info">
+                        <i
+                            class="fas {% if notification.notification_type == 'potential_match' %}fa-handshake{% elif notification.notification_type == 'visual_match' %}fa-camera{% else %}fa-envelope{% endif %} me-2"></i>
+                        {% if notification.notification_type == 'potential_match' %}
+                        Text-based similarity match
+                        {% elif notification.notification_type == 'visual_match' %}
+                        AI-powered image recognition match
+                        {% else %}
+                        Direct message from user
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-bell-slash"></i>
+        </div>
+        <div class="empty-content">
+            <h3>No notifications yet</h3>
+            <p>You'll see notifications here when we find potential matches for your items or when there are updates to
+                your reports.</p>
+            <div class="empty-actions">
+                <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    Report an Item
+                </a>
+                <a href="{{ url_for('search') }}" class="btn btn-outline">
+                    <i class="fas fa-search me-2"></i>
+                    Search Items
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Keep your style section exactly as it was -->
+<style>
     /* Notifications Specific Styles */
     .notifications-header {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Emerald green gradient */
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        /* Emerald green gradient */
         color: white;
         padding: 2.5rem;
         border-radius: 20px;
@@ -167,7 +185,7 @@
         position: relative;
         overflow: hidden;
     }
-    
+
     .notifications-header::before {
         content: '';
         position: absolute;
@@ -177,87 +195,87 @@
         bottom: 0;
         background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
     }
-    
+
     .header-content {
         position: relative;
         z-index: 1;
     }
-    
+
     .header-content h1 {
         font-size: 2.5rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
     }
-    
+
     .header-content .lead {
         font-size: 1.2rem;
         opacity: 0.9;
         margin-bottom: 2rem;
         max-width: 600px;
     }
-    
+
     .header-stats {
         display: flex;
         gap: 1.5rem;
         position: relative;
         z-index: 1;
     }
-    
+
     .stat-card {
         display: flex;
         align-items: center;
         gap: 1rem;
-        background: rgba(255,255,255,0.15);
+        background: rgba(255, 255, 255, 0.15);
         padding: 1.75rem;
         border-radius: 16px;
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.25);
+        border: 1px solid rgba(255, 255, 255, 0.25);
         transition: all 0.3s ease;
     }
-    
+
     .stat-card:hover {
-        background: rgba(255,255,255,0.2);
+        background: rgba(255, 255, 255, 0.2);
         transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
-    
+
     .stat-card .stat-icon {
         font-size: 2.25rem;
         opacity: 0.9;
     }
-    
+
     .stat-card .stat-info h3 {
         font-size: 2.25rem;
         font-weight: 800;
         margin-bottom: 0.25rem;
         line-height: 1;
     }
-    
+
     .stat-card .stat-info span {
         font-size: 0.95rem;
         opacity: 0.9;
         font-weight: 500;
     }
-    
+
     /* Notifications Container */
     .notifications-container {
         background: white;
         border-radius: 20px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         border: 1px solid #f1f5f9;
         overflow: hidden;
     }
-    
+
     .notifications-actions {
         padding: 1.5rem 2rem;
         border-bottom: 1px solid #f1f5f9;
         background: #f8fafc;
     }
-    
+
     .mark-all-form {
         display: inline-block;
     }
-    
+
     .mark-all-btn {
         background: linear-gradient(135deg, #10b981, #059669);
         color: white;
@@ -271,51 +289,51 @@
         align-items: center;
         box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
     }
-    
+
     .mark-all-btn:hover {
         background: linear-gradient(135deg, #059669, #047857);
         transform: translateY(-3px);
         box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
     }
-    
+
     /* Notification Cards */
     .notifications-list {
         padding: 0;
     }
-    
+
     .notification-card {
         padding: 2rem;
         border-bottom: 1px solid #f1f5f9;
         transition: all 0.3s ease;
     }
-    
+
     .notification-card:last-child {
         border-bottom: none;
     }
-    
+
     .notification-card.unread {
         background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
         border-left: 4px solid var(--accent-color);
     }
-    
+
     .notification-card:hover {
         background: #f8fafc;
         transform: translateX(5px);
     }
-    
+
     .notification-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 1rem;
     }
-    
+
     .notification-type {
         display: flex;
         align-items: center;
         gap: 0.75rem;
     }
-    
+
     .type-icon {
         width: 44px;
         height: 44px;
@@ -325,29 +343,37 @@
         justify-content: center;
         color: white;
         font-size: 1.2rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
-    
-    .type-icon.match { background: linear-gradient(135deg, #10b981, #059669); }
-    .type-icon.visual { background: linear-gradient(135deg, #06b6d4, #0891b2); }
-    .type-icon.info { background: linear-gradient(135deg, var(--accent-color), var(--accent-color-hover)); }
-    
+
+    .type-icon.match {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .type-icon.visual {
+        background: linear-gradient(135deg, #06b6d4, #0891b2);
+    }
+
+    .type-icon.info {
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-color-hover));
+    }
+
     .type-label {
         font-weight: 700;
         color: #374151;
         font-size: 1.1rem;
     }
-    
+
     .notification-actions {
         display: flex;
         align-items: center;
         gap: 1rem;
     }
-    
+
     .mark-read-form {
         display: inline-block;
     }
-    
+
     .mark-read-btn {
         background: #6b7280;
         color: white;
@@ -361,13 +387,13 @@
         cursor: pointer;
         transition: all 0.3s ease;
     }
-    
+
     .mark-read-btn:hover {
         background: #374151;
         transform: scale(1.1) rotate(90deg);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
-    
+
     .read-badge {
         background: linear-gradient(135deg, #d1fae5, #a7f3d0);
         color: #065f46;
@@ -376,23 +402,23 @@
         font-size: 0.85rem;
         font-weight: 700;
     }
-    
+
     /* Notification Content */
     .notification-content {
         flex: 1;
     }
-    
+
     .notification-message {
         font-size: 1.15rem;
         color: #374151;
         margin-bottom: 1rem;
         line-height: 1.6;
     }
-    
+
     .notification-meta {
         margin-bottom: 1.5rem;
     }
-    
+
     .timestamp {
         font-size: 0.9rem;
         color: #6b7280;
@@ -400,21 +426,21 @@
         align-items: center;
         font-weight: 500;
     }
-    
+
     /* Action Buttons */
     .notification-actions-full {
         border-top: 1px solid #e5e7eb;
         padding-top: 1.75rem;
         margin-top: 1.5rem;
     }
-    
+
     .action-buttons {
         display: flex;
         gap: 1rem;
         margin-bottom: 1rem;
         flex-wrap: wrap;
     }
-    
+
     .action-btn {
         padding: 0.875rem 1.75rem;
         border-radius: 12px;
@@ -426,12 +452,12 @@
         border: 2px solid transparent;
         font-size: 0.95rem;
     }
-    
+
     .action-btn.primary {
         background: linear-gradient(135deg, var(--accent-color), var(--accent-color-hover));
         color: white;
     }
-    
+
     .action-btn.primary:hover {
         background: linear-gradient(135deg, var(--accent-color-hover), var(--accent-color));
         transform: translateY(-3px);
@@ -439,22 +465,22 @@
         text-decoration: none;
         color: white;
     }
-    
+
     .action-btn.secondary {
         background: white;
         color: #374151;
         border-color: #e5e7eb;
     }
-    
+
     .action-btn.secondary:hover {
         background: #f8fafc;
         border-color: var(--accent-color);
         color: var(--accent-color);
         transform: translateY(-3px);
         text-decoration: none;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
-    
+
     .match-info {
         font-size: 0.9rem;
         color: #6b7280;
@@ -462,27 +488,27 @@
         align-items: center;
         font-weight: 500;
     }
-    
+
     /* Empty State */
     .empty-state {
         text-align: center;
         padding: 4rem 2rem;
     }
-    
+
     .empty-icon {
         font-size: 4.5rem;
         color: #cbd5e1;
         margin-bottom: 1.5rem;
         opacity: 0.7;
     }
-    
+
     .empty-content h3 {
         color: #4a5568;
         margin-bottom: 1rem;
         font-weight: 700;
         font-size: 1.75rem;
     }
-    
+
     .empty-content p {
         color: #718096;
         margin-bottom: 2rem;
@@ -492,14 +518,14 @@
         margin-right: auto;
         line-height: 1.6;
     }
-    
+
     .empty-actions {
         display: flex;
         gap: 1.25rem;
         justify-content: center;
         flex-wrap: wrap;
     }
-    
+
     .btn-outline {
         background: white;
         color: #374151;
@@ -511,95 +537,178 @@
         transition: all 0.3s ease;
         font-size: 0.95rem;
     }
-    
+
     .btn-outline:hover {
         background: #f8fafc;
         border-color: var(--accent-color);
         color: var(--accent-color);
         text-decoration: none;
         transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
-    
+
     /* Responsive */
     @media (max-width: 1024px) {
         .header-stats {
             gap: 1rem;
         }
-        
+
         .stat-card {
             padding: 1.5rem;
         }
     }
-    
+
     @media (max-width: 768px) {
         .notifications-header {
             padding: 2rem 1.5rem;
         }
-        
+
         .header-content h1 {
             font-size: 2rem;
         }
-        
+
         .header-stats {
             flex-direction: column;
         }
-        
+
         .stat-card {
             width: 100%;
             justify-content: center;
         }
-        
+
         .action-buttons {
             flex-direction: column;
         }
-        
+
         .action-btn {
             width: 100%;
             justify-content: center;
         }
-        
+
         .empty-actions {
             flex-direction: column;
             align-items: center;
         }
-        
+
         .notification-header {
             flex-direction: column;
             align-items: flex-start;
             gap: 1rem;
         }
-        
+
         .notification-actions {
             align-self: flex-end;
             margin-top: 0.5rem;
         }
-        
+
         .notifications-container {
             margin: 0 0.5rem;
         }
     }
-    
+
     @media (max-width: 480px) {
         .notifications-header {
             padding: 1.75rem 1.25rem;
         }
-        
+
         .header-content h1 {
             font-size: 1.75rem;
         }
-        
+
         .header-content .lead {
             font-size: 1.1rem;
         }
-        
+
         .notification-card {
             padding: 1.5rem;
         }
-        
+
         .empty-state {
             padding: 3rem 1.5rem;
         }
     }
-    </style>
+</style>
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Handle "Mark as Read" button clicks
+        const markReadForms = document.querySelectorAll('.mark-read-form');
+
+        markReadForms.forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const btn = this.querySelector('button');
+                const card = this.closest('.notification-card');
+                const actionsDiv = this.closest('.notification-actions');
+
+                // Add loading state
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
+
+                fetch(this.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Visual update without reload
+                            card.classList.remove('unread');
+                            actionsDiv.innerHTML = '<span class="read-badge fade-in-badge">Read</span>';
+
+                            // Update unread count in header if it exists
+                            const unreadCountEl = document.querySelector('.stat-card .stat-info h3');
+                            if (unreadCountEl) {
+                                const currentCount = parseInt(unreadCountEl.innerText);
+                                if (currentCount > 0) {
+                                    unreadCountEl.innerText = currentCount - 1;
+                                }
+                            }
+
+                            // Update sidebar badge if it exists
+                            const sidebarBadge = document.querySelector('.nav-badge');
+                            if (sidebarBadge) {
+                                const badgeCount = parseInt(sidebarBadge.innerText);
+                                if (badgeCount > 1) {
+                                    sidebarBadge.innerText = badgeCount - 1;
+                                } else {
+                                    sidebarBadge.remove();
+                                }
+                            }
+                        } else {
+                            // Fallback to reload if something weird happens
+                            window.location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        window.location.reload();
+                    });
+            });
+        });
+    });
+</script>
+
+<style>
+    .fade-in-badge {
+        animation: fadeInBadge 0.5s ease forwards;
+    }
+
+    @keyframes fadeInBadge {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+</style>
 {% endblock %}

@@ -1,33 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Campus Lost & Found</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
+
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <style>
         :root {
             --sidebar-width: 300px;
             --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
             --sidebar-gradient: linear-gradient(180deg, #066b4b 0%, #059669 100%);
             --accent-color: #059669;
+            --accent-color-hover: #047857;
             --text-light: #f8fafc;
             --text-dark: #1e293b;
             --bg-light: #f1f5f9;
             --danger-color: #ef4444;
         }
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
             background: var(--bg-light);
@@ -35,7 +42,7 @@
             min-height: 100vh;
             overflow-x: hidden;
         }
-        
+
         /* --- Mobile Toggle --- */
         .mobile-menu-toggle {
             display: none;
@@ -50,10 +57,13 @@
             padding: 10px 14px;
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
-        
+
         /* --- Sidebar Structure --- */
-        .dashboard-container { display: flex; min-height: 100vh; }
-        
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
         .dashboard-sidebar {
             width: var(--sidebar-width);
             background: var(--sidebar-gradient);
@@ -65,15 +75,24 @@
             left: 0;
             top: 0;
             z-index: 1000;
-            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
             overflow-y: auto;
             transition: transform 0.3s ease;
         }
 
         /* Sidebar Scrollbar */
-        .dashboard-sidebar::-webkit-scrollbar { width: 5px; }
-        .dashboard-sidebar::-webkit-scrollbar-track { background: transparent; }
-        .dashboard-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+        .dashboard-sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .dashboard-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .dashboard-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
 
         /* --- User Profile Section --- */
         .sidebar-user-profile {
@@ -81,13 +100,13 @@
             background: rgba(0, 0, 0, 0.1);
             text-align: center;
         }
-        
+
         .user-avatar-large {
             width: 70px;
             height: 70px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255,255,255,0.4);
+            border: 2px solid rgba(255, 255, 255, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -96,20 +115,39 @@
             margin: 0 auto 1rem;
             color: white;
         }
-        
-        .user-info-main h4 { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.2rem; }
-        .user-role { font-size: 0.85rem; opacity: 0.8; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px; }
-        
+
+        .user-info-main h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .user-role {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         .user-stats {
             display: flex;
             justify-content: center;
             gap: 1.5rem;
             padding-top: 1rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        .user-stats .stat strong { display: block; font-size: 1.2rem; font-weight: 700; }
-        .user-stats .stat span { font-size: 0.75rem; opacity: 0.8; }
+
+        .user-stats .stat strong {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .user-stats .stat span {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
 
         /* --- Navigation Links --- */
         .sidebar-nav {
@@ -120,12 +158,12 @@
         .nav-label {
             font-size: 0.75rem;
             text-transform: uppercase;
-            color: rgba(255,255,255,0.5);
+            color: rgba(255, 255, 255, 0.5);
             font-weight: 700;
             margin: 1.5rem 0 0.5rem 1rem;
             letter-spacing: 0.5px;
         }
-        
+
         .nav-item {
             display: flex;
             align-items: center;
@@ -137,22 +175,27 @@
             margin-bottom: 0.5rem;
             transition: all 0.2s ease;
         }
-        
+
         .nav-item:hover {
             background: rgba(255, 255, 255, 0.1);
             color: white;
             transform: translateX(5px);
         }
-        
+
         .nav-item.active {
             background: white;
             color: var(--accent-color);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             font-weight: 600;
         }
-        
-        .nav-icon { width: 24px; text-align: center; font-size: 1.1rem; position: relative; }
-        
+
+        .nav-icon {
+            width: 24px;
+            text-align: center;
+            font-size: 1.1rem;
+            position: relative;
+        }
+
         .nav-badge {
             position: absolute;
             top: -5px;
@@ -168,9 +211,9 @@
         /* --- Footer --- */
         .sidebar-footer {
             padding: 1.5rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .logout-btn {
             display: flex;
             align-items: center;
@@ -184,8 +227,11 @@
             font-weight: 600;
             transition: all 0.2s;
         }
-        
-        .logout-btn:hover { background: rgba(239, 68, 68, 0.25); color: white; }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.25);
+            color: white;
+        }
 
         /* --- Main Content --- */
         .dashboard-main {
@@ -217,173 +263,237 @@
             padding: 2rem;
         }
 
-        .hero-title { font-size: 3.5rem; font-weight: 800; margin-bottom: 1.5rem; }
-        .btn-white { background: white; color: var(--accent-color); font-weight: 700; padding: 0.8rem 2rem; border-radius: 50px; }
-        .btn-outline { border: 2px solid white; color: white; font-weight: 700; padding: 0.8rem 2rem; border-radius: 50px; margin-left: 1rem; }
-        .btn-white:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); color: var(--accent-color); }
-        .btn-outline:hover { background: rgba(255,255,255,0.1); color: white; }
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-white {
+            background: white;
+            color: var(--accent-color);
+            font-weight: 700;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+        }
+
+        .btn-outline {
+            border: 2px solid white;
+            color: white;
+            font-weight: 700;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            margin-left: 1rem;
+        }
+
+        .btn-white:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            color: var(--accent-color);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
 
         /* --- Responsive --- */
         @media (max-width: 992px) {
-            :root { --sidebar-width: 260px; }
+            :root {
+                --sidebar-width: 260px;
+            }
         }
 
         @media (max-width: 768px) {
-            .mobile-menu-toggle { display: block; }
-            .dashboard-sidebar { transform: translateX(-100%); }
-            .dashboard-sidebar.mobile-open { transform: translateX(0); }
-            .dashboard-main { margin-left: 0; padding: 5rem 1rem 1rem 1rem; }
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .dashboard-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .dashboard-sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .dashboard-main {
+                margin-left: 0;
+                padding: 5rem 1rem 1rem 1rem;
+            }
         }
     </style>
 </head>
+
 <body>
     {% if current_user.is_authenticated %}
-        <!-- Mobile Toggle -->
-        <button class="mobile-menu-toggle" id="mobileMenuToggle">
-            <i class="fas fa-bars"></i>
-        </button>
-        
-        <div class="dashboard-container">
-            <!-- Sidebar -->
-            <div class="dashboard-sidebar" id="dashboardSidebar">
-                <!-- Profile -->
-                <div class="sidebar-user-profile">
-                    <div class="user-avatar-large">
-                        {{ current_user.user_username[0]|upper }}
-                    </div>
-                    <div class="user-info-main">
-                        <h4>{{ current_user.user_username }}</h4>
-                        <p class="user-role">{{ current_user.user_role|default('student') }}</p>
-                    </div>
-                    <div class="user-stats">
-                        <div class="stat">
-                            <strong>{{ current_user.items|length }}</strong>
-                            <span>Reports</span>
-                        </div>
-                        <div class="stat">
-                            {% set unread_alert_count = current_user.notifications|selectattr('notification_is_seen', 'equalto', false)|list|length %}
-                            <strong>{{ unread_alert_count }}</strong>
-                            <span>Alerts</span>
-                        </div>
-                    </div>
+    <!-- Mobile Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="dashboard-sidebar" id="dashboardSidebar">
+            <!-- Profile -->
+            <div class="sidebar-user-profile">
+                <div class="user-avatar-large">
+                    {{ current_user.user_username[0]|upper }}
                 </div>
-
-                <!-- Navigation -->
-                <nav class="sidebar-nav">
-                    <!-- General Section -->
-                    <div class="nav-label">General</div>
-                    
-                    <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
-                        <div class="nav-icon"><i class="fas fa-home"></i></div>
-                        <span>Dashboard</span>
-                    </a>
-
-                    <a href="{{ url_for('search') }}" class="nav-item {% if request.endpoint == 'search' %}active{% endif %}">
-                        <div class="nav-icon"><i class="fas fa-search"></i></div>
-                        <span>Search Items</span>
-                    </a>
-
-                    <a href="{{ url_for('campus_locations') }}" class="nav-item {% if request.endpoint == 'campus_locations' %}active{% endif %}">
-                        <div class="nav-icon"><i class="fas fa-map-marker-alt"></i></div>
-                        <span>Locations</span>
-                    </a>
-
-                    <!-- Reporting Section -->
-                    <div class="nav-label">Management</div>
-
-                    <a href="{{ url_for('reporting.report_item') }}" class="nav-item {% if request.endpoint == 'reporting.report_item' %}active{% endif %}">
-                        <div class="nav-icon"><i class="fas fa-plus-circle"></i></div>
-                        <span>Report Item</span>
-                    </a>
-
-                    <a href="{{ url_for('reporting.my_items') }}" class="nav-item {% if request.endpoint == 'reporting.my_items' %}active{% endif %}">
-                        <div class="nav-icon"><i class="fas fa-clipboard-list"></i></div>
-                        <span>My Reports</span>
-                    </a>
-
-                    <a href="{{ url_for('notifications') }}" class="nav-item {% if request.endpoint == 'notifications' %}active{% endif %}">
-                        <div class="nav-icon">
-                            <i class="fas fa-bell"></i>
-                            {% if unread_alert_count > 0 %}
-                            <span class="nav-badge">{{ unread_alert_count }}</span>
-                            {% endif %}
-                        </div>
-                        <span>Notifications</span>
-                    </a>
-
-                    <!-- Admin Section (Dynamic) -->
-                    {% if current_user.user_role == 'admin' %}
-                    <div class="nav-label" style="color: #6ee7b7;">Admin Controls</div>
-                    <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item {% if 'admin' in request.endpoint %}active{% endif %}">
-                        <div class="nav-icon"><i class="fas fa-tachometer-alt"></i></div>
-                        <span>Admin Panel</span>
-                    </a>
-                    {% endif %}
-                </nav>
-
-                <!-- Footer -->
-                <div class="sidebar-footer">
-                    <a href="{{ url_for('auth.logout') }}" class="logout-btn">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Sign Out</span>
-                    </a>
+                <div class="user-info-main">
+                    <h4>{{ current_user.user_username }}</h4>
+                    <p class="user-role">{{ current_user.user_role|default('student') }}</p>
+                </div>
+                <div class="user-stats">
+                    <div class="stat">
+                        <strong>{{ current_user.items|length }}</strong>
+                        <span>Reports</span>
+                    </div>
+                    <div class="stat">
+                        {% set unread_alert_count = current_user.notifications|selectattr('notification_is_seen',
+                        'equalto', false)|list|length %}
+                        <strong>{{ unread_alert_count }}</strong>
+                        <span>Alerts</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Main Content -->
-            <div class="dashboard-main" id="dashboardMain">
-                <!-- Flash Messages -->
-                <div class="alert-container">
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
+            <!-- General Section -->
+            <div class="nav-label">General</div>
+
+            {% if current_user.user_role != 'admin' %}
+            <a href="{{ url_for('dashboard') }}"
+                class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <div class="nav-icon"><i class="fas fa-home"></i></div>
+                <span>Dashboard</span>
+            </a>
+            {% endif %}
+
+            <a href="{{ url_for('search') }}" class="nav-item {% if request.endpoint == 'search' %}active{% endif %}">
+                <div class="nav-icon"><i class="fas fa-search"></i></div>
+                <span>Search Items</span>
+            </a>
+
+            <a href="{{ url_for('campus_locations') }}"
+                class="nav-item {% if request.endpoint == 'campus_locations' %}active{% endif %}">
+                <div class="nav-icon"><i class="fas fa-map-marker-alt"></i></div>
+                <span>Locations</span>
+            </a>
+
+            {% if current_user.user_role != 'admin' %}
+            <!-- Reporting Section -->
+            <div class="nav-label">Management</div>
+
+            <a href="{{ url_for('reporting.report_item') }}"
+                class="nav-item {% if request.endpoint == 'reporting.report_item' %}active{% endif %}">
+                <div class="nav-icon"><i class="fas fa-plus-circle"></i></div>
+                <span>Report Item</span>
+            </a>
+
+            <a href="{{ url_for('reporting.my_items') }}"
+                class="nav-item {% if request.endpoint == 'reporting.my_items' %}active{% endif %}">
+                <div class="nav-icon"><i class="fas fa-clipboard-list"></i></div>
+                <span>My Reports</span>
+            </a>
+
+            <a href="{{ url_for('notifications') }}"
+                class="nav-item {% if request.endpoint == 'notifications' %}active{% endif %}">
+                <div class="nav-icon">
+                    <i class="fas fa-bell"></i>
+                    {% if unread_alert_count > 0 %}
+                    <span class="nav-badge">{{ unread_alert_count }}</span>
+                    {% endif %}
                 </div>
-                
-                {% block content %}{% endblock %}
+                <span>Notifications</span>
+            </a>
+
+            <a href="{{ url_for('messaging.inbox') }}"
+                class="nav-item {% if request.endpoint and 'messaging' in request.endpoint %}active{% endif %}">
+                <div class="nav-icon"><i class="fas fa-envelope"></i></div>
+                <span>Messages</span>
+            </a>
+            {% endif %}
+
+            <!-- Admin Section (Dynamic) -->
+            {% if current_user.user_role == 'admin' %}
+            <div class="nav-label" style="color: #6ee7b7;">Admin Controls</div>
+            <a href="{{ url_for('admin.admin_dashboard') }}"
+                class="nav-item {% if 'admin' in request.endpoint and 'messages' not in request.endpoint %}active{% endif %}">
+                <div class="nav-icon"><i class="fas fa-tachometer-alt"></i></div>
+                <span>Admin Panel</span>
+            </a>
+            <a href="{{ url_for('admin.manage_messages') }}"
+                class="nav-item {% if 'admin.manage_messages' in request.endpoint %}active{% endif %}">
+                <div class="nav-icon"><i class="fas fa-comments"></i></div>
+                <span>Messages Monitor</span>
+            </a>
+            {% endif %}
+            </nav>
+
+            <!-- Footer -->
+            <div class="sidebar-footer">
+                <a href="{{ url_for('auth.logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sign Out</span>
+                </a>
             </div>
         </div>
+
+        <!-- Main Content -->
+        <div class="dashboard-main" id="dashboardMain">
+            <!-- Flash Messages -->
+            <div class="alert-container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div
+                    class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
 
     {% else %}
-        <!-- Landing Page (Non-Auth) -->
-        <div class="landing-page">
-            <div class="container">
-                <h1 class="hero-title">Campus Lost & Found</h1>
-                <p class="lead mb-5">Connect with fellow students and staff to reunite lost items with their owners.</p>
-                <div>
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-white text-decoration-none">Sign In</a>
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline text-decoration-none">Create Account</a>
-                </div>
+    <!-- Landing Page (Non-Auth) -->
+    <div class="landing-page">
+        <div class="container">
+            <h1 class="hero-title">Campus Lost & Found</h1>
+            <p class="lead mb-5">Connect with fellow students and staff to reunite lost items with their owners.</p>
+            <div>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-white text-decoration-none">Sign In</a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline text-decoration-none">Create Account</a>
             </div>
         </div>
+    </div>
     {% endif %}
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Mobile Menu Logic
             const toggleBtn = document.getElementById('mobileMenuToggle');
             const sidebar = document.getElementById('dashboardSidebar');
             const main = document.getElementById('dashboardMain');
 
             if (toggleBtn) {
-                toggleBtn.addEventListener('click', function(e) {
+                toggleBtn.addEventListener('click', function (e) {
                     e.stopPropagation();
                     sidebar.classList.toggle('mobile-open');
                 });
 
                 // Close sidebar when clicking outside on mobile
-                document.addEventListener('click', function(e) {
-                    if (window.innerWidth <= 768 && 
-                        sidebar.classList.contains('mobile-open') && 
-                        !sidebar.contains(e.target) && 
+                document.addEventListener('click', function (e) {
+                    if (window.innerWidth <= 768 &&
+                        sidebar.classList.contains('mobile-open') &&
+                        !sidebar.contains(e.target) &&
                         e.target !== toggleBtn) {
                         sidebar.classList.remove('mobile-open');
                     }
@@ -401,4 +511,5 @@
         });
     </script>
 </body>
+
 </html>

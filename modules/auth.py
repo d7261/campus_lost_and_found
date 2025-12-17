@@ -66,6 +66,9 @@ def login():
             login_user(user, remember=remember)
             flash(f'Welcome back, {user.user_username}!', 'success')
             
+            if user.user_role == 'admin':
+                return redirect(url_for('admin.admin_dashboard'))
+            
             next_page = request.args.get('next')
             return redirect(next_page or url_for('index'))
         else:

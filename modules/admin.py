@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, User, Item, Notification, Match
+from models import db, User, Item, Notification, Match, Message
 from datetime import datetime, timedelta
 import os
 from fpdf import FPDF
@@ -86,6 +86,31 @@ def manage_matches():
     # FIXED: Use match_created_at
     matches = Match.query.order_by(Match.match_created_at.desc()).all()
     return render_template('admin/matches.html', matches=matches)
+
+@admin_bp.route('/admin/messages')
+@login_required
+@admin_required
+def manage_messages():
+    """Manage Messages"""
+    messages = Message.query.order_by(Message.message_created_at.desc()).limit(100).all()
+    return render_template('admin/messages.html', messages=messages)
+
+@admin_bp.route('/admin/message/<int:message_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_message(message_id):
+    """Delete a message"""
+    message = Message.query.get_or_404(message_id)
+    
+    # Also delete associated notification if possible? 
+    # Usually cascade handles this, or we can leave it. 
+    # For now just delete the message.
+    
+    db.session.delete(message)
+    db.session.commit()
+    
+    flash('Message deleted successfully.', 'success')
+    return redirect(url_for('admin.manage_messages'))
 
 @admin_bp.route('/admin/user/<int:user_id>/toggle')
 @login_required
