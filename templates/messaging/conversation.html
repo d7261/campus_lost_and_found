@@ -40,6 +40,23 @@
                 class="message-wrapper {% if msg.message_sender_id == current_user.user_id %}sent{% else %}received{% endif %}">
                 <div class="message-bubble">
                     {{ msg.message_body }}
+
+                    {% if msg.item and msg.item.owner_id == current_user.user_id and msg.message_sender_id !=
+                    current_user.user_id and msg.item.item_status == 'pending' %}
+                    <div class="message-action mt-2 pt-2 border-top">
+                        <small class="d-block text-muted mb-2">
+                            <i class="fas fa-info-circle"></i>
+                            User claims this {{ msg.item.item_type }} item: <strong>{{ msg.item.item_title }}</strong>
+                        </small>
+                        <form
+                            action="{{ url_for('reporting.accept_claim', item_id=msg.item.item_id, claimant_id=msg.message_sender_id) }}"
+                            method="POST">
+                            <button type="submit" class="btn btn-sm btn-success w-100" style="border-radius: 8px;">
+                                <i class="fas fa-check me-1"></i> Accept Claim
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
                 </div>
                 <span class="message-time">
                     {{ msg.message_created_at.strftime('%H:%M') }}

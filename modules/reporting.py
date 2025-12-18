@@ -136,18 +136,28 @@ def report_item():
                     image_processed = True
                     
                     # Process with AI if enabled
+                    print(f"🔍 AI_ENABLED in config: {current_app.config.get('AI_ENABLED', False)}")
+                    print(f"🔍 AI_AVAILABLE (module loaded): {AI_AVAILABLE}")
+                    print(f"🔍 ai_enabled (both true): {ai_enabled}")
+                    
                     if ai_enabled:
                         try:
+                            print(f"🖼️ Starting AI processing for item {new_item.item_id}")
                             # 🛑 IMPORTANT: Open the file we just saved to disk
                             # We use 'rb' (read binary)
                             with open(filepath, 'rb') as f_stream:
                                 # We pass the item_id and the file stream
                                 image_matches = image_engine.process_new_item(new_item.item_id, f_stream)
                                 print(f"✅ AI processed image. Found {len(image_matches)} visual matches")
+                                if len(image_matches) > 0:
+                                    for match in image_matches:
+                                        print(f"   - Match: Item #{match['item'].item_id}, Similarity: {match['similarity']:.2%}")
                         except Exception as ai_error:
                             print(f"⚠️ AI processing error: {ai_error}")
                             import traceback
                             traceback.print_exc()
+                    else:
+                        print(f"⚠️ AI processing skipped (ai_enabled={ai_enabled})")
                     
                 except Exception as e:
                     print(f"❌ Image save error: {e}")
@@ -176,30 +186,53 @@ def report_item():
                     if matched_item.owner_id == current_user.user_id:
                         continue
                     
-                    # Determine notification details
+                    # Determine notification details - SEND TO BOTH PARTIES
                     if new_item.item_type == 'lost' and matched_item.item_type == 'found':
-                        notification_user_id = current_user.user_id
-                        message = f"📸 Visual match found! We found an item that looks like your lost '{new_item.item_title}'. Similarity: {similarity:.1%}"
-                        linked_item_id = matched_item.item_id
+                        # Notify the person who lost the item (current user)
+                        notification_to_loser = Notification(
+                            user_id=current_user.user_id,
+                            item_id=matched_item.item_id,
+                            notification_message=f"📸 Visual match found! We found an item that looks like your lost '{new_item.item_title}'. Similarity: {similarity:.1%}",
+                            notification_type='visual_match',
+                            notification_is_seen=False
+                        )
+                        db.session.add(notification_to_loser)
+                        
+                        # Notify the finder (owner of found item)
+                        notification_to_finder = Notification(
+                            user_id=matched_item.owner_id,
+                            item_id=new_item.item_id,
+                            notification_message=f"📸 Visual match found! Someone reported a lost item that looks like your found '{matched_item.item_title}'. Similarity: {similarity:.1%}",
+                            notification_type='visual_match',
+                            notification_is_seen=False
+                        )
+                        db.session.add(notification_to_finder)
+                        image_notifications += 2
                     
                     elif new_item.item_type == 'found' and matched_item.item_type == 'lost':
-                        notification_user_id = matched_item.owner_id
-                        message = f"📸 Visual match found! Someone found an item that looks like your lost '{matched_item.item_title}'. Similarity: {similarity:.1%}"
-                        linked_item_id = new_item.item_id
+                        # Notify the person who lost the item (owner of matched item)
+                        notification_to_loser = Notification(
+                            user_id=matched_item.owner_id,
+                            item_id=new_item.item_id,
+                            notification_message=f"📸 Visual match found! Someone found an item that looks like your lost '{matched_item.item_title}'. Similarity: {similarity:.1%}",
+                            notification_type='visual_match',
+                            notification_is_seen=False
+                        )
+                        db.session.add(notification_to_loser)
+                        
+                        # Notify the finder (current user)
+                        notification_to_finder = Notification(
+                            user_id=current_user.user_id,
+                            item_id=matched_item.item_id,
+                            notification_message=f"📸 Visual match found! Your found item '{new_item.item_title}' matches a lost report. Similarity: {similarity:.1%}",
+                            notification_type='visual_match',
+                            notification_is_seen=False
+                        )
+                        db.session.add(notification_to_finder)
+                        image_notifications += 2
                         
                     else:
                         continue
-                    
-                    notification = Notification(
-                        user_id=notification_user_id,
-                        item_id=linked_item_id,
-                        notification_message=message,
-                        notification_type='visual_match',
-                        notification_is_seen=False
-                    )
-                    
-                    db.session.add(notification)
-                    image_notifications += 1
                 
                 if image_notifications > 0:
                     db.session.commit()
@@ -349,6 +382,122 @@ def edit_item(item_id):
             flash(f'Error updating item: {str(e)}', 'error')
     
     return render_template('reporting/edit_item.html', item=item)
+
+    return render_template('reporting/edit_item.html', item=item)
+
+@reporting_bp.route('/item/<int:item_id>/claim', methods=['POST'])
+@login_required
+def claim_item(item_id):
+    """
+    Handle a user claiming a found item.
+    Instead of changing status directly, it sends a message to the owner.
+    """
+    try:
+        item = Item.query.get_or_404(item_id)
+        
+        # Validation
+        if item.item_type != 'found':
+            flash('Only found items can be claimed.', 'error')
+            return redirect(url_for('view_item', item_id=item_id))
+            
+        if item.owner_id == current_user.user_id:
+            flash('You cannot claim your own item.', 'warning')
+            return redirect(url_for('view_item', item_id=item_id))
+            
+        if item.item_status != 'pending':
+            flash('This item is no longer available.', 'error')
+            return redirect(url_for('view_item', item_id=item_id))
+            
+        # Create the claim message
+        # We import Message locally to avoid circular imports if any
+        from models import Message
+        
+        claim_msg = Message(
+            message_sender_id=current_user.user_id,
+            message_recipient_id=item.owner_id,
+            message_body=f"👋 I believe this item '{item.item_title}' is mine. I would like to claim it.",
+            message_item_id=item.item_id, # Link message to item for "Smart" actions
+            message_is_read=False
+        )
+        
+        # Create notification for the owner
+        notification = Notification(
+            user_id=item.owner_id,
+            item_id=item.item_id,
+            notification_sender_id=current_user.user_id,
+            notification_message=f"{current_user.user_username} has sent a claim request for '{item.item_title}'",
+            notification_type='message', # We treat it as a message notification
+            notification_is_seen=False
+        )
+        
+        db.session.add(claim_msg)
+        db.session.add(notification)
+        db.session.commit()
+        
+        flash('Claim request sent! The finder has been notified.', 'success')
+        # Redirect to conversation with finder so they can follow up
+        return redirect(url_for('messaging.conversation', user_id=item.owner_id))
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error in claim_item: {e}")
+        flash('An error occurred while sending your claim request.', 'error')
+        return redirect(url_for('view_item', item_id=item_id))
+
+@reporting_bp.route('/item/<int:item_id>/accept_claim/<int:claimant_id>', methods=['POST'])
+@login_required
+def accept_claim(item_id, claimant_id):
+    """
+    Owner accepts a claim request.
+    Sets status to 'claimed' and notifies the claimant.
+    """
+    try:
+        item = Item.query.get_or_404(item_id)
+        
+        # Security check: Only owner can accept claims
+        if item.owner_id != current_user.user_id:
+            flash('Unauthorized action.', 'error')
+            return redirect(url_for('dashboard'))
+            
+        if item.item_status != 'pending':
+            flash('Item is already processed.', 'warning')
+            return redirect(url_for('reporting.my_items'))
+            
+        # Update Status
+        item.item_status = 'claimed'
+        
+        # Notify Claimant
+        notification = Notification(
+            user_id=claimant_id,
+            item_id=item.item_id,
+            notification_sender_id=current_user.user_id,
+            notification_message=f"Good news! Your claim for '{item.item_title}' was accepted by the finder.",
+            notification_type='message', 
+            notification_is_seen=False
+        )
+        
+        # Optional: Send confirmation message
+        from models import Message
+        confirm_msg = Message(
+            message_sender_id=current_user.user_id,
+            message_recipient_id=claimant_id,
+            message_body=f"✅ I've accepted your claim for '{item.item_title}'. Let's coordinate the return.",
+            message_item_id=item.item_id,
+            message_is_read=False
+        )
+        
+        db.session.add(notification)
+        db.session.add(confirm_msg)
+        db.session.commit()
+        
+        flash(f'Claim accepted! Item marked as "In Progress".', 'success')
+        return redirect(url_for('messaging.conversation', user_id=claimant_id))
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error in accept_claim: {e}")
+        flash('An error occurred.', 'error')
+        return redirect(url_for('reporting.my_items'))
 
 @reporting_bp.route('/my-items/download-pdf')
 @login_required

@@ -43,6 +43,33 @@ def load_user(user_id):
     return db.session.get(User, int(user_id))
 
 # ==========================
+# HELPERS
+# ==========================
+
+@app.context_processor
+def utility_processor():
+    def get_status_badge(item):
+        """Returns label, class, and icon based on item state"""
+        if item.item_status == 'claimed':
+            return {'label': 'In Progress', 'class': 'info', 'icon': 'spinner', 'bg': '#e0f2fe', 'color': '#0284c7'}
+        
+        if item.item_type == 'lost':
+            if item.item_status == 'pending':
+                return {'label': 'Active Search', 'class': 'warning', 'icon': 'search', 'bg': '#fff7ed', 'color': '#c2410c'}
+            elif item.item_status == 'resolved':
+                return {'label': 'Recovered', 'class': 'success', 'icon': 'check-circle', 'bg': '#f0fdf4', 'color': '#15803d'}
+        else: # found
+            if item.item_status == 'pending':
+                return {'label': 'Available', 'class': 'primary', 'icon': 'box-open', 'bg': '#ecfdf5', 'color': '#047857'}
+            elif item.item_status == 'resolved':
+                return {'label': 'Returned', 'class': 'secondary', 'icon': 'hand-holding-heart', 'bg': '#f1f5f9', 'color': '#475569'}
+        
+        # Fallback
+        return {'label': item.item_status.title(), 'class': 'secondary', 'icon': 'circle', 'bg': '#f1f5f9', 'color': '#64748b'}
+
+    return dict(get_status_badge=get_status_badge)
+
+# ==========================
 # ROUTES
 # ==========================
 

@@ -10,11 +10,11 @@
                 {{ item.item_title }}
             </h1>
             <div class="item-badges">
-                <span class="type-badge type-{{ item.item_type }}">
-                    {{ item.item_type|title }}
-                </span>
-                <span class="status-badge status-{{ item.item_status }}">
-                    {{ item.item_status|title }}
+                {% set badge = get_status_badge(item) %}
+                <span class="status-badge"
+                    style="background-color: {{ badge.bg }}; color: {{ badge.color }}; padding: 0.5em 1em; border-radius: 50px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-{{ badge.icon }}"></i>
+                    {{ badge.label }}
                 </span>
             </div>
         </div>
@@ -122,23 +122,26 @@
                     <!-- Only show Claim button if it's a found item and user didn't report it -->
                     {% if item.item_type == 'found' and item.owner_id != current_user.user_id and item.item_status ==
                     'pending' %}
-                    <form method="POST" action="{{ url_for('claim_item', item_id=item.item_id) }}" class="claim-form">
+                    <form method="POST" action="{{ url_for('reporting.claim_item', item_id=item.item_id) }}"
+                        class="claim-form">
                         <button type="submit" class="action-btn claim-btn"
-                            onclick="return confirm('Are you sure this is your item? This will notify the finder and help coordinate the return.')">
-                            <i class="fas fa-check me-2"></i>
-                            Claim This Item
+                            onclick="return confirm('Send a claim request to the finder? They will be notified.')">
+                            <i class="fas fa-paper-plane me-2"></i>
+                            Send Claim Request
                         </button>
                     </form>
                     {% endif %}
 
-                    <!-- Show Resolve button only to owner -->
-                    {% if item.owner_id == current_user.user_id and item.item_status == 'pending' %}
+
+
+                    <!-- Show Resolve button only to owner for pending or claimed items -->
+                    {% if item.owner_id == current_user.user_id and item.item_status in ['pending', 'claimed'] %}
                     <form method="POST" action="{{ url_for('resolve_item', item_id=item.item_id) }}"
                         class="resolve-form">
                         <button type="submit" class="action-btn resolve-btn"
-                            onclick="return confirm('Mark this item as resolved? This will remove it from active searches.')">
+                            onclick="return confirm('{% if item.item_type == 'lost' %}Mark this item as recovered? This will remove it from active searches.{% else %}Mark this item as returned? This confirms you gave it to its owner.{% endif %}')">
                             <i class="fas fa-check-circle me-2"></i>
-                            Mark as Resolved
+                            {% if item.item_type == 'lost' %}Mark as Recovered{% else %}Mark as Returned{% endif %}
                         </button>
                     </form>
                     {% endif %}

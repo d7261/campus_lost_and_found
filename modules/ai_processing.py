@@ -91,7 +91,7 @@ class ImageRecognitionEngine:
             db.session.rollback()
             return False
     
-    def find_similar_items(self, query_features, threshold=0.75, max_results=5):
+    def find_similar_items(self, query_features, threshold=0.60, max_results=5, exclude_item_id=None):
         """Find similar items using Cosine Similarity"""
         try:
             # Get all OTHER embeddings (optimize in production)
@@ -105,6 +105,10 @@ class ImageRecognitionEngine:
             for embedding in all_embeddings:
                 # Skip if data is corrupted
                 if not embedding.image_embedding_data: continue
+                
+                # Skip the current item itself
+                if exclude_item_id and embedding.item_id == exclude_item_id:
+                    continue
                 
                 stored_features = np.frombuffer(embedding.image_embedding_data, dtype=np.float32)
                 
@@ -147,8 +151,8 @@ class ImageRecognitionEngine:
             if not saved:
                 print("⚠️ Failed to save embedding.")
             
-            # 3. Find similar items using the same features
-            matches = self.find_similar_items(features)
+            # 3. Find similar items using the same features (exclude current item)
+            matches = self.find_similar_items(features, exclude_item_id=item_id)
             
             print(f"✅ AI Complete. Saved: {saved}, Matches found: {len(matches)}")
             return matches

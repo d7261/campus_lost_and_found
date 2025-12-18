@@ -24,7 +24,7 @@
             <div class="stat-info">
                 <!-- Fixed: Used 'notification_is_seen' -->
                 {% set unread_count = notifications|selectattr('notification_is_seen', 'equalto', false)|list|length %}
-                <h3>{{ unread_count }}</h3>
+                <h3 id="unread-count">{{ unread_count }}</h3>
                 <span>Unread</span>
             </div>
         </div>
@@ -662,7 +662,7 @@
                             actionsDiv.innerHTML = '<span class="read-badge fade-in-badge">Read</span>';
 
                             // Update unread count in header if it exists
-                            const unreadCountEl = document.querySelector('.stat-card .stat-info h3');
+                            const unreadCountEl = document.getElementById('unread-count');
                             if (unreadCountEl) {
                                 const currentCount = parseInt(unreadCountEl.innerText);
                                 if (currentCount > 0) {
