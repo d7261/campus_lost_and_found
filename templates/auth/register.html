@@ -1,720 +1,312 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Campus Lost & Found</title>
+    <title>Create Account - CampusFindAI</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-light: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #f1f5f9;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1rem;
+            padding: 2rem;
         }
-        
-        .register-container {
+
+        .auth-card {
             width: 100%;
-            max-width: 1200px;
-            min-height: 700px;
-            background: white;
-            border-radius: 30px;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            max-width: 700px;
+            background: #ffffff;
+            border-radius: 32px;
+            padding: 3.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
         }
-        
-        /* Left Side - Brand & Info */
-        .register-left {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: white;
-            padding: 3rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .brand-section {
-            margin-bottom: 3rem;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .logo-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            color: white;
-        }
-        
-        .logo-text {
-            font-size: 1.8rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .welcome-text h1 {
-            font-size: 2.8rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            line-height: 1.2;
-        }
-        
-        .welcome-text p {
-            font-size: 1.1rem;
-            color: #cbd5e1;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-        
-        .features {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-        
-        .feature {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-        }
-        
-        .feature-icon {
-            width: 50px;
-            height: 50px;
-            background: rgba(99, 102, 241, 0.2);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #6366f1;
-            font-size: 1.2rem;
-            flex-shrink: 0;
-        }
-        
-        .feature-content h4 {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            color: white;
-        }
-        
-        .feature-content p {
-            color: #94a3b8;
-            font-size: 0.9rem;
-            margin-bottom: 0;
-        }
-        
-        .stats {
-            display: flex;
-            gap: 2rem;
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid #334155;
-        }
-        
-        .stat-item {
-            text-align: center;
-        }
-        
-        .stat-number {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 0.25rem;
-            display: block;
-        }
-        
-        .stat-label {
-            color: #94a3b8;
-            font-size: 0.9rem;
-        }
-        
-        /* Right Side - Registration Form */
-        .register-right {
-            padding: 3rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        
-        .form-header {
+
+        .brand-header {
             text-align: center;
             margin-bottom: 2.5rem;
         }
-        
-        .form-header h2 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: #1e293b;
+
+        .brand-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
             margin-bottom: 0.5rem;
         }
-        
-        .form-header p {
-            color: #64748b;
-            font-size: 1.1rem;
-        }
-        
-        .register-form {
-            max-width: 400px;
-            margin: 0 auto;
-            width: 100%;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-        
-        .form-label {
-            display: block;
-            font-weight: 600;
-            color: #374151;
+
+        .brand-header h2 {
+            font-weight: 800;
             margin-bottom: 0.5rem;
+            color: #0f172a;
+        }
+
+        .brand-header p {
+            color: var(--text-muted);
             font-size: 0.95rem;
         }
-        
-        .input-with-icon {
-            position: relative;
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.6rem;
+            color: #475569;
         }
-        
-        .input-icon {
+
+        .input-group-custom {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group-custom i {
             position: absolute;
-            left: 1rem;
+            left: 1.25rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #6b7280;
-            z-index: 2;
+            color: #94a3b8;
+            z-index: 5;
         }
-        
+
         .form-control {
-            width: 100%;
-            padding: 0.875rem 1rem 0.875rem 3rem;
-            border: 2px solid #e5e7eb;
+            padding: 0.8rem 1rem 0.8rem 3rem;
             border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: white;
+            border: 2px solid var(--border-color);
+            font-weight: 500;
+            transition: all 0.3s;
         }
-        
+
         .form-control:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
-        
+
         .password-toggle {
             position: absolute;
-            right: 1rem;
+            right: 1.25rem;
             top: 50%;
             transform: translateY(-50%);
+            color: #94a3b8;
+            cursor: pointer;
+            z-index: 5;
             background: none;
             border: none;
-            color: #6b7280;
-            cursor: pointer;
-            z-index: 2;
         }
-        
-        .password-toggle:hover {
-            color: #374151;
-        }
-        
-        .role-select {
+
+        /* Role Selector */
+        .role-selector {
             display: flex;
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
-        
-        .role-option {
+
+        .role-box {
             flex: 1;
-            text-align: center;
             padding: 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            background: white;
+            text-align: center;
+            transition: all 0.3s;
         }
-        
-        .role-option:hover {
-            border-color: #6366f1;
-            background: #f8fafc;
-        }
-        
-        .role-option.selected {
-            border-color: #6366f1;
-            background: #f0f9ff;
-        }
-        
-        .role-option i {
-            font-size: 1.5rem;
-            color: #6366f1;
+
+        .role-box i {
+            font-size: 1.25rem;
             margin-bottom: 0.5rem;
+            color: #94a3b8;
             display: block;
         }
-        
-        .role-option span {
-            font-weight: 600;
-            color: #374151;
-            display: block;
-        }
-        
-        .hidden-radio {
-            display: none;
-        }
-        
-        .terms {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-            margin-bottom: 2rem;
+
+        .role-box span {
+            font-weight: 700;
             font-size: 0.9rem;
-            color: #6b7280;
+            color: #475569;
         }
-        
-        .terms a {
-            color: #6366f1;
-            text-decoration: none;
+
+        .role-box.active {
+            border-color: var(--primary-color);
+            background: #eef2ff;
         }
-        
-        .terms a:hover {
-            text-decoration: underline;
+
+        .role-box.active i {
+            color: var(--primary-color);
         }
-        
-        .submit-btn {
+
+        .role-box.active span {
+            color: var(--primary-color);
+        }
+
+        .btn-submit {
             width: 100%;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background: var(--primary-color);
             color: white;
+            padding: 1rem;
+            border-radius: 14px;
+            font-weight: 700;
             border: none;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
+            margin-top: 1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
         }
-        
-        .submit-btn:hover {
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+
+        .btn-submit:hover {
+            background: var(--primary-hover);
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
         }
-        
-        .login-link {
+
+        .auth-footer {
             text-align: center;
             margin-top: 2rem;
-            color: #64748b;
             font-size: 0.95rem;
+            color: var(--text-muted);
         }
-        
-        .login-link a {
-            color: #6366f1;
-            font-weight: 600;
+
+        .auth-footer a {
+            color: var(--primary-color);
             text-decoration: none;
+            font-weight: 700;
         }
-        
-        .login-link a:hover {
+
+        .auth-footer a:hover {
             text-decoration: underline;
         }
-        
-        /* Password Strength Indicator */
-        .password-strength {
-            margin-top: 0.5rem;
-            display: none;
+
+        /* Flash Messages */
+        .alert {
+            border-radius: 16px;
+            border: none;
+            padding: 1rem 1.25rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
         }
-        
-        .strength-bar {
-            height: 4px;
-            background: #e5e7eb;
-            border-radius: 2px;
-            overflow: hidden;
-            margin-bottom: 0.25rem;
-        }
-        
-        .strength-fill {
-            height: 100%;
-            width: 0%;
-            background: #ef4444;
-            border-radius: 2px;
-            transition: all 0.3s ease;
-        }
-        
-        .strength-text {
-            font-size: 0.8rem;
-            color: #6b7280;
-        }
-        
-        /* Responsive */
-        @media (max-width: 992px) {
-            .register-container {
-                grid-template-columns: 1fr;
-                max-width: 500px;
-            }
-            
-            .register-left {
-                padding: 2rem;
-                display: none; /* Hide left side on mobile */
-            }
-            
-            .register-right {
-                padding: 2rem;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            body {
-                padding: 0.5rem;
-            }
-            
-            .register-container {
-                border-radius: 20px;
-            }
-            
-            .register-right {
-                padding: 1.5rem;
-            }
-            
-            .form-header h2 {
-                font-size: 1.8rem;
-            }
-            
-            .role-select {
-                flex-direction: column;
-            }
-        }
-        
-        /* Animation */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .form-group {
-            animation: fadeIn 0.5s ease forwards;
-        }
-        
-        .form-group:nth-child(1) { animation-delay: 0.1s; }
-        .form-group:nth-child(2) { animation-delay: 0.2s; }
-        .form-group:nth-child(3) { animation-delay: 0.3s; }
-        .form-group:nth-child(4) { animation-delay: 0.4s; }
-        .form-group:nth-child(5) { animation-delay: 0.5s; }
     </style>
 </head>
+
 <body>
-    <div class="register-container">
-        <!-- Left Side - Brand & Info -->
-        <div class="register-left">
-            <div class="brand-section">
-                <div class="logo">
-                    <div class="logo-icon">
-                        <i class="fas fa-search-location"></i>
-                    </div>
-                    <div class="logo-text">Campus Lost & Found</div>
-                </div>
-                
-                <div class="welcome-text">
-                    <h1>Join Our Campus Community</h1>
-                    <p>Connect with fellow students and staff to reunite lost items with their owners. Together, we make campus life better.</p>
-                </div>
-            </div>
-            
-            <div class="features">
-                <div class="feature">
-                    <div class="feature-icon">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <div class="feature-content">
-                        <h4>Smart Search</h4>
-                        <p>AI-powered matching to help find your lost items faster</p>
-                    </div>
-                </div>
-                
-                <div class="feature">
-                    <div class="feature-icon">
-                        <i class="fas fa-bell"></i>
-                    </div>
-                    <div class="feature-content">
-                        <h4>Instant Notifications</h4>
-                        <p>Get notified immediately when your items are found</p>
-                    </div>
-                </div>
-                
-                <div class="feature">
-                    <div class="feature-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <div class="feature-content">
-                        <h4>Secure & Private</h4>
-                        <p>Your information is protected with end-to-end security</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="stats">
-                <div class="stat-item">
-                    <span class="stat-number">1000+</span>
-                    <span class="stat-label">Items Reunited</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number">500+</span>
-                    <span class="stat-label">Active Users</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number">98%</span>
-                    <span class="stat-label">Satisfaction Rate</span>
-                </div>
-            </div>
+    <div class="auth-card">
+        <div class="brand-header">
+            <a href="{{ url_for('index') }}" class="brand-logo">
+                <i class="fas fa-cube"></i> CampusFindAI
+            </a>
+            <h2>Create Account</h2>
+            <p>Join the smart campus community today.</p>
         </div>
-        
-        <!-- Right Side - Registration Form -->
-        <div class="register-right">
-            <div class="form-header">
-                <h2>Create Account</h2>
-                <p>Join thousands of students helping each other</p>
+
+        <form method="POST">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <div class="input-group-custom">
+                    <i class="fas fa-user-circle"></i>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="johndoe"
+                        required>
+                </div>
             </div>
-            
-            <form method="POST" class="register-form">
-                <div class="form-group">
-                    <label for="username" class="form-label">Username</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-user input-icon"></i>
-                        <input type="text" class="form-control" id="username" name="username" 
-                               placeholder="Enter your username" required>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email Address</label>
+                <div class="input-group-custom">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="john@university.edu"
+                        required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group-custom">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="••••••••"
+                        required>
+                    <button type="button" class="password-toggle" id="togglePassword">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">I am a</label>
+                <div class="role-selector">
+                    <div class="role-box active" onclick="selectRole('student')">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Student</span>
+                        <input type="radio" name="role" value="student" id="role_student" checked
+                            style="display: none;">
+                    </div>
+                    <div class="role-box" onclick="selectRole('staff')">
+                        <i class="fas fa-briefcase"></i>
+                        <span>Staff</span>
+                        <input type="radio" name="role" value="staff" id="role_staff" style="display: none;">
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="email" class="form-label">Email Address</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-envelope input-icon"></i>
-                        <input type="email" class="form-control" id="email" name="email" 
-                               placeholder="Enter your email" required>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock input-icon"></i>
-                        <input type="password" class="form-control" id="password" name="password" 
-                               placeholder="Create a strong password" required>
-                        <button type="button" class="password-toggle" id="togglePassword">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                    <div class="password-strength" id="passwordStrength">
-                        <div class="strength-bar">
-                            <div class="strength-fill" id="strengthFill"></div>
-                        </div>
-                        <div class="strength-text" id="strengthText">Password strength</div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="confirm_password" class="form-label">Confirm Password</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock input-icon"></i>
-                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
-                               placeholder="Confirm your password" required>
-                        <button type="button" class="password-toggle" id="toggleConfirmPassword">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                    <div class="password-match" id="passwordMatch" style="display: none;">
-                        <small class="text-success">
-                            <i class="fas fa-check-circle"></i> Passwords match
-                        </small>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">I am a</label>
-                    <div class="role-select">
-                        <label class="role-option" for="role_student">
-                            <input type="radio" class="hidden-radio" id="role_student" name="role" value="student" checked>
-                            <i class="fas fa-graduation-cap"></i>
-                            <span>Student</span>
-                        </label>
-                        
-                        <label class="role-option" for="role_staff">
-                            <input type="radio" class="hidden-radio" id="role_staff" name="role" value="staff">
-                            <i class="fas fa-briefcase"></i>
-                            <span>Staff</span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="terms">
-                    <input type="checkbox" id="terms" name="terms" required>
-                    <label for="terms">
-                        I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+            </div>
+
+            <div class="mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                    <label class="form-check-label small fw-500" for="terms">
+                        I agree to the <a href="#" class="text-primary text-decoration-none fw-600">Terms &
+                            Conditions</a>
                     </label>
                 </div>
-                
-                <button type="submit" class="submit-btn">
-                    <i class="fas fa-user-plus"></i>
-                    Create Account
-                </button>
-            </form>
-            
-            <div class="login-link">
-                Already have an account? <a href="{{ url_for('auth.login') }}">Sign in here</a>
             </div>
+
+            <button type="submit" class="btn-submit">Create Account</button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a href="{{ url_for('auth.login') }}">Sign In</a>
         </div>
     </div>
 
     <script>
-        // Password toggle functionality
         const togglePassword = document.getElementById('togglePassword');
         const passwordInput = document.getElementById('password');
-        const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-        const confirmPasswordInput = document.getElementById('confirm_password');
-        
-        togglePassword.addEventListener('click', function() {
+
+        togglePassword.addEventListener('click', function () {
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
             this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
         });
-        
-        toggleConfirmPassword.addEventListener('click', function() {
-            const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            confirmPasswordInput.setAttribute('type', type);
-            this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-        });
-        
-        // Role selection styling
-        const roleOptions = document.querySelectorAll('.role-option');
-        roleOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                roleOptions.forEach(opt => opt.classList.remove('selected'));
-                this.classList.add('selected');
-                this.querySelector('input[type="radio"]').checked = true;
-            });
-        });
-        
-        // Password strength checker
-        passwordInput.addEventListener('input', function() {
-            const password = this.value;
-            const strengthBar = document.getElementById('passwordStrength');
-            const strengthFill = document.getElementById('strengthFill');
-            const strengthText = document.getElementById('strengthText');
-            
-            if (password.length === 0) {
-                strengthBar.style.display = 'none';
-                return;
-            }
-            
-            strengthBar.style.display = 'block';
-            
-            // Calculate strength
-            let strength = 0;
-            if (password.length >= 8) strength += 25;
-            if (/[A-Z]/.test(password)) strength += 25;
-            if (/[0-9]/.test(password)) strength += 25;
-            if (/[^A-Za-z0-9]/.test(password)) strength += 25;
-            
-            strengthFill.style.width = strength + '%';
-            
-            // Update text and color
-            if (strength < 50) {
-                strengthFill.style.background = '#ef4444';
-                strengthText.textContent = 'Weak password';
-                strengthText.className = 'strength-text text-danger';
-            } else if (strength < 75) {
-                strengthFill.style.background = '#f59e0b';
-                strengthText.textContent = 'Medium strength';
-                strengthText.className = 'strength-text text-warning';
-            } else {
-                strengthFill.style.background = '#10b981';
-                strengthText.textContent = 'Strong password';
-                strengthText.className = 'strength-text text-success';
-            }
-            
-            // Check password match
-            checkPasswordMatch();
-        });
-        
-        confirmPasswordInput.addEventListener('input', checkPasswordMatch);
-        
-        function checkPasswordMatch() {
-            const password = passwordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
-            const matchIndicator = document.getElementById('passwordMatch');
-            
-            if (confirmPassword.length === 0) {
-                matchIndicator.style.display = 'none';
-                return;
-            }
-            
-            if (password === confirmPassword) {
-                matchIndicator.style.display = 'block';
-                matchIndicator.innerHTML = '<small class="text-success"><i class="fas fa-check-circle"></i> Passwords match</small>';
-            } else {
-                matchIndicator.style.display = 'block';
-                matchIndicator.innerHTML = '<small class="text-danger"><i class="fas fa-times-circle"></i> Passwords do not match</small>';
-            }
+
+        function selectRole(role) {
+            // Remove active class from all boxes
+            document.querySelectorAll('.role-box').forEach(box => box.classList.remove('active'));
+
+            // Add active class to clicked box
+            const selectedBox = event.currentTarget;
+            selectedBox.classList.add('active');
+
+            // Link radio input
+            document.getElementById('role_' + role).checked = true;
         }
-        
-        // Form validation
-        document.querySelector('.register-form').addEventListener('submit', function(e) {
-            const password = passwordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
-            const terms = document.getElementById('terms').checked;
-            
-            if (password !== confirmPassword) {
-                e.preventDefault();
-                alert('Passwords do not match!');
-                return;
-            }
-            
-            if (!terms) {
-                e.preventDefault();
-                alert('Please agree to the Terms of Service and Privacy Policy');
-                return;
-            }
-            
-            // Show loading state
-            const submitBtn = document.querySelector('.submit-btn');
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
-            submitBtn.disabled = true;
-        });
     </script>
 </body>
+
 </html>

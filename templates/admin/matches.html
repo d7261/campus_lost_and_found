@@ -17,7 +17,7 @@
 <div class="content-card mt-4">
     <div class="card-header-custom">
         <h3><i class="fas fa-robot me-2"></i>System Matches ({{ matches|length }})</h3>
-        
+
         <div class="search-wrapper">
             <input type="text" placeholder="Search matches..." class="admin-search">
             <i class="fas fa-search"></i>
@@ -27,60 +27,61 @@
     <div class="p-4">
         {% if matches %}
         <div class="matches-grid">
-            {% for match in matches %}
+            {% for notification in matches %}
             <div class="match-card-admin">
-                <!-- Header: Score & Status -->
+                <!-- Header: Type & Status -->
                 <div class="match-header">
                     <div class="score-badge">
-                        <!-- FIX: Used match.match_similarity_score -->
-                        <span class="score-val">{{ (match.match_similarity_score * 100)|round(0) }}%</span>
-                        <span class="score-label">Similarity</span>
+                        <span class="score-val">
+                            {% if notification.notification_type == 'visual_match' %}
+                            <i class="fas fa-robot"></i> AI
+                            {% else %}
+                            <i class="fas fa-align-left"></i> Text
+                            {% endif %}
+                        </span>
+                        <span class="score-label">{{ notification.notification_type.replace('_', ' ')|title }}</span>
                     </div>
-                    <!-- FIX: Used match.match_status -->
-                    <span class="status-badge status-{{ match.match_status }}">
-                        {{ match.match_status|title }}
+                    <span class="status-badge status-pending">
+                        {% if notification.notification_is_seen %}Seen{% else %}New{% endif %}
                     </span>
                 </div>
 
-                <!-- Body: Comparison -->
-                <div class="match-body">
-                    <div class="match-side lost">
-                        <span class="side-label"><i class="fas fa-search me-1"></i> Lost Item</span>
-                        <!-- FIX: Used item_title, item_category, user_username -->
-                        <h5 class="item-title">{{ match.lost_item.item_title }}</h5>
-                        <p class="item-meta">{{ match.lost_item.item_category }}</p>
-                        <div class="user-chip">
-                            <div class="avatar">{{ match.lost_item.owner.user_username[0]|upper }}</div>
-                            <span>{{ match.lost_item.owner.user_username }}</span>
+                <!-- Body: Notification Details -->
+                <div class="match-body-simple">
+                    <div class="notification-content">
+                        <p class="notification-message">{{ notification.notification_message }}</p>
+
+                        {% if notification.item %}
+                        <div class="item-preview">
+                            <span class="item-type-badge {{ notification.item.item_type }}">
+                                <i
+                                    class="fas fa-{% if notification.item.item_type == 'lost' %}search{% else %}hand-holding{% endif %}"></i>
+                                {{ notification.item.item_type|title }}
+                            </span>
+                            <h5 class="item-title">{{ notification.item.item_title }}</h5>
+                            <p class="item-meta">{{ notification.item.item_category }} • {{
+                                notification.item.item_location }}</p>
                         </div>
-                    </div>
+                        {% endif %}
 
-                    <div class="match-divider">
-                        <i class="fas fa-exchange-alt"></i>
-                    </div>
-
-                    <div class="match-side found">
-                        <span class="side-label"><i class="fas fa-hand-holding me-1"></i> Found Item</span>
-                        <!-- FIX: Used item_title, item_category, user_username -->
-                        <h5 class="item-title">{{ match.found_item.item_title }}</h5>
-                        <p class="item-meta">{{ match.found_item.item_category }}</p>
                         <div class="user-chip">
-                            <div class="avatar">{{ match.found_item.owner.user_username[0]|upper }}</div>
-                            <span>{{ match.found_item.owner.user_username }}</span>
+                            <div class="avatar">{{ notification.user.user_username[0]|upper }}</div>
+                            <span>Notified: {{ notification.user.user_username }}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Footer: Date & Actions -->
                 <div class="match-footer">
-                    <!-- FIX: Used match.match_created_at -->
                     <span class="match-date">
-                        <i class="fas fa-clock me-1"></i> 
-                        {{ match.match_created_at.strftime('%b %d, %Y at %H:%M') }}
+                        <i class="fas fa-clock me-1"></i>
+                        {{ notification.notification_created_at.strftime('%b %d, %Y at %H:%M') }}
                     </span>
-                    <a href="{{ url_for('admin.view_item', item_id=match.found_item.item_id) }}" class="view-link">
-                        Analyze Match <i class="fas fa-arrow-right ms-1"></i>
+                    {% if notification.item %}
+                    <a href="{{ url_for('view_item', item_id=notification.item.item_id) }}" class="view-link">
+                        View Item <i class="fas fa-arrow-right ms-1"></i>
                     </a>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
@@ -95,114 +96,321 @@
 </div>
 
 <style>
-/* Re-using Admin Theme */
-.admin-header {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white; padding: 2.5rem; border-radius: 20px;
-    display: flex; justify-content: space-between; align-items: center;
-    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15); margin-bottom: 2rem;
-}
-.header-content h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
-.header-content .lead { margin: 0; opacity: 0.9; }
+    /* Re-using Admin Theme */
+    .admin-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 2.5rem;
+        border-radius: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15);
+        margin-bottom: 2rem;
+    }
 
-.action-btn {
-    background: rgba(255, 255, 255, 0.2); color: white; padding: 0.8rem 1.5rem;
-    border-radius: 12px; text-decoration: none; font-weight: 600;
-    border: 1px solid rgba(255,255,255,0.3); transition: 0.3s;
-}
-.action-btn:hover { background: white; color: #059669; transform: translateY(-2px); }
+    .header-content h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
 
-.content-card {
-    background: white; border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden;
-}
+    .header-content .lead {
+        margin: 0;
+        opacity: 0.9;
+    }
 
-.card-header-custom {
-    padding: 1.5rem; border-bottom: 1px solid #f1f5f9;
-    display: flex; justify-content: space-between; align-items: center;
-}
-.card-header-custom h3 { margin: 0; font-size: 1.2rem; font-weight: 700; color: #334155; }
+    .action-btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: 0.3s;
+    }
 
-/* Search Bar */
-.search-wrapper { position: relative; }
-.admin-search {
-    padding: 0.6rem 1rem 0.6rem 2.5rem; border: 1px solid #e2e8f0;
-    border-radius: 8px; width: 250px; outline: none;
-}
-.search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+    .action-btn:hover {
+        background: white;
+        color: #059669;
+        transform: translateY(-2px);
+    }
 
-/* --- Match Card Grid --- */
-.matches-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 1.5rem;
-}
+    .content-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
 
-.match-card-admin {
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    overflow: hidden;
-    transition: transform 0.3s ease;
-    background: #fff;
-}
+    .card-header-custom {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-.match-card-admin:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-}
+    .card-header-custom h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #334155;
+    }
 
-/* Match Header */
-.match-header {
-    background: #f8fafc;
-    padding: 1rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #f1f5f9;
-}
+    /* Search Bar */
+    .search-wrapper {
+        position: relative;
+    }
 
-.score-badge { display: flex; flex-direction: column; line-height: 1; }
-.score-val { font-size: 1.4rem; font-weight: 800; color: #10b981; }
-.score-label { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #94a3b8; letter-spacing: 0.5px; }
+    .admin-search {
+        padding: 0.6rem 1rem 0.6rem 2.5rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        width: 250px;
+        outline: none;
+    }
 
-.status-badge { padding: 0.3em 0.8em; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
-.status-pending { background: #fff7ed; color: #f59e0b; }
-.status-confirmed { background: #ecfdf5; color: #10b981; }
-.status-rejected { background: #fef2f2; color: #ef4444; }
+    .search-wrapper i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
 
-/* Match Body */
-.match-body { padding: 1.5rem; display: flex; align-items: center; position: relative; }
+    /* --- Match Card Grid --- */
+    .matches-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
 
-.match-side { flex: 1; min-width: 0; /* Prevents overflow */ }
-.side-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 0.5rem; }
-.match-side.lost .side-label { color: #ef4444; }
-.match-side.found .side-label { color: #10b981; }
+    .match-card-admin {
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+        background: #fff;
+    }
 
-.item-title { font-size: 1rem; font-weight: 700; margin: 0 0 0.2rem; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item-meta { font-size: 0.85rem; color: #64748b; margin-bottom: 0.8rem; }
+    .match-card-admin:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
 
-.user-chip { display: flex; align-items: center; gap: 0.5rem; }
-.user-chip .avatar { width: 24px; height: 24px; background: #e2e8f0; border-radius: 50%; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #64748b; }
-.user-chip span { font-size: 0.8rem; color: #64748b; font-weight: 500; }
+    /* Match Header */
+    .match-header {
+        background: #f8fafc;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f1f5f9;
+    }
 
-/* Divider */
-.match-divider { margin: 0 1rem; color: #cbd5e1; font-size: 1.2rem; }
+    .score-badge {
+        display: flex;
+        flex-direction: column;
+        line-height: 1;
+    }
 
-/* Footer */
-.match-footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid #f1f5f9;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #fcfcfc;
-}
+    .score-val {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #10b981;
+    }
 
-.match-date { font-size: 0.8rem; color: #94a3b8; font-weight: 500; }
-.view-link { color: #3b82f6; text-decoration: none; font-size: 0.85rem; font-weight: 600; }
-.view-link:hover { text-decoration: underline; }
+    .score-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: #94a3b8;
+        letter-spacing: 0.5px;
+    }
 
-.empty-state-admin { text-align: center; padding: 3rem; color: #94a3b8; }
-.empty-state-admin i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+    .status-badge {
+        padding: 0.3em 0.8em;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-pending {
+        background: #fff7ed;
+        color: #f59e0b;
+    }
+
+    .status-confirmed {
+        background: #ecfdf5;
+        color: #10b981;
+    }
+
+    .status-rejected {
+        background: #fef2f2;
+        color: #ef4444;
+    }
+
+    /* Match Body */
+    .match-body {
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+
+    .match-body-simple {
+        padding: 1.5rem;
+    }
+
+    .notification-content {}
+
+    .notification-message {
+        font-size: 0.9rem;
+        color: #475569;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+
+    .item-preview {
+        background: #f8fafc;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .item-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25em 0.6em;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+
+    .item-type-badge.lost {
+        background: #fff7ed;
+        color: #f59e0b;
+    }
+
+    .item-type-badge.found {
+        background: #ecfdf5;
+        color: #10b981;
+    }
+
+    .match-side {
+        flex: 1;
+        min-width: 0;
+        /* Prevents overflow */
+    }
+
+    .side-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #94a3b8;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .match-side.lost .side-label {
+        color: #ef4444;
+    }
+
+    .match-side.found .side-label {
+        color: #10b981;
+    }
+
+    .item-title {
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 0 0 0.2rem;
+        color: #334155;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .item-meta {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 0.8rem;
+    }
+
+    .user-chip {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .user-chip .avatar {
+        width: 24px;
+        height: 24px;
+        background: #e2e8f0;
+        border-radius: 50%;
+        font-size: 0.7rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .user-chip span {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    /* Divider */
+    .match-divider {
+        margin: 0 1rem;
+        color: #cbd5e1;
+        font-size: 1.2rem;
+    }
+
+    /* Footer */
+    .match-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fcfcfc;
+    }
+
+    .match-date {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-weight: 500;
+    }
+
+    .view-link {
+        color: #3b82f6;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .view-link:hover {
+        text-decoration: underline;
+    }
+
+    .empty-state-admin {
+        text-align: center;
+        padding: 3rem;
+        color: #94a3b8;
+    }
+
+    .empty-state-admin i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
 </style>
 {% endblock %}

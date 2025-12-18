@@ -1,233 +1,176 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Main Content -->
-<div class="my-items-header">
-    <div class="header-content">
-        <h1><i class="fas fa-clipboard-list me-3"></i>My Reported Items</h1>
-        <p class="lead">Manage your lost and found items, track their status, and help others reunite with their
-            belongings</p>
+<!-- Page Title & Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold mb-1">My Reported Items</h1>
+        <p class="text-muted">Manage your reports and track status</p>
     </div>
-
-    <!-- CORRECTED: Single container for both buttons -->
-    <div class="header-actions">
-        <!-- Download PDF Button -->
-        <a href="{{ url_for('reporting.download_my_items_pdf') }}" class="btn-download">
-            <i class="fas fa-file-pdf me-2"></i>
-            Download Report
+    <div class="d-flex gap-3">
+        <a href="{{ url_for('reporting.download_my_items_pdf') }}" class="btn btn-outline-primary border-2 fw-bold"
+            style="border-radius: 10px;">
+            <i class="fas fa-file-pdf me-2"></i> Download PDF
         </a>
-
-        <!-- Report Item Button -->
-        <a href="{{ url_for('reporting.report_item') }}" class="report-new-btn">
-            <i class="fas fa-plus-circle me-2"></i>
-            Report New Item
+        <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary fw-bold" style="border-radius: 10px;">
+            <i class="fas fa-plus-circle me-2"></i> Report New
         </a>
     </div>
 </div>
 
 <!-- Statistics Cards -->
-<div class="stats-grid">
-    <div class="stat-card total">
-        <div class="stat-icon">
-            <i class="fas fa-list"></i>
-        </div>
-        <div class="stat-content">
-            <h3>{{ items|length }}</h3>
-            <p>Total Reports</p>
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 text-center h-100" style="border-radius: 20px;">
+            <div class="text-primary mb-2" style="font-size: 1.5rem;"><i class="fas fa-list"></i></div>
+            <h3 class="fw-bold mb-0">{{ items|length }}</h3>
+            <p class="text-muted small mb-0">Total Reports</p>
         </div>
     </div>
-
-    <div class="stat-card lost">
-        <div class="stat-icon">
-            <i class="fas fa-search"></i>
-        </div>
-        <div class="stat-content">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 text-center h-100" style="border-radius: 20px;">
+            <div class="text-warning mb-2" style="font-size: 1.5rem;"><i class="fas fa-search"></i></div>
             {% set lost_items = items|selectattr('item_type', 'equalto', 'lost')|list %}
-            <h3>{{ lost_items|length }}</h3>
-            <p>Lost Reports</p>
+            <h3 class="fw-bold mb-0">{{ lost_items|length }}</h3>
+            <p class="text-muted small mb-0">Lost Items</p>
         </div>
     </div>
-
-    <div class="stat-card found">
-        <div class="stat-icon">
-            <i class="fas fa-hand-holding-heart"></i>
-        </div>
-        <div class="stat-content">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 text-center h-100" style="border-radius: 20px;">
+            <div class="text-success mb-2" style="font-size: 1.5rem;"><i class="fas fa-hand-holding-heart"></i></div>
             {% set found_items = items|selectattr('item_type', 'equalto', 'found')|list %}
-            <h3>{{ found_items|length }}</h3>
-            <p>Found Reports</p>
+            <h3 class="fw-bold mb-0">{{ found_items|length }}</h3>
+            <p class="text-muted small mb-0">Found Items</p>
         </div>
     </div>
-
-    <div class="stat-card pending">
-        <div class="stat-icon">
-            <i class="fas fa-clock"></i>
-        </div>
-        <div class="stat-content">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 text-center h-100" style="border-radius: 20px;">
+            <div class="text-info mb-2" style="font-size: 1.5rem;"><i class="fas fa-clock"></i></div>
             {% set pending_items = items|selectattr('item_status', 'equalto', 'pending')|list %}
-            <h3>{{ pending_items|length }}</h3>
-            <p>Active</p>
+            <h3 class="fw-bold mb-0">{{ pending_items|length }}</h3>
+            <p class="text-muted small mb-0">Active / Pending</p>
         </div>
     </div>
 </div>
 
-<!-- Items Content -->
-<div class="items-container">
-    {% if items %}
-    <div class="items-header">
-        <div class="filter-tabs">
-            <button class="filter-tab active" data-filter="all">All Items ({{ items|length }})</button>
-            <button class="filter-tab" data-filter="lost">Lost ({{ lost_items|length }})</button>
-            <button class="filter-tab" data-filter="found">Found ({{ found_items|length }})</button>
-            <button class="filter-tab" data-filter="pending">Active ({{ pending_items|length }})</button>
-        </div>
-
-        <div class="sort-options">
-            <select class="sort-select" id="sortItems">
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="title">Title A-Z</option>
-            </select>
-        </div>
+<!-- Filter & Sort Bar -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div class="btn-group p-1 bg-white shadow-sm" style="border-radius: 12px;">
+        <button class="btn btn-sm filter-tab active px-3" data-filter="all" style="border-radius: 10px;">All</button>
+        <button class="btn btn-sm filter-tab px-3" data-filter="lost" style="border-radius: 10px;">Lost</button>
+        <button class="btn btn-sm filter-tab px-3" data-filter="found" style="border-radius: 10px;">Found</button>
+        <button class="btn btn-sm filter-tab px-3" data-filter="pending" style="border-radius: 10px;">Active</button>
     </div>
 
-    <div class="items-grid" id="itemsGrid">
-        {% for item in items %}
-        <div class="item-card" data-type="{{ item.item_type }}" data-status="{{ item.item_status }}"> <!-- ✅ Fixed -->
-            <!-- Card Header -->
-            <div class="card-header">
-                <div class="item-badges">
-                    {% set badge = get_status_badge(item) %}
-                    <span class="status-badge"
-                        style="background-color: {{ badge.bg }}; color: {{ badge.color }}; padding: 0.35em 0.8em; border-radius: 8px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem;">
-                        <i class="fas fa-{{ badge.icon }}"></i>
-                        {{ badge.label }}
-                    </span>
+    <div class="d-flex align-items-center gap-2">
+        <span class="text-muted small fw-bold">SORT BY:</span>
+        <select class="form-select form-select-sm border-0 shadow-sm px-3" id="sortItems"
+            style="border-radius: 10px; width: 150px;">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="title">Title A-Z</option>
+        </select>
+    </div>
+</div>
+
+<!-- Items Grid Content -->
+{% if items %}
+<div class="row g-4" id="itemsGrid">
+    {% for item in items %}
+    <div class="col-md-6 col-xl-4 item-card-wrapper" data-type="{{ item.item_type }}"
+        data-status="{{ item.item_status }}" data-date="{{ item.item_created_at.isoformat() }}"
+        data-title="{{ item.item_title|lower }}">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden"
+            style="border-radius: 20px; transition: transform 0.3s ease;">
+            <!-- Card Image -->
+            <div class="position-relative" style="height: 200px; background: #f8fafc;">
+                {% if item.item_image_path %}
+                <img src="{{ url_for('static', filename='uploads/' + item.item_image_path) }}" class="w-100 h-100"
+                    alt="{{ item.item_title }}" style="object-fit: contain;">
+                {% else %}
+                <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted opacity-50">
+                    <i class="fas fa-image fa-3x mb-2"></i>
+                    <span class="small fw-bold">No Image</span>
                 </div>
-                <div class="item-actions">
+                {% endif %}
+
+                <!-- Status Badge Overlay -->
+                {% set badge = get_status_badge(item) %}
+                <span class="badge position-absolute top-0 end-0 m-3 p-2 px-3 shadow-sm"
+                    style="background-color: {{ badge.bg }}; color: {{ badge.color }}; border-radius: 10px; font-weight: 700;">
+                    <i class="fas fa-{{ badge.icon }} me-1"></i> {{ badge.label }}
+                </span>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="fw-bold mb-0 text-truncate item-title-text" style="max-width: 80%;">{{ item.item_title }}
+                    </h5>
                     {% if item.item_status in ['pending', 'claimed'] %}
-                    <form method="POST" action="{{ url_for('resolve_item', item_id=item.item_id) }}"
-                        class="resolve-form">
-                        <button type="submit" class="resolve-btn"
-                            title="{% if item.item_type == 'lost' %}Mark as recovered{% else %}Mark as returned{% endif %}"
-                            onclick="return confirm('{% if item.item_type == 'lost' %}Mark this item as recovered?{% else %}Mark this item as returned?{% endif %}')">
-                            <i class="fas fa-check-circle"></i>
+                    <form method="POST" action="{{ url_for('resolve_item', item_id=item.item_id) }}">
+                        <button type="submit" class="btn btn-sm btn-success rounded-circle" title="Mark as Resolved"
+                            onclick="return confirm('Mark this item as resolved?')">
+                            <i class="fas fa-check"></i>
                         </button>
                     </form>
                     {% endif %}
                 </div>
-            </div>
 
-            <!-- Item Image -->
-            <div class="card-image">
-                {% if item.item_image_path %} <!-- ✅ Fixed -->
-                <div class="image-container">
-                    <img src="{{ url_for('static', filename='uploads/' + item.item_image_path) }}" class="item-image"
-                        alt="{{ item.item_title }}"
-                        onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'no-image\'><i class=\'fas fa-exclamation-triangle\'></i><span>File not found</span></div>';">
-                    {% if item.embedding %}
-                    <div class="ai-badge" title="AI Image Recognition Enabled">
-                        <i class="fas fa-robot"></i>
-                        AI
-                    </div>
-                    {% endif %}
-                </div>
-                {% else %}
-                <div class="no-image">
-                    <i class="fas fa-image"></i>
-                    <span>No image available</span>
-                </div>
-                {% endif %}
-            </div>
+                <p class="text-muted small mb-3 text-truncate">{{ item.item_description }}</p>
 
-            <!-- Card Content -->
-            <div class="card-content">
-                <h3 class="item-title">{{ item.item_title }}</h3> <!-- ✅ Fixed -->
-                <p class="item-description">{{ item.item_description }}</p> <!-- ✅ Fixed -->
-
-                <div class="item-meta">
-                    <div class="meta-item">
-                        <i class="fas fa-tag"></i>
-                        <span>{{ item.item_category }}</span> <!-- ✅ Fixed -->
+                <div class="d-flex flex-column gap-2 mb-4">
+                    <div class="d-flex align-items-center gap-2 text-muted small">
+                        <i class="fas fa-map-marker-alt text-primary opacity-50"></i>
+                        <span>{{ item.item_location }}</span>
                     </div>
-                    <div class="meta-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>{{ item.item_location }}</span> <!-- ✅ Fixed -->
-                    </div>
-                    <div class="meta-item">
-                        <i class="fas fa-calendar"></i>
-                        <span>{{ item.item_date_lost_found.strftime('%b %d, %Y') }}</span> <!-- ✅ Fixed -->
+                    <div class="d-flex align-items-center gap-2 text-muted small">
+                        <i class="fas fa-calendar-alt text-primary opacity-50"></i>
+                        <span>{{ item.item_date_lost_found.strftime('%b %d, %Y') }}</span>
                     </div>
                 </div>
 
-                <div class="item-dates">
-                    <small>Reported {{ item.item_created_at.strftime('%b %d, %Y') }}</small> <!-- ✅ Fixed -->
-                </div>
-            </div>
-
-            <!-- Card Actions -->
-            <div class="card-actions">
-                <a href="{{ url_for('view_item', item_id=item.item_id) }}" class="view-details-btn">
-                    <!-- ✅ Fixed -->
-                    <i class="fas fa-eye me-2"></i>
+                <a href="{{ url_for('view_item', item_id=item.item_id) }}" class="btn btn-light w-100 fw-bold py-2"
+                    style="border-radius: 12px; color: var(--primary-color);">
                     View Details
                 </a>
-
-                {% if item.item_type == 'found' and item.item_status == 'pending' %} <!-- ✅ Fixed -->
-                <div class="claim-info">
-                    <i class="fas fa-info-circle me-1"></i>
-                    Waiting for owner to claim
-                </div>
-                {% elif item.item_type == 'lost' and item.item_status == 'pending' %} <!-- ✅ Fixed -->
-                <div class="search-info">
-                    <i class="fas fa-search me-1"></i>
-                    Actively searching for matches
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <!-- Empty State -->
-    <div class="empty-state">
-        <div class="empty-icon">
-            <i class="fas fa-inbox"></i>
-        </div>
-        <div class="empty-content">
-            <h3>No items reported yet</h3>
-            <p>Start by reporting your first lost or found item to help others in the campus community.</p>
-            <div class="empty-actions">
-                <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>
-                    Report Your First Item
-                </a>
-                <a href="{{ url_for('search') }}" class="btn btn-outline">
-                    <i class="fas fa-search me-2"></i>
-                    Browse Items
-                </a>
             </div>
         </div>
     </div>
-    {% endif %}
+    {% endfor %}
 </div>
+{% else %}
+<!-- Empty State Content (already simplified) -->
+<div class="text-center py-5 bg-white shadow-sm rounded-4 mt-4">
+    <div class="mb-4 text-muted opacity-25">
+        <i class="fas fa-clipboard-list" style="font-size: 5rem;"></i>
+    </div>
+    <h3 class="fw-bold">No items found</h3>
+    <p class="text-muted mb-4">You haven't reported any items in this category yet.</p>
+    <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary px-5 py-3 fw-bold"
+        style="border-radius: 12px;">
+        Report New Item
+    </a>
+</div>
+{% endif %}
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Filter functionality
         const filterTabs = document.querySelectorAll('.filter-tab');
-        const itemCards = document.querySelectorAll('.item-card');
+        const itemWrappers = document.querySelectorAll('.item-card-wrapper');
 
         filterTabs.forEach(tab => {
             tab.addEventListener('click', function () {
                 // Update active tab
-                filterTabs.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
+                filterTabs.forEach(t => t.classList.remove('active', 'btn-primary'));
+                filterTabs.forEach(t => t.classList.add('btn-light'));
+                this.classList.remove('btn-light');
+                this.classList.add('active', 'btn-primary');
 
                 const filter = this.dataset.filter;
 
                 // Filter items
-                itemCards.forEach(card => {
+                itemWrappers.forEach(card => {
                     if (filter === 'all') {
                         card.style.display = 'block';
                     } else if (filter === 'lost' || filter === 'found') {
@@ -239,581 +182,65 @@
             });
         });
 
+        // Trigger filter if parameter exists
+        const urlParams = new URLSearchParams(window.location.search);
+        const typeFilter = urlParams.get('type');
+        if (typeFilter) {
+            const targetTab = document.querySelector(`.filter-tab[data-filter="${typeFilter}"]`);
+            if (targetTab) {
+                targetTab.click();
+            }
+        }
+
         // Sort functionality
         const sortSelect = document.getElementById('sortItems');
         const itemsGrid = document.getElementById('itemsGrid');
 
-        sortSelect.addEventListener('change', function () {
-            const sortBy = this.value;
-            const items = Array.from(itemCards);
+        if (sortSelect && itemsGrid) {
+            sortSelect.addEventListener('change', function () {
+                const sortBy = this.value;
+                const items = Array.from(itemWrappers);
 
-            items.sort((a, b) => {
-                if (sortBy === 'newest') {
-                    return new Date(b.dataset.date) - new Date(a.dataset.date);
-                } else if (sortBy === 'oldest') {
-                    return new Date(a.dataset.date) - new Date(b.dataset.date);
-                } else if (sortBy === 'title') {
-                    return a.querySelector('.item-title').textContent.localeCompare(b.querySelector('.item-title').textContent);
-                }
-                return 0;
+                items.sort((a, b) => {
+                    if (sortBy === 'newest') {
+                        return new Date(b.dataset.date) - new Date(a.dataset.date);
+                    } else if (sortBy === 'oldest') {
+                        return new Date(a.dataset.date) - new Date(b.dataset.date);
+                    } else if (sortBy === 'title') {
+                        return a.dataset.title.localeCompare(b.dataset.title);
+                    }
+                    return 0;
+                });
+
+                // Re-append sorted items
+                items.forEach(item => itemsGrid.appendChild(item));
             });
-
-            // Re-append sorted items
-            items.forEach(item => itemsGrid.appendChild(item));
-        });
-
-        // Add date data to items for sorting
-        itemCards.forEach(card => {
-            const dateText = card.querySelector('.item-dates small').textContent;
-            const date = new Date(dateText.replace('Reported ', ''));
-            card.dataset.date = date.toISOString();
-        });
+        }
     });
 </script>
 
-
-
 <style>
-    /* My Items Header Styles */
-    .my-items-header {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-        padding: 2.5rem;
-        border-radius: 20px;
-        margin-bottom: 2rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1.5rem;
-    }
-
-    .header-content h1 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-
-    .header-content .lead {
-        font-size: 1.2rem;
-        opacity: 0.9;
-        margin-bottom: 0;
-        max-width: 600px;
-    }
-
-    .header-actions {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    /* Button Styles */
-    .btn-download {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        display: flex;
-        align-items: center;
-        white-space: nowrap;
-    }
-
-    .btn-download:hover {
-        background: white;
-        color: #059669;
-        text-decoration: none;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .report-new-btn {
-        background: white;
-        color: #059669;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        text-decoration: none;
-        font-weight: 700;
-        transition: all 0.3s ease;
-        border: 2px solid white;
-        display: flex;
-        align-items: center;
-        white-space: nowrap;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .report-new-btn:hover {
-        background: #f0fdf4;
-        color: #047857;
-        text-decoration: none;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-    }
-
-    /* Statistics Grid */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .stat-card {
-        background: white;
-        padding: 2rem;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        border: 1px solid #f1f5f9;
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        transition: all 0.3s ease;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    .stat-card.total {
-        border-left: 4px solid #6366f1;
-    }
-
-    .stat-card.lost {
-        border-left: 4px solid #f59e0b;
-    }
-
-    .stat-card.found {
-        border-left: 4px solid #10b981;
-    }
-
-    .stat-card.pending {
-        border-left: 4px solid #06b6d4;
-    }
-
-    .stat-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.8rem;
-        color: white;
-    }
-
-    .stat-card.total .stat-icon {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    }
-
-    .stat-card.lost .stat-icon {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-    }
-
-    .stat-card.found .stat-icon {
-        background: linear-gradient(135deg, #10b981, #059669);
-    }
-
-    .stat-card.pending .stat-icon {
-        background: linear-gradient(135deg, #06b6d4, #0891b2);
-    }
-
-    .stat-content h3 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.25rem;
-        line-height: 1;
-    }
-
-    .stat-content p {
-        color: #64748b;
-        font-weight: 500;
-        margin-bottom: 0;
-    }
-
-    /* Items Container */
-    .items-container {
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid #f1f5f9;
-        overflow: hidden;
-    }
-
-    .items-header {
-        padding: 1.5rem 2rem;
-        border-bottom: 1px solid #f1f5f9;
-        background: #f8fafc;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .filter-tabs {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-    }
-
-    .filter-tab {
-        background: white;
-        border: 1px solid #e5e7eb;
-        padding: 0.75rem 1.5rem;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: 500;
-        color: #64748b;
-    }
-
-    .filter-tab:hover {
-        border-color: #6366f1;
-        color: #6366f1;
-    }
-
-    .filter-tab.active {
-        background: #6366f1;
-        border-color: #6366f1;
-        color: white;
-    }
-
-    .sort-options {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .sort-select {
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 0.5rem 1rem;
-        background: white;
-        color: #374151;
-    }
-
-    /* Items Grid */
-    .items-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 1.5rem;
-        padding: 2rem;
-    }
-
-    .item-card {
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        border: 1px solid #f1f5f9;
-        transition: all 0.3s ease;
-        overflow: hidden;
-    }
-
-    .item-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Card Header */
-    .card-header {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid #f1f5f9;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .item-badges {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .type-badge,
-    .status-badge {
-        padding: 0.4em 0.8em;
-        border-radius: 8px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .type-lost {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .type-found {
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .status-pending {
-        background: #dbeafe;
-        color: #1e40af;
-    }
-
-    .status-claimed {
-        background: #f3e8ff;
-        color: #6b21a8;
-    }
-
-    .status-resolved {
-        background: #f1f5f9;
-        color: #475569;
-    }
-
-    .item-actions {
-        margin-left: auto;
-    }
-
-    .resolve-form {
-        display: inline-block;
-    }
-
-    .resolve-btn {
-        background: #10b981;
-        color: white;
-        border: none;
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .resolve-btn:hover {
-        background: #059669;
-        transform: scale(1.1);
-    }
-
-    /* Card Image */
-    .card-image {
-        position: relative;
-    }
-
-    .image-container {
-        position: relative;
-        padding: 1rem;
-        text-align: center;
-        background: #f8fafc;
-    }
-
-    .item-image {
-        max-height: 200px;
-        width: auto;
-        border-radius: 10px;
+    /* My Items Redesign Overrides */
+    .object-fit-contain {
         object-fit: contain;
     }
 
-    .ai-badge {
-        position: absolute;
-        top: 1.5rem;
-        right: 1.5rem;
-        background: linear-gradient(135deg, #667eea, #764ba2);
+    .item-card-wrapper {
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: var(--primary-color);
         color: white;
-        padding: 0.35em 0.75em;
-        border-radius: 12px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
-    .no-image {
-        padding: 3rem 2rem;
-        text-align: center;
-        background: #f8fafc;
-        color: #94a3b8;
-    }
-
-    .no-image i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        display: block;
-    }
-
-    /* Card Content */
-    .card-content {
-        padding: 1.5rem;
-    }
-
-    .item-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 0.75rem;
-        color: #1e293b;
-    }
-
-    .item-description {
-        color: #64748b;
-        margin-bottom: 1.5rem;
-        line-height: 1.5;
-    }
-
-    .item-meta {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .meta-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #64748b;
-        font-size: 0.875rem;
-    }
-
-    .meta-item i {
-        width: 16px;
-        color: #94a3b8;
-    }
-
-    .item-dates {
-        padding-top: 1rem;
-        border-top: 1px solid #f1f5f9;
-    }
-
-    .item-dates small {
-        color: #94a3b8;
-        font-size: 0.75rem;
-    }
-
-    /* Card Actions */
-    .card-actions {
-        padding: 1rem 1.5rem;
-        border-top: 1px solid #f1f5f9;
-        background: #f8fafc;
-    }
-
-    .view-details-btn {
-        display: block;
-        text-align: center;
-        color: #3b82f6;
-        text-decoration: none;
-        font-weight: 500;
-        padding: 0.75rem;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        margin-bottom: 0.75rem;
-    }
-
-    .view-details-btn:hover {
-        background: #dbeafe;
-        color: #1d4ed8;
-        text-decoration: none;
-    }
-
-    .claim-info,
-    .search-info {
-        text-align: center;
-        color: #64748b;
-        font-size: 0.875rem;
-        padding: 0.5rem;
-        background: white;
-        border-radius: 6px;
-        border: 1px solid #e2e8f0;
-    }
-
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 4rem 2rem;
-    }
-
-    .empty-icon {
-        font-size: 4rem;
-        color: #cbd5e1;
-        margin-bottom: 1.5rem;
-    }
-
-    .empty-content h3 {
-        color: #4a5568;
-        margin-bottom: 1rem;
-        font-weight: 600;
-    }
-
-    .empty-content p {
-        color: #718096;
-        margin-bottom: 2rem;
-        font-size: 1.1rem;
-        max-width: 500px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .empty-actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .btn-outline {
-        background: white;
-        color: #374151;
-        border: 2px solid #e5e7eb;
-        padding: 0.75rem 1.5rem;
-        border-radius: 10px;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-outline:hover {
-        background: #f8fafc;
-        border-color: #6366f1;
-        color: #6366f1;
-        text-decoration: none;
-    }
-
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-        .my-items-header {
-            flex-direction: column;
-            text-align: center;
-            align-items: stretch;
-        }
-
-        .header-actions {
-            flex-direction: column;
-            width: 100%;
-        }
-
-        .btn-download,
-        .report-new-btn {
-            justify-content: center;
-            width: 100%;
-        }
-
-        .items-header {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .filter-tabs {
-            justify-content: center;
-        }
-
-        .items-grid {
-            grid-template-columns: 1fr;
-            padding: 1rem;
-        }
-
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .empty-actions {
-            flex-direction: column;
-            align-items: center;
-        }
+    .filter-tab.active {
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
     }
 </style>
 {% endblock %}

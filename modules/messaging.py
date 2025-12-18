@@ -84,6 +84,14 @@ def conversation(user_id):
             and_(Message.message_sender_id == user_id, Message.message_recipient_id == current_user.user_id)
         )
     ).order_by(Message.message_created_at.asc()).all()
+
+    # If no context_item from URL, try to find one from messages
+    if not context_item and messages:
+        # Look for the last message that has an item_id
+        for msg in reversed(messages):
+            if msg.message_item_id:
+                context_item = Item.query.get(msg.message_item_id)
+                break
     
     # Mark unread messages as read
     unread_messages = Message.query.filter_by(

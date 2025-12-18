@@ -1,106 +1,275 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-map-marker-alt"></i> Campus Item Handoff Locations</h4>
+<div class="locations-page">
+    <!-- Page Header -->
+    <div class="page-header text-center mb-5">
+        <h1 class="display-5 fw-bold"><i class="fas fa-map-marked-alt text-primary"></i> Campus Handoff Spots</h1>
+        <p class="text-muted lead">Verified safe zones for item recovery and coordination.</p>
+    </div>
+
+    <!-- Central Safety Alert -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8">
+            <div class="safety-banner">
+                <div class="banner-icon">
+                    <i class="fas fa-user-shield"></i>
                 </div>
-                <div class="card-body">
-                    <!-- IMPORTANT NOTICE -->
-                    <div class="alert alert-warning">
-                        <h5><i class="fas fa-id-card"></i> Important Security Notice</h5>
-                        <p class="mb-0">
-                            <strong>🎓 STUDENT ID REQUIRED:</strong> All item handoffs require valid student identification 
-                            for both parties. This ensures security and proper ownership verification.
-                        </p>
-                    </div>
-
-                    <div class="alert alert-info">
-                        <h5><i class="fas fa-info-circle"></i> How Item Recovery Works</h5>
-                        <p class="mb-0">
-                            1. Report lost/found item → 2. Get matched by our AI system → 3. Coordinate pickup at campus location → 
-                            4. <strong>🎓 Present student ID for verification</strong> → 5. Complete secure handoff
-                        </p>
-                    </div>
-
-                    <div class="row">
-                        {% for location in locations %}
-                        <div class="col-md-6 mb-4">
-                            <div class="card card-hover border-{{ location.color }}">
-                                <div class="card-header bg-{{ location.color }} text-white d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0">
-                                        <i class="{{ location.icon }}"></i> {{ location.name }}
-                                    </h5>
-                                    <span class="badge bg-light text-dark">
-                                        <i class="fas fa-id-card"></i> ID Required
-                                    </span>
-                                </div>
-                                <div class="card-body">
-                                    <p class="card-text">
-                                        <i class="fas fa-building text-muted"></i> <strong>Building:</strong> {{ location.building }}<br>
-                                        <i class="fas fa-door-open text-muted"></i> <strong>Location:</strong> {{ location.room }}<br>
-                                        <i class="fas fa-clock text-muted"></i> <strong>Hours:</strong> {{ location.hours }}<br>
-                                        <i class="fas fa-user text-muted"></i> <strong>Contact:</strong> {{ location.contact }}<br>
-                                        <i class="fas fa-phone text-muted"></i> <strong>Phone:</strong> {{ location.phone }}
-                                    </p>
-                                    <div class="mt-3">
-                                        <h6><i class="fas fa-star text-warning"></i> Best For:</h6>
-                                        <p class="mb-2">{{ location.specialties }}</p>
-                                        
-                                        <h6><i class="fas fa-info-circle text-info"></i> Instructions:</h6>
-                                        <p class="mb-0">{{ location.notes }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Verification Requirements -->
-                    <div class="mt-4">
-                        <div class="card border-success">
-                            <div class="card-header bg-success text-white">
-                                <h5 class="mb-0"><i class="fas fa-user-shield"></i> Verification Requirements</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <h6><i class="fas fa-user-check text-primary"></i> For Item Owners:</h6>
-                                        <ul>
-                                            <li>✅ Valid Student ID Card</li>
-                                            <li>✅ Ability to describe item details</li>
-                                            <li>✅ Matching contact information</li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h6><i class="fas fa-user-tie text-primary"></i> For Staff Verification:</h6>
-                                        <ul>
-                                            <li>✅ Cross-check ID with campus records</li>
-                                            <li>✅ Verify item description matches</li>
-                                            <li>✅ Witness secure handoff process</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="banner-text">
+                    <h5>Student ID Is Required</h5>
+                    <p>For your security, all item handoffs must be witnessed by staff. Both parties must present a
+                        valid Student ID card to verify ownership and complete the recovery.</p>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Locations Grid -->
+    <div class="row g-4">
+        {% for location in locations %}
+        <div class="col-md-4">
+            <div class="location-card border-top-{{ location.color }}">
+                <div class="card-header-clean">
+                    <div class="icon-box bg-{{ location.color }}-light text-{{ location.color }}">
+                        <i class="{{ location.icon }}"></i>
+                    </div>
+                    <h5 class="location-name">{{ location.name }}</h5>
+                </div>
+
+                <div class="card-body-clean">
+                    <div class="info-row">
+                        <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div class="info-text">
+                            <span class="info-label">Where</span>
+                            <span class="info-value">{{ location.building }} • {{ location.room }}</span>
+                        </div>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="info-icon"><i class="fas fa-clock"></i></div>
+                        <div class="info-text">
+                            <span class="info-label">When</span>
+                            <span class="info-value">{{ location.hours }}</span>
+                        </div>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="info-icon"><i class="fas fa-user-tie"></i></div>
+                        <div class="info-text">
+                            <span class="info-label">Who</span>
+                            <span class="info-value">{{ location.contact }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer-clean">
+                    <span class="security-tag"><i class="fas fa-check-circle"></i> Secure Zone</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 
 <style>
-.card-hover {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
+    /* Page Layout */
+    .locations-page {
+        padding: 2rem 0;
+        max-width: 1100px;
+        margin: 0 auto;
+    }
 
-.card-hover:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
+    /* Safety Banner */
+    .safety-banner {
+        background: linear-gradient(135deg, #fff7ed 0%, #fff 100%);
+        border: 1px solid #ffedd5;
+        border-radius: 20px;
+        padding: 1.5rem 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        box-shadow: 0 4px 15px rgba(251, 146, 60, 0.05);
+    }
+
+    .banner-icon {
+        width: 60px;
+        height: 60px;
+        background: #fb923c;
+        color: white;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        flex-shrink: 0;
+    }
+
+    .banner-text h5 {
+        color: #9a3412;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .banner-text p {
+        color: #7c2d12;
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    /* Location Cards */
+    .location-card {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        position: relative;
+        border-top-width: 5px;
+    }
+
+    .location-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .border-top-primary {
+        border-top-color: #3b82f6;
+    }
+
+    .border-top-success {
+        border-top-color: #10b981;
+    }
+
+    .border-top-warning {
+        border-top-color: #f59e0b;
+    }
+
+    .bg-primary-light {
+        background: #eff6ff;
+    }
+
+    .bg-success-light {
+        background: #ecfdf5;
+    }
+
+    .bg-warning-light {
+        background: #fff7ed;
+    }
+
+    .text-primary {
+        color: #2563eb !important;
+    }
+
+    .text-success {
+        color: #059669 !important;
+    }
+
+    .text-warning {
+        color: #d97706 !important;
+    }
+
+    .card-header-clean {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .icon-box {
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .location-name {
+        margin: 0;
+        font-weight: 800;
+        color: #1e293b;
+        font-size: 1.15rem;
+    }
+
+    .card-body-clean {
+        padding: 0 1.5rem 1.5rem;
+        flex: 1;
+    }
+
+    .info-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .info-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .info-icon {
+        color: #94a3b8;
+        font-size: 1rem;
+        padding-top: 0.2rem;
+    }
+
+    .info-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: #94a3b8;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.1rem;
+    }
+
+    .info-value {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #334155;
+        line-height: 1.4;
+    }
+
+    .card-footer-clean {
+        padding: 1rem 1.5rem;
+        background: #f8fafc;
+        border-top: 1px solid #f1f5f9;
+        text-align: center;
+    }
+
+    .security-tag {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+    }
+
+    .security-tag i {
+        color: #10b981;
+    }
+
+    @media (max-width: 768px) {
+        .safety-banner {
+            flex-direction: column;
+            text-align: center;
+            padding: 2rem;
+        }
+    }
 </style>
 {% endblock %}

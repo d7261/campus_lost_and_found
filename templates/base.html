@@ -18,15 +18,18 @@
 
     <style>
         :root {
-            --sidebar-width: 300px;
-            --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            --sidebar-gradient: linear-gradient(180deg, #066b4b 0%, #059669 100%);
-            --accent-color: #059669;
-            --accent-color-hover: #047857;
-            --text-light: #f8fafc;
-            --text-dark: #1e293b;
-            --bg-light: #f1f5f9;
+            --sidebar-width: 350px;
+            --primary-color: #6366f1;
+            /* Indigo from image */
+            --primary-hover: #4f46e5;
+            --bg-light: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #f1f5f9;
             --danger-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
         }
 
         * {
@@ -38,288 +41,236 @@
         body {
             font-family: 'Poppins', sans-serif;
             background: var(--bg-light);
-            color: var(--text-dark);
+            color: var(--text-main);
             min-height: 100vh;
             overflow-x: hidden;
         }
 
-        /* --- Mobile Toggle --- */
-        .mobile-menu-toggle {
-            display: none;
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            z-index: 1100;
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 14px;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-        }
-
-        /* --- Sidebar Structure --- */
-        .dashboard-container {
+        /* --- Header / Top Bar --- */
+        .top-navbar {
+            height: 70px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 2rem;
             display: flex;
-            min-height: 100vh;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: var(--sidebar-width);
+            z-index: 1000;
+            transition: left 0.3s ease;
         }
 
-        .dashboard-sidebar {
+        .brand-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .user-greeting {
+            color: var(--text-muted);
+        }
+
+        .user-greeting strong {
+            color: var(--text-main);
+        }
+
+        .sign-out-link {
+            color: var(--danger-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* --- Sidebar Redesign --- */
+        .app-sidebar {
             width: var(--sidebar-width);
-            background: var(--sidebar-gradient);
-            color: var(--text-light);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
             height: 100vh;
+            position: fixed;
             left: 0;
             top: 0;
-            z-index: 1000;
-            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            z-index: 1010;
             transition: transform 0.3s ease;
         }
 
-        /* Sidebar Scrollbar */
-        .dashboard-sidebar::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .dashboard-sidebar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .dashboard-sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-        }
-
-        /* --- User Profile Section --- */
-        .sidebar-user-profile {
-            padding: 2.5rem 1.5rem 1.5rem;
-            background: rgba(0, 0, 0, 0.1);
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
         }
 
-        .user-avatar-large {
-            width: 70px;
-            height: 70px;
+        .user-avatar-circle {
+            width: 80px;
+            height: 80px;
+            background: #e0e7ff;
+            color: var(--primary-color);
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: 700;
-            margin: 0 auto 1rem;
-            color: white;
-        }
-
-        .user-info-main h4 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 0.2rem;
-        }
-
-        .user-role {
-            font-size: 0.85rem;
-            opacity: 0.8;
             margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+        }
+
+        .user-sidebar-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-sidebar-role {
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 1px;
+            color: var(--text-muted);
+            background: #f1f5f9;
+            padding: 0.2rem 0.6rem;
+            border-radius: 50px;
         }
 
-        .user-stats {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .user-stats .stat strong {
-            display: block;
-            font-size: 1.2rem;
-            font-weight: 700;
-        }
-
-        .user-stats .stat span {
-            font-size: 0.75rem;
-            opacity: 0.8;
-        }
-
-        /* --- Navigation Links --- */
-        .sidebar-nav {
+        .sidebar-nav-container {
             padding: 1.5rem 1rem;
             flex: 1;
+            overflow-y: auto;
         }
 
-        .nav-label {
+        .nav-section-title {
             font-size: 0.75rem;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.5);
             font-weight: 700;
-            margin: 1.5rem 0 0.5rem 1rem;
-            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin: 1.5rem 0 0.75rem 0.5rem;
+            letter-spacing: 0.05em;
         }
 
-        .nav-item {
+        .sidebar-nav-link {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 0.9rem 1.2rem;
-            color: rgba(255, 255, 255, 0.8);
+            gap: 0.75rem;
+            padding: 0.8rem 1rem;
+            color: var(--text-main);
             text-decoration: none;
             border-radius: 12px;
-            margin-bottom: 0.5rem;
+            font-weight: 500;
             transition: all 0.2s ease;
+            margin-bottom: 0.25rem;
         }
 
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            transform: translateX(5px);
+        .sidebar-nav-link:hover {
+            background: #f8fafc;
+            color: var(--primary-color);
         }
 
-        .nav-item.active {
-            background: white;
-            color: var(--accent-color);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            font-weight: 600;
+        .sidebar-nav-link.active {
+            background: #eef2ff;
+            color: var(--primary-color);
         }
 
-        .nav-icon {
-            width: 24px;
+        .sidebar-nav-link i {
+            width: 20px;
             text-align: center;
             font-size: 1.1rem;
-            position: relative;
+            opacity: 0.7;
         }
 
-        .nav-badge {
-            position: absolute;
-            top: -5px;
-            right: -8px;
-            background: var(--danger-color);
-            color: white;
-            font-size: 0.6rem;
-            padding: 2px 5px;
-            border-radius: 6px;
-            font-weight: bold;
+        .sidebar-nav-link.active i {
+            opacity: 1;
         }
 
-        /* --- Footer --- */
-        .sidebar-footer {
+        /* --- Report Item Sidebar Button --- */
+        .sidebar-action-wrapper {
             padding: 1.5rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid var(--border-color);
         }
 
-        .logout-btn {
+        .btn-report-sidebar {
+            width: 100%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.9rem;
+            border-radius: 12px;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            padding: 0.8rem;
-            background: rgba(239, 68, 68, 0.15);
-            color: #fca5a5;
             text-decoration: none;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
         }
 
-        .logout-btn:hover {
-            background: rgba(239, 68, 68, 0.25);
+        .btn-report-sidebar:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
             color: white;
         }
 
-        /* --- Main Content --- */
-        .dashboard-main {
-            flex: 1;
+        /* --- Main Content Area --- */
+        .main-wrapper {
             margin-left: var(--sidebar-width);
-            padding: 2rem;
-            width: 100%;
+            padding-top: 70px;
+            min-height: 100vh;
             transition: margin-left 0.3s ease;
         }
 
-        /* --- Alerts --- */
-        .alert-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1050;
-            min-width: 300px;
+        .content-body {
+            padding: 2.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-        /* --- Landing Page (Non-Auth) --- */
-        .landing-page {
-            background: var(--primary-gradient);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-align: center;
-            padding: 2rem;
+        /* --- Mobile Styles --- */
+        .mobile-toggle-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            cursor: pointer;
         }
 
-        .hero-title {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-        }
-
-        .btn-white {
-            background: white;
-            color: var(--accent-color);
-            font-weight: 700;
-            padding: 0.8rem 2rem;
-            border-radius: 50px;
-        }
-
-        .btn-outline {
-            border: 2px solid white;
-            color: white;
-            font-weight: 700;
-            padding: 0.8rem 2rem;
-            border-radius: 50px;
-            margin-left: 1rem;
-        }
-
-        .btn-white:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            color: var(--accent-color);
-        }
-
-        .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        /* --- Responsive --- */
         @media (max-width: 992px) {
-            :root {
-                --sidebar-width: 260px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .mobile-menu-toggle {
-                display: block;
-            }
-
-            .dashboard-sidebar {
+            .app-sidebar {
                 transform: translateX(-100%);
             }
 
-            .dashboard-sidebar.mobile-open {
+            .app-sidebar.active {
                 transform: translateX(0);
             }
 
-            .dashboard-main {
+            .top-navbar {
+                left: 0;
+            }
+
+            .main-wrapper {
                 margin-left: 0;
-                padding: 5rem 1rem 1rem 1rem;
+            }
+
+            .mobile-toggle-btn {
+                display: block;
             }
         }
     </style>
@@ -327,127 +278,100 @@
 
 <body>
     {% if current_user.is_authenticated %}
-    <!-- Mobile Toggle -->
-    <button class="mobile-menu-toggle" id="mobileMenuToggle">
-        <i class="fas fa-bars"></i>
-    </button>
 
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <div class="dashboard-sidebar" id="dashboardSidebar">
-            <!-- Profile -->
-            <div class="sidebar-user-profile">
-                <div class="user-avatar-large">
-                    {{ current_user.user_username[0]|upper }}
-                </div>
-                <div class="user-info-main">
-                    <h4>{{ current_user.user_username }}</h4>
-                    <p class="user-role">{{ current_user.user_role|default('student') }}</p>
-                </div>
-                <div class="user-stats">
-                    <div class="stat">
-                        <strong>{{ current_user.items|length }}</strong>
-                        <span>Reports</span>
-                    </div>
-                    <div class="stat">
-                        {% set unread_alert_count = current_user.notifications|selectattr('notification_is_seen',
-                        'equalto', false)|list|length %}
-                        <strong>{{ unread_alert_count }}</strong>
-                        <span>Alerts</span>
-                    </div>
-                </div>
+    <!-- Sidebar -->
+    <aside class="app-sidebar" id="appSidebar">
+        <!-- Logo for Mobile or Sidebar Top -->
+        <div class="sidebar-header">
+            <div class="user-avatar-circle">
+                {{ current_user.user_username[0]|upper }}
             </div>
+            <div class="user-sidebar-name">{{ current_user.user_username }}</div>
+            <div class="user-sidebar-role">{{ current_user.user_role|default('Student') }}</div>
+        </div>
 
-            <!-- General Section -->
-            <div class="nav-label">General</div>
+        <nav class="sidebar-nav-container">
+            <div class="nav-section-title">Menu</div>
 
-            {% if current_user.user_role != 'admin' %}
             <a href="{{ url_for('dashboard') }}"
-                class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
-                <div class="nav-icon"><i class="fas fa-home"></i></div>
+                class="sidebar-nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-th-large"></i>
                 <span>Dashboard</span>
-            </a>
-            {% endif %}
-
-            <a href="{{ url_for('search') }}" class="nav-item {% if request.endpoint == 'search' %}active{% endif %}">
-                <div class="nav-icon"><i class="fas fa-search"></i></div>
-                <span>Search Items</span>
-            </a>
-
-            <a href="{{ url_for('campus_locations') }}"
-                class="nav-item {% if request.endpoint == 'campus_locations' %}active{% endif %}">
-                <div class="nav-icon"><i class="fas fa-map-marker-alt"></i></div>
-                <span>Locations</span>
-            </a>
-
-            {% if current_user.user_role != 'admin' %}
-            <!-- Reporting Section -->
-            <div class="nav-label">Management</div>
-
-            <a href="{{ url_for('reporting.report_item') }}"
-                class="nav-item {% if request.endpoint == 'reporting.report_item' %}active{% endif %}">
-                <div class="nav-icon"><i class="fas fa-plus-circle"></i></div>
-                <span>Report Item</span>
             </a>
 
             <a href="{{ url_for('reporting.my_items') }}"
-                class="nav-item {% if request.endpoint == 'reporting.my_items' %}active{% endif %}">
-                <div class="nav-icon"><i class="fas fa-clipboard-list"></i></div>
+                class="sidebar-nav-link {% if 'my_items' in request.endpoint %}active{% endif %}">
+                <i class="fas fa-list-ul"></i>
                 <span>My Reports</span>
             </a>
 
+            <a href="{{ url_for('search') }}"
+                class="sidebar-nav-link {% if request.endpoint == 'search' %}active{% endif %}">
+                <i class="fas fa-search"></i>
+                <span>Browse Items</span>
+            </a>
+
+            <div class="nav-section-title">Communication</div>
+
             <a href="{{ url_for('notifications') }}"
-                class="nav-item {% if request.endpoint == 'notifications' %}active{% endif %}">
-                <div class="nav-icon">
-                    <i class="fas fa-bell"></i>
-                    {% if unread_alert_count > 0 %}
-                    <span class="nav-badge">{{ unread_alert_count }}</span>
-                    {% endif %}
-                </div>
+                class="sidebar-nav-link {% if request.endpoint == 'notifications' %}active{% endif %}">
+                <i class="fas fa-bell"></i>
                 <span>Notifications</span>
             </a>
 
             <a href="{{ url_for('messaging.inbox') }}"
-                class="nav-item {% if request.endpoint and 'messaging' in request.endpoint %}active{% endif %}">
-                <div class="nav-icon"><i class="fas fa-envelope"></i></div>
+                class="sidebar-nav-link {% if 'messaging' in request.endpoint %}active{% endif %}">
+                <i class="fas fa-comment-dots"></i>
                 <span>Messages</span>
             </a>
-            {% endif %}
 
-            <!-- Admin Section (Dynamic) -->
             {% if current_user.user_role == 'admin' %}
-            <div class="nav-label" style="color: #6ee7b7;">Admin Controls</div>
+            <div class="nav-section-title">Admin</div>
             <a href="{{ url_for('admin.admin_dashboard') }}"
-                class="nav-item {% if 'admin' in request.endpoint and 'messages' not in request.endpoint %}active{% endif %}">
-                <div class="nav-icon"><i class="fas fa-tachometer-alt"></i></div>
+                class="sidebar-nav-link {% if 'admin' in request.endpoint %}active{% endif %}">
+                <i class="fas fa-user-shield"></i>
                 <span>Admin Panel</span>
             </a>
-            <a href="{{ url_for('admin.manage_messages') }}"
-                class="nav-item {% if 'admin.manage_messages' in request.endpoint %}active{% endif %}">
-                <div class="nav-icon"><i class="fas fa-comments"></i></div>
-                <span>Messages Monitor</span>
-            </a>
             {% endif %}
-            </nav>
+        </nav>
 
-            <!-- Footer -->
-            <div class="sidebar-footer">
-                <a href="{{ url_for('auth.logout') }}" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Sign Out</span>
+        <div class="sidebar-action-wrapper">
+            <a href="{{ url_for('reporting.report_item') }}" class="btn-report-sidebar">
+                <i class="fas fa-plus"></i>
+                <span>Report Item</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+        <header class="top-navbar">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <button class="mobile-toggle-btn" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <a href="{{ url_for('dashboard') }}" class="brand-logo">
+                    <i class="fas fa-cube"></i>
+                    <span>CampusFindAI</span>
                 </a>
             </div>
-        </div>
 
-        <!-- Main Content -->
-        <div class="dashboard-main" id="dashboardMain">
+            <div class="user-nav-actions">
+                <div class="user-greeting">
+                    Hello, <strong>{{ current_user.user_username }}</strong>
+                </div>
+                <a href="{{ url_for('auth.logout') }}" class="sign-out-link">Sign Out</a>
+            </div>
+        </header>
+
+        <main class="content-body">
             <!-- Flash Messages -->
             <div class="alert-container">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 {% for category, message in messages %}
-                <div
-                    class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show">
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show shadow-sm border-0 mb-4"
+                    style="border-radius: 12px;">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
@@ -457,7 +381,7 @@
             </div>
 
             {% block content %}{% endblock %}
-        </div>
+        </main>
     </div>
 
     {% else %}
@@ -479,23 +403,22 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Mobile Menu Logic
-            const toggleBtn = document.getElementById('mobileMenuToggle');
-            const sidebar = document.getElementById('dashboardSidebar');
-            const main = document.getElementById('dashboardMain');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('appSidebar');
 
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', function (e) {
                     e.stopPropagation();
-                    sidebar.classList.toggle('mobile-open');
+                    sidebar.classList.toggle('active');
                 });
 
                 // Close sidebar when clicking outside on mobile
                 document.addEventListener('click', function (e) {
-                    if (window.innerWidth <= 768 &&
-                        sidebar.classList.contains('mobile-open') &&
+                    if (window.innerWidth <= 992 &&
+                        sidebar.classList.contains('active') &&
                         !sidebar.contains(e.target) &&
                         e.target !== toggleBtn) {
-                        sidebar.classList.remove('mobile-open');
+                        sidebar.classList.remove('active');
                     }
                 });
             }

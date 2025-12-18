@@ -1,618 +1,137 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Main Content -->
-<div class="item-details-header">
-    <div class="header-content">
-        <div class="item-title-section">
-            <h1>
-                <i class="fas fa-{% if item.item_type == 'lost' %}search{% else %}hand-holding{% endif %} me-3"></i>
-                {{ item.item_title }}
-            </h1>
-            <div class="item-badges">
-                {% set badge = get_status_badge(item) %}
-                <span class="status-badge"
-                    style="background-color: {{ badge.bg }}; color: {{ badge.color }}; padding: 0.5em 1em; border-radius: 50px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
-                    <i class="fas fa-{{ badge.icon }}"></i>
-                    {{ badge.label }}
-                </span>
-            </div>
-        </div>
-        <p class="item-subtitle">Item details and actions</p>
-    </div>
+<!-- Page Breadcrumb/Back -->
+<div class="mb-4">
+    <a href="javascript:history.back()" class="text-primary text-decoration-none fw-600">
+        &larr; Back to Results
+    </a>
 </div>
 
-<!-- Item Details Content -->
-<div class="item-details-container">
-    <div class="details-grid">
-        <!-- Left Column - Image -->
-        <div class="image-column">
-            {% if item.item_image_path %}
-            <div class="item-image-card">
-                <!-- FIX: Removed comments from inside the img tag -->
-                <img src="{{ url_for('static', filename='uploads/' + item.item_image_path) }}" class="item-image-large"
-                    alt="{{ item.item_title }}">
-
+<!-- Main Item Details Layout -->
+<div class="row g-4">
+    <!-- Left Column: Image -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 24px;">
+            <div class="position-relative" style="min-height: 400px; background: #f8fafc;">
+                {% if item.item_image_path %}
+                <img src="{{ url_for('static', filename='uploads/' + item.item_image_path) }}" class="w-100 h-100"
+                    alt="{{ item.item_title }}" style="min-height: 400px; object-fit: contain;">
                 {% if item.embedding %}
-                <div class="ai-feature-badge">
-                    <i class="fas fa-robot me-1"></i>
-                    AI Image Recognition Enabled
+                <div class="position-absolute top-0 start-0 m-4 badge bg-primary p-2 px-3 shadow"
+                    style="border-radius: 10px;">
+                    <i class="fas fa-robot me-2"></i> AI Enhanced
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted opacity-50"
+                    style="min-height: 400px;">
+                    <i class="fas fa-image fa-5x mb-3"></i>
+                    <h4 class="fw-bold">No Image</h4>
                 </div>
                 {% endif %}
             </div>
-            {% else %}
-            <div class="no-image-card">
-                <i class="fas fa-image"></i>
-                <h4>No Image Available</h4>
-                <p>This item was reported without a photo</p>
-            </div>
-            {% endif %}
         </div>
+    </div>
 
-        <!-- Right Column - Details & Actions -->
-        <div class="details-column">
-            <!-- Quick Info Cards -->
-            <div class="info-cards-grid">
-                <div class="info-card">
-                    <div class="info-icon category">
-                        <i class="fas fa-tag"></i>
-                    </div>
-                    <div class="info-content">
-                        <label>Category</label>
-                        <h4>{{ item.item_category }}</h4>
-                    </div>
-                </div>
-
-                <div class="info-card">
-                    <div class="info-icon location">
-                        <i class="fas fa-map-marker-alt"></i>
-                    </div>
-                    <div class="info-content">
-                        <label>Location</label>
-                        <h4>{{ item.item_location }}</h4>
-                    </div>
+    <!-- Right Column: Details & Actions -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 24px;">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    {% set badge = get_status_badge(item) %}
+                    <span class="badge mb-2 p-2 px-3"
+                        style="background-color: {{ badge.bg }}; color: {{ badge.color }}; border-radius: 10px; font-weight: 700;">
+                        <i class="fas fa-{{ badge.icon }} me-1"></i> {{ badge.label }}
+                    </span>
+                    <h1 class="fw-bold mb-1">{{ item.item_title }}</h1>
+                    <p class="text-muted mb-0">
+                        <i
+                            class="fas fa-{% if item.item_type == 'lost' %}search{% else %}hand-holding{% endif %} me-2"></i>
+                        {{ item.item_type|title }} Item
+                    </p>
                 </div>
 
-                <div class="info-card">
-                    <div class="info-icon date">
-                        <i class="fas fa-calendar"></i>
-                    </div>
-                    <div class="info-content">
-                        <label>Date</label>
-                        <h4>{{ item.item_date_lost_found.strftime('%b %d, %Y') }}</h4>
-                    </div>
-                </div>
-
-                <div class="info-card">
-                    <div class="info-icon reporter">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="info-content">
-                        <label>Reported by</label>
-                        <h4>{{ item.owner.user_username }}</h4>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Description -->
-            <div class="description-card">
-                <div class="card-header">
-                    <i class="fas fa-align-left me-2"></i>
-                    <h3>Description</h3>
-                </div>
-                <div class="card-content">
-                    <p>{{ item.item_description }}</p>
-                </div>
-            </div>
-
-            <!-- Action Section -->
-            <div class="action-section">
-                {% if is_potential_match %}
-                <div class="match-alert">
-                    <i class="fas fa-handshake me-3"></i>
-                    <div>
-                        <h4>Potential Match Found!</h4>
-                        <p>This item might match one of your reported items.</p>
-                    </div>
-                </div>
+                {% if item.user_id == current_user.id and item.item_status != 'resolved' %}
+                <form method="POST" action="{{ url_for('resolve_item', item_id=item.item_id) }}">
+                    <button type="submit" class="btn btn-success fw-bold px-4 py-2" style="border-radius: 12px;"
+                        onclick="return confirm('Mark this item as resolved?')">
+                        Mark Resolved
+                    </button>
+                </form>
                 {% endif %}
+            </div>
 
-                <!-- Primary Actions -->
-                <div class="primary-actions">
-                    <!-- Only show Claim button if it's a found item and user didn't report it -->
-                    {% if item.item_type == 'found' and item.owner_id != current_user.user_id and item.item_status ==
-                    'pending' %}
-                    <form method="POST" action="{{ url_for('reporting.claim_item', item_id=item.item_id) }}"
-                        class="claim-form">
-                        <button type="submit" class="action-btn claim-btn"
-                            onclick="return confirm('Send a claim request to the finder? They will be notified.')">
-                            <i class="fas fa-paper-plane me-2"></i>
-                            Send Claim Request
-                        </button>
-                    </form>
-                    {% endif %}
+            <hr class="text-muted opacity-10 my-4">
 
-
-
-                    <!-- Show Resolve button only to owner for pending or claimed items -->
-                    {% if item.owner_id == current_user.user_id and item.item_status in ['pending', 'claimed'] %}
-                    <form method="POST" action="{{ url_for('resolve_item', item_id=item.item_id) }}"
-                        class="resolve-form">
-                        <button type="submit" class="action-btn resolve-btn"
-                            onclick="return confirm('{% if item.item_type == 'lost' %}Mark this item as recovered? This will remove it from active searches.{% else %}Mark this item as returned? This confirms you gave it to its owner.{% endif %}')">
-                            <i class="fas fa-check-circle me-2"></i>
-                            {% if item.item_type == 'lost' %}Mark as Recovered{% else %}Mark as Returned{% endif %}
-                        </button>
-                    </form>
-                    {% endif %}
-                </div>
-
-                <!-- Secondary Actions -->
-                <div class="secondary-actions">
-                    {% if item.owner_id != current_user.user_id %}
-                    <!-- FIX: Removed comments from inside the 'a' tag -->
-                    <a href="{{ url_for('messaging.conversation', user_id=item.owner_id, item_id=item.item_id) }}"
-                        class="action-btn contact-btn">
-                        <i class="fas fa-comment-alt me-2"></i>
-                        Message {{ item.owner.user_username }}
-                    </a>
-                    {% endif %}
-
-                    <div class="navigation-actions">
-                        <a href="{{ url_for('search') }}" class="nav-btn">
-                            <i class="fas fa-search me-2"></i>
-                            Back to Search
-                        </a>
-                        <a href="{{ url_for('reporting.my_items') }}" class="nav-btn">
-                            <i class="fas fa-list me-2"></i>
-                            My Items
-                        </a>
+            <!-- Specs Grid -->
+            <div class="row g-3 mb-5">
+                <div class="col-sm-6">
+                    <div class="p-3 bg-light rounded-4">
+                        <span class="text-muted small fw-bold d-block mb-1">CATEGORY</span>
+                        <h5 class="fw-bold mb-0 text-dark">{{ item.item_category }}</h5>
                     </div>
                 </div>
-
-                <!-- Status Messages -->
-                {% if item.item_status == 'claimed' %}
-                <div class="status-alert claimed">
-                    <i class="fas fa-check-circle me-3"></i>
-                    <div>
-                        <h4>Item Claimed</h4>
-                        <p>The owner has claimed this item and is coordinating the return with the finder.</p>
+                <div class="col-sm-6">
+                    <div class="p-3 bg-light rounded-4">
+                        <span class="text-muted small fw-bold d-block mb-1">LOCATION</span>
+                        <h5 class="fw-bold mb-0 text-dark">{{ item.item_location }}</h5>
                     </div>
                 </div>
-                {% elif item.item_status == 'resolved' %}
-                <div class="status-alert resolved">
-                    <i class="fas fa-archive me-3"></i>
-                    <div>
-                        <h4>Case Resolved</h4>
-                        <p>This item has been successfully returned or the case has been closed.</p>
+                <div class="col-sm-6">
+                    <div class="p-3 bg-light rounded-4">
+                        <span class="text-muted small fw-bold d-block mb-1">DATE</span>
+                        <h5 class="fw-bold mb-0 text-dark">{{ item.item_date_lost_found.strftime('%b %d, %Y') }}</h5>
                     </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="p-3 bg-light rounded-4">
+                        <span class="text-muted small fw-bold d-block mb-1">REPORTER</span>
+                        <h5 class="fw-bold mb-0 text-dark">{{ item.owner.user_username }}</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <h5 class="fw-bold mb-3">Description</h5>
+                <p class="text-muted fs-5 leading-relaxed">
+                    {{ item.item_description }}
+                </p>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="mt-auto pt-4 border-top">
+                {% if current_user.id != item.user_id %}
+                {% if item.item_type == 'found' and item.item_status == 'pending' %}
+                <form method="POST" action="{{ url_for('claim_item', item_id=item.item_id) }}">
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-5" style="border-radius: 16px;">
+                        Claim This Item
+                    </button>
+                </form>
+                {% elif item.item_type == 'lost' and item.item_status == 'pending' %}
+                <a href="{{ url_for('messaging.view_conversation_by_item', item_id=item.item_id) }}"
+                    class="btn btn-primary w-100 py-3 fw-bold fs-5" style="border-radius: 16px;">
+                    I Found This Item / Contact Owner
+                </a>
+                {% endif %}
+                {% else %}
+                <div class="bg-light p-3 rounded-4 text-center">
+                    <p class="text-muted mb-0 small fw-bold">This is your report. You can manage it from your dashboard.
+                    </p>
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
-
 
 <style>
-    /* Item Details Specific Styles */
-    .item-details-header {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        /* Emerald green gradient */
-        color: white;
-        padding: 2.5rem;
-        border-radius: 20px;
-        margin-bottom: 2rem;
-    }
-
-
-    /* Add this CSS to ensure the image displays nicely */
-    .item-image-large {
-        width: 100%;
-        max-width: 500px;
-        height: auto;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        object-fit: contain;
-        background-color: #f8f9fa;
-    }
-
-    .item-image-card {
-        text-align: center;
-        padding: 1rem;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    .item-title-section {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1rem;
-    }
-
-    .item-title-section h1 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        flex: 1;
-    }
-
-    .item-subtitle {
-        font-size: 1.2rem;
-        opacity: 0.9;
-        margin-bottom: 0;
-    }
-
-    .item-badges {
-        display: flex;
-        gap: 0.75rem;
-        margin-left: 2rem;
-    }
-
-    .type-badge,
-    .status-badge {
-        padding: 0.5em 1em;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-
-    .type-lost {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .type-found {
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .status-pending {
-        background: #dbeafe;
-        color: #1e40af;
-    }
-
-    .status-claimed {
-        background: #f3e8ff;
-        color: #6b21a8;
-    }
-
-    .status-resolved {
-        background: #f1f5f9;
-        color: #475569;
-    }
-
-    /* Details Container */
-    .item-details-container {
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid #f1f5f9;
-        overflow: hidden;
-    }
-
-    .details-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0;
-        min-height: 600px;
-    }
-
-    /* Image Column */
-    .image-column {
-        background: #f8fafc;
-        padding: 2rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-right: 1px solid #f1f5f9;
-    }
-
-    .item-image-card {
-        text-align: center;
-        max-width: 100%;
-    }
-
-    .item-image-large {
-        max-height: 400px;
-        max-width: 100%;
-        border-radius: 15px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    .object-fit-contain {
         object-fit: contain;
     }
 
-    .ai-feature-badge {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        padding: 0.5em 1em;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        margin-top: 1rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .no-image-card {
-        text-align: center;
-        color: #94a3b8;
-        padding: 3rem 2rem;
-    }
-
-    .no-image-card i {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        display: block;
-    }
-
-    .no-image-card h4 {
-        color: #64748b;
-        margin-bottom: 0.5rem;
-    }
-
-    .no-image-card p {
-        margin-bottom: 0;
-    }
-
-    /* Details Column */
-    .details-column {
-        padding: 2rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    /* Info Cards Grid */
-    .info-cards-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
-
-    .info-card {
-        background: #f8fafc;
-        border-radius: 12px;
-        padding: 1.25rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        border: 1px solid #e2e8f0;
-        transition: all 0.3s ease;
-    }
-
-    .info-card:hover {
-        background: #f1f5f9;
-        transform: translateY(-2px);
-    }
-
-    .info-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        color: white;
-    }
-
-    .info-icon.category {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    }
-
-    .info-icon.location {
-        background: linear-gradient(135deg, #10b981, #059669);
-    }
-
-    .info-icon.date {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-    }
-
-    .info-icon.reporter {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-    }
-
-    .info-content label {
-        font-size: 0.8rem;
-        color: #64748b;
-        font-weight: 500;
-        margin-bottom: 0.25rem;
-        display: block;
-    }
-
-    .info-content h4 {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #1e293b;
-        margin-bottom: 0;
-    }
-
-    /* Description Card */
-    .description-card {
-        background: white;
-        border: 1px solid #f1f5f9;
-        border-radius: 15px;
-        overflow: hidden;
-    }
-
-    .description-card .card-header {
-        background: #f8fafc;
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid #e2e8f0;
-        display: flex;
-        align-items: center;
-    }
-
-    .description-card .card-header h3 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #1e293b;
-        margin-bottom: 0;
-    }
-
-    .description-card .card-content {
-        padding: 1.5rem;
-    }
-
-    .description-card .card-content p {
-        color: #374151;
+    .leading-relaxed {
         line-height: 1.6;
-        margin-bottom: 0;
-        font-size: 1.05rem;
-    }
-
-    /* Action Section */
-    .action-section {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    .match-alert {
-        background: linear-gradient(135deg, #dbeafe, #e0f2fe);
-        border: 1px solid #bae6fd;
-        border-radius: 12px;
-        padding: 1.5rem;
-        display: flex;
-        align-items: center;
-        color: #0369a1;
-    }
-
-    .match-alert i {
-        font-size: 1.5rem;
-    }
-
-    .match-alert h4 {
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-    }
-
-    .match-alert p {
-        margin-bottom: 0;
-        opacity: 0.9;
-    }
-
-    .primary-actions {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .action-btn {
-        padding: 1rem 2rem;
-        border-radius: 10px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex: 1;
-        min-width: 200px;
-    }
-
-    .claim-btn {
-        background: linear-gradient(135deg, #10b981, #059669);
-        color: white;
-    }
-
-    .claim-btn:hover {
-        background: linear-gradient(135deg, #059669, #047857);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-    }
-
-    .resolve-btn {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-        color: white;
-    }
-
-    .resolve-btn:hover {
-        background: linear-gradient(135deg, #d97706, #b45309);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
-    }
-
-    .contact-btn {
-        background: white;
-        color: #374151;
-        border: 2px solid #e5e7eb;
-    }
-
-    .contact-btn:hover {
-        background: #f8fafc;
-        border-color: #6366f1;
-        color: #6366f1;
-        text-decoration: none;
-        transform: translateY(-2px);
-    }
-
-    .secondary-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .navigation-actions {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .nav-btn {
-        background: #f8fafc;
-        color: #374151;
-        text-decoration: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        flex: 1;
-        justify-content: center;
-    }
-
-    .nav-btn:hover {
-        background: #e2e8f0;
-        color: #1e293b;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
-
-    .status-alert {
-        padding: 1.5rem;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        color: white;
-    }
-
-    .status-alert.claimed {
-        background: linear-gradient(135deg, #10b981, #059669);
-    }
-
-    .status-alert.resolved {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    }
-
-    .status-alert i {
-        font-size: 1.5rem;
-    }
-
-    .status-alert h4 {
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-    }
-
-    .status-alert p {
-        margin-bottom: 0;
-        opacity: 0.9;
     }
 </style>
-
 {% endblock %}

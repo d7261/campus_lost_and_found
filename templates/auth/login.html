@@ -1,798 +1,241 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Campus Lost & Found</title>
+    <title>Login - CampusFindAI</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-light: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #f1f5f9;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1rem;
+            padding: 2rem;
         }
-        
-        .login-container {
+
+        .auth-card {
             width: 100%;
-            max-width: 1200px;
-            min-height: 700px;
-            background: white;
-            border-radius: 30px;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            max-width: 600px;
+            background: #ffffff;
+            border-radius: 32px;
+            padding: 3.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
         }
-        
-        /* Left Side - Brand & Info */
-        .login-left {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: white;
-            padding: 3rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .brand-section {
-            margin-bottom: 3rem;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .logo-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            color: white;
-        }
-        
-        .logo-text {
-            font-size: 1.8rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .welcome-back h1 {
-            font-size: 2.8rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            line-height: 1.2;
-        }
-        
-        .welcome-back p {
-            font-size: 1.1rem;
-            color: #cbd5e1;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-        
-        .testimonials {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-        
-        .testimonial {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 1.5rem;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .testimonial-content {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .testimonial-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            color: white;
-            flex-shrink: 0;
-        }
-        
-        .testimonial-text p {
-            color: #cbd5e1;
-            font-style: italic;
-            margin-bottom: 0.5rem;
-        }
-        
-        .testimonial-author {
-            font-weight: 600;
-            color: white;
-            font-size: 0.9rem;
-        }
-        
-        .stats {
-            display: flex;
-            gap: 2rem;
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid #334155;
-        }
-        
-        .stat-item {
-            text-align: center;
-        }
-        
-        .stat-number {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 0.25rem;
-            display: block;
-        }
-        
-        .stat-label {
-            color: #94a3b8;
-            font-size: 0.9rem;
-        }
-        
-        /* Right Side - Login Form */
-        .login-right {
-            padding: 3rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            background: white;
-        }
-        
-        .form-header {
+
+        .brand-header {
             text-align: center;
             margin-bottom: 2.5rem;
         }
-        
-        .form-header h2 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: #1e293b;
+
+        .brand-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
             margin-bottom: 0.5rem;
         }
-        
-        .form-header p {
-            color: #64748b;
-            font-size: 1.1rem;
-        }
-        
-        .login-form {
-            max-width: 400px;
-            margin: 0 auto;
-            width: 100%;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-        
-        .form-label {
-            display: block;
-            font-weight: 600;
-            color: #374151;
+
+        .brand-header h2 {
+            font-weight: 800;
             margin-bottom: 0.5rem;
+            color: #0f172a;
+        }
+
+        .brand-header p {
+            color: var(--text-muted);
             font-size: 0.95rem;
         }
-        
-        .input-with-icon {
-            position: relative;
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.6rem;
+            color: #475569;
         }
-        
-        .input-icon {
+
+        .input-group-custom {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group-custom i {
             position: absolute;
-            left: 1rem;
+            left: 1.25rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #6b7280;
-            z-index: 2;
+            color: #94a3b8;
+            z-index: 5;
         }
-        
+
         .form-control {
-            width: 100%;
-            padding: 0.875rem 1rem 0.875rem 3rem;
-            border: 2px solid #e5e7eb;
+            padding: 0.8rem 1rem 0.8rem 3rem;
             border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: white;
+            border: 2px solid var(--border-color);
+            font-weight: 500;
+            transition: all 0.3s;
         }
-        
+
         .form-control:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
-        
+
         .password-toggle {
             position: absolute;
-            right: 1rem;
+            right: 1.25rem;
             top: 50%;
             transform: translateY(-50%);
+            color: #94a3b8;
+            cursor: pointer;
+            z-index: 5;
             background: none;
             border: none;
-            color: #6b7280;
-            cursor: pointer;
-            z-index: 2;
         }
-        
-        .password-toggle:hover {
-            color: #374151;
-        }
-        
-        .remember-forgot {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-        
-        .remember-me {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .remember-checkbox {
-            width: 18px;
-            height: 18px;
-            border: 2px solid #e5e7eb;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-        
-        .remember-checkbox.checked {
-            background: #6366f1;
-            border-color: #6366f1;
-        }
-        
-        .remember-checkbox.checked i {
-            color: white;
-            font-size: 0.8rem;
-        }
-        
-        .remember-label {
-            color: #374151;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-        
-        .forgot-link {
-            color: #6366f1;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-        
-        .forgot-link:hover {
-            text-decoration: underline;
-        }
-        
-        .submit-btn {
+
+        .btn-submit {
             width: 100%;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background: var(--primary-color);
             color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .submit-btn:hover {
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
-        }
-        
-        .social-login {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .social-divider {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        
-        .social-divider::before,
-        .social-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #e5e7eb;
-        }
-        
-        .social-divider span {
-            padding: 0 1rem;
-            color: #64748b;
-            font-size: 0.9rem;
-        }
-        
-        .social-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-        }
-        
-        .social-btn {
-            flex: 1;
-            padding: 0.75rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            background: white;
-            color: #374151;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        
-        .social-btn:hover {
-            border-color: #6366f1;
-            color: #6366f1;
-            transform: translateY(-2px);
-        }
-        
-        .register-link {
-            text-align: center;
-            color: #64748b;
-            font-size: 0.95rem;
-        }
-        
-        .register-link a {
-            color: #6366f1;
-            font-weight: 600;
-            text-decoration: none;
-        }
-        
-        .register-link a:hover {
-            text-decoration: underline;
-        }
-        
-        /* Error Message */
-        .error-message {
-            background: #fee2e2;
-            border: 1px solid #fecaca;
-            color: #dc2626;
             padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-            display: none;
+            border-radius: 14px;
+            font-weight: 700;
+            border: none;
+            margin-top: 1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
         }
-        
-        .error-message.show {
-            display: block;
-            animation: slideIn 0.3s ease;
+
+        .btn-submit:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
         }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.95rem;
+            color: var(--text-muted);
         }
-        
-        /* Responsive */
-        @media (max-width: 992px) {
-            .login-container {
-                grid-template-columns: 1fr;
-                max-width: 500px;
-            }
-            
-            .login-left {
-                padding: 2rem;
-                display: none; /* Hide left side on mobile */
-            }
-            
-            .login-right {
-                padding: 2rem;
-            }
+
+        .auth-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 700;
         }
-        
-        @media (max-width: 768px) {
-            body {
-                padding: 0.5rem;
-            }
-            
-            .login-container {
-                border-radius: 20px;
-            }
-            
-            .login-right {
-                padding: 1.5rem;
-            }
-            
-            .form-header h2 {
-                font-size: 1.8rem;
-            }
-            
-            .social-buttons {
-                flex-direction: column;
-            }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
         }
-        
-        /* Animation */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .form-group {
-            animation: fadeIn 0.5s ease forwards;
-        }
-        
-        .form-group:nth-child(1) { animation-delay: 0.1s; }
-        .form-group:nth-child(2) { animation-delay: 0.2s; }
-        
-        /* Decorative Elements */
-        .floating-shapes {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-        
-        .shape {
-            position: absolute;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
-            border-radius: 50%;
-            animation: float 20s infinite linear;
-        }
-        
-        .shape:nth-child(1) {
-            width: 100px;
-            height: 100px;
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-        
-        .shape:nth-child(2) {
-            width: 150px;
-            height: 150px;
-            top: 60%;
-            right: 10%;
-            animation-delay: 5s;
-        }
-        
-        .shape:nth-child(3) {
-            width: 80px;
-            height: 80px;
-            bottom: 20%;
-            left: 20%;
-            animation-delay: 10s;
-        }
-        
-        @keyframes float {
-            0% {
-                transform: translateY(0) rotate(0deg);
-            }
-            25% {
-                transform: translateY(-20px) rotate(90deg);
-            }
-            50% {
-                transform: translateY(0) rotate(180deg);
-            }
-            75% {
-                transform: translateY(20px) rotate(270deg);
-            }
-            100% {
-                transform: translateY(0) rotate(360deg);
-            }
+
+        /* Flash Messages */
+        .alert {
+            border-radius: 16px;
+            border: none;
+            padding: 1rem 1.25rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
         }
     </style>
 </head>
+
 <body>
-    <div class="login-container">
-        <!-- Left Side - Brand & Info -->
-        <div class="login-left">
-            <div class="floating-shapes">
-                <div class="shape"></div>
-                <div class="shape"></div>
-                <div class="shape"></div>
-            </div>
-            
-            <div class="brand-section">
-                <div class="logo">
-                    <div class="logo-icon">
-                        <i class="fas fa-search-location"></i>
-                    </div>
-                    <div class="logo-text">Campus Lost & Found</div>
-                </div>
-                
-                <div class="welcome-back">
-                    <h1>Welcome Back!</h1>
-                    <p>Sign in to access your account, manage your items, and help reunite lost belongings with their owners.</p>
-                </div>
-            </div>
-            
-            <div class="testimonials">
-                <div class="testimonial">
-                    <div class="testimonial-content">
-                        <div class="testimonial-avatar">SK</div>
-                        <div class="testimonial-text">
-                            <p>"Found my lost laptop within hours! This platform is amazing."</p>
-                            <div class="testimonial-author">Sarah K., Computer Science</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="testimonial">
-                    <div class="testimonial-content">
-                        <div class="testimonial-avatar">MJ</div>
-                        <div class="testimonial-text">
-                            <p>"As a staff member, I love how easy it is to help students."</p>
-                            <div class="testimonial-author">Michael J., Library Staff</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="stats">
-                <div class="stat-item">
-                    <span class="stat-number">1000+</span>
-                    <span class="stat-label">Items Reunited</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number">98%</span>
-                    <span class="stat-label">Success Rate</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number">24/7</span>
-                    <span class="stat-label">Active Community</span>
-                </div>
-            </div>
+    <div class="auth-card">
+        <div class="brand-header">
+            <a href="{{ url_for('index') }}" class="brand-logo">
+                <i class="fas fa-cube"></i> CampusFindAI
+            </a>
+            <h2>Welcome Back</h2>
+            <p>Enter your details to access your account.</p>
         </div>
-        
-        <!-- Right Side - Login Form -->
-        <div class="login-right">
-            <div class="form-header">
-                <h2>Welcome Back</h2>
-                <p>Sign in to your account to continue</p>
-            </div>
-            
-            <!-- Error Message (can be shown/hidden based on login errors) -->
-            <div class="error-message" id="errorMessage">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                <span id="errorText">Invalid username or password</span>
-            </div>
-            <!-- Add this RIGHT AFTER your existing error-message div -->
-<!-- Flash Messages from Flask -->
-<div class="flash-container" style="max-width: 400px; margin: 0 auto 1.5rem;">
-    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show mb-3">
-                    <i class="fas fa-{% if category == 'error' %}exclamation-circle{% else %}check-circle{% endif %} me-2"></i>
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} shadow-sm">
+            <i class="fas fa-{{ 'circle-exclamation' if category == 'error' else 'circle-check' }} me-2"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
         {% endif %}
-    {% endwith %}
-</div>
-            <form method="POST" class="login-form">
-                <div class="form-group">
-                    <label for="username" class="form-label">Username or Email</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-user input-icon"></i>
-                        <input type="text" class="form-control" id="username" name="username" 
-                               placeholder="Enter your username or email" required>
-                    </div>
+        {% endwith %}
+
+        <form method="POST">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username or Email</label>
+                <div class="input-group-custom">
+                    <i class="fas fa-user-circle"></i>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="johndoe"
+                        required>
                 </div>
-                
-                <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock input-icon"></i>
-                        <input type="password" class="form-control" id="password" name="password" 
-                               placeholder="Enter your password" required>
-                        <button type="button" class="password-toggle" id="togglePassword">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="remember-forgot">
-                    <div class="remember-me">
-                        <div class="remember-checkbox" id="rememberCheckbox">
-                            <i class="fas fa-check" style="display: none;"></i>
-                        </div>
-                        <input type="checkbox" class="hidden" id="remember" name="remember">
-                        <label for="remember" class="remember-label" id="rememberLabel">Remember me</label>
-                    </div>
-                    <a href="#" class="forgot-link">Forgot password?</a>
-                </div>
-                
-                <button type="submit" class="submit-btn">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Sign In
-                </button>
-                
-                <!-- Social Login Options -->
-                <div class="social-login">
-                    <div class="social-divider">
-                        <span>Or continue with</span>
-                    </div>
-                    <div class="social-buttons">
-                        <button type="button" class="social-btn">
-                            <i class="fab fa-google"></i>
-                            Google
-                        </button>
-                        <button type="button" class="social-btn">
-                            <i class="fab fa-microsoft"></i>
-                            Microsoft
-                        </button>
-                    </div>
-                </div>
-            </form>
-            
-            <div class="register-link">
-                Don't have an account? <a href="{{ url_for('auth.register') }}">Create one here</a>
             </div>
+
+            <div class="mb-4">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group-custom">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="••••••••"
+                        required>
+                    <button type="button" class="password-toggle" id="togglePassword">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                    <label class="form-check-label small fw-500" for="remember">Remember me</label>
+                </div>
+                <a href="#" class="small text-primary text-decoration-none fw-600">Forgot?</a>
+            </div>
+
+            <button type="submit" class="btn-submit">Sign In</button>
+        </form>
+
+        <div class="auth-footer">
+            Don't have an account? <a href="{{ url_for('auth.register') }}">Create one</a>
         </div>
     </div>
 
     <script>
-        // Password toggle functionality
         const togglePassword = document.getElementById('togglePassword');
         const passwordInput = document.getElementById('password');
-        
-        togglePassword.addEventListener('click', function() {
+
+        togglePassword.addEventListener('click', function () {
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
             this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
         });
-        
-        // Remember me checkbox styling
-        const rememberCheckbox = document.getElementById('rememberCheckbox');
-        const rememberInput = document.getElementById('remember');
-        const rememberLabel = document.getElementById('rememberLabel');
-        
-        rememberCheckbox.addEventListener('click', function() {
-            rememberInput.checked = !rememberInput.checked;
-            updateCheckbox();
-        });
-        
-        rememberLabel.addEventListener('click', function() {
-            rememberInput.checked = !rememberInput.checked;
-            updateCheckbox();
-        });
-        
-        function updateCheckbox() {
-            if (rememberInput.checked) {
-                rememberCheckbox.classList.add('checked');
-                rememberCheckbox.querySelector('i').style.display = 'block';
-            } else {
-                rememberCheckbox.classList.remove('checked');
-                rememberCheckbox.querySelector('i').style.display = 'none';
-            }
-        }
-        
-        // Initialize checkbox state
-        updateCheckbox();
-        
-        // Form validation
-        document.querySelector('.login-form').addEventListener('submit', function(e) {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            if (!username || !password) {
-                e.preventDefault();
-                showError('Please fill in all fields');
-                return;
-            }
-            
-            // Show loading state
-            const submitBtn = document.querySelector('.submit-btn');
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
-            submitBtn.disabled = true;
-            
-            // Simulate login delay (remove in production)
-            setTimeout(() => {
-                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
-                submitBtn.disabled = false;
-            }, 2000);
-        });
-        
-        // Error message display
-        function showError(message) {
-            const errorMessage = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
-            
-            errorText.textContent = message;
-            errorMessage.classList.add('show');
-            
-            // Auto-hide error after 5 seconds
-            setTimeout(() => {
-                errorMessage.classList.remove('show');
-            }, 5000);
-        }
-        
-        // Social login buttons (demo functionality)
-        document.querySelectorAll('.social-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const provider = this.textContent.trim();
-                showError(`${provider} login is not implemented in this demo`);
-            });
-        });
-        
-        // Forgot password link
-        document.querySelector('.forgot-link').addEventListener('click', function(e) {
-            e.preventDefault();
-            showError('Password reset functionality is not implemented in this demo');
-        });
-        
-        // Check for URL error parameters (you can add this if your backend returns errors)
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('error')) {
-            showError(urlParams.get('error'));
-        }
     </script>
 </body>
+
 </html>

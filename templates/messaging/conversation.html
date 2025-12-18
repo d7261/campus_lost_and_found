@@ -27,10 +27,24 @@
             <div class="context-info">
                 <span class="context-label">Regarding Item:</span>
                 <h4>{{ context_item.item_title }}</h4>
+                <div class="context-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ context_item.item_location }}</span>
+                </div>
             </div>
-            <a href="{{ url_for('view_item', item_id=context_item.item_id) }}" class="context-link">
-                View Item <i class="fas fa-external-link-alt"></i>
-            </a>
+            <div class="context-actions">
+                <a href="{{ url_for('view_item', item_id=context_item.item_id) }}" class="context-link">
+                    View <i class="fas fa-external-link-alt"></i>
+                </a>
+                <a href="{{ url_for('campus_locations') }}" class="location-guide-link">
+                    <i class="fas fa-compass"></i> Guide
+                </a>
+            </div>
+        </div>
+
+        <div class="meetup-tip">
+            <i class="fas fa-lightbulb"></i>
+            <span>Coordinate a safe meetup spot using the <strong>Guide</strong> above!</span>
         </div>
         {% endif %}
 
@@ -215,11 +229,61 @@
         color: #1e293b;
     }
 
+    .context-location {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 0.2rem;
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+
+    .context-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-end;
+    }
+
     .context-link {
         font-size: 0.85rem;
         color: #059669;
         text-decoration: none;
         font-weight: 600;
+    }
+
+    .location-guide-link {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        text-decoration: none;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .location-guide-link:hover {
+        color: #059669;
+    }
+
+    .meetup-tip {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        color: #0369a1;
+        padding: 0.8rem 1.25rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0 auto 1.5rem;
+        max-width: 500px;
+        box-shadow: 0 2px 8px rgba(3, 105, 161, 0.05);
+    }
+
+    .meetup-tip i {
+        color: #0ea5e9;
+        font-size: 1rem;
     }
 
     /* Messages */

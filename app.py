@@ -262,9 +262,6 @@ def campus_locations():
             'room': 'Office', 
             'hours': 'Mon-Fri 8AM-9PM, Sat-Sun 10AM-6PM',
             'contact': 'Security Officer / Gate Attendant',
-            'phone': 'x1001',
-            'specialties': 'General items, access cards, small personal belongings',
-            'notes': 'First point of contact for items found near campus entrance. Available for after-hours coordination.',
             'icon': 'fas fa-shield-alt',
             'color': 'primary'
         },
@@ -274,9 +271,6 @@ def campus_locations():
             'room': 'Ground Floor, near entrance', 
             'hours': 'Mon-Fri 8AM-9PM, Sat 10AM-6PM, Sun 12PM-8PM',
             'contact': 'Circulation Desk Staff',
-            'phone': 'x2001',
-            'specialties': 'Textbooks, laptops, academic materials, research items, calculators',
-            'notes': 'Ideal for academic items. Bring student ID for verification.',
             'icon': 'fas fa-book',
             'color': 'success'
         },
@@ -286,9 +280,6 @@ def campus_locations():
             'room': 'Ground Floor, near entrance',
             'hours': 'Mon-Fri 8AM-9PM, Sat 10AM-6PM, Sun 12PM-8PM',
             'contact': 'Cafeteria Manager / Reception Staff',
-            'phone': 'x3001',
-            'specialties': 'Lunch boxes, water bottles, clothing items, small bags, accessories',
-            'notes': 'High-traffic location. Perfect for items commonly lost during meal times.',
             'icon': 'fas fa-utensils',
             'color': 'warning'
         }

@@ -1,719 +1,171 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Welcome Header -->
-<div class="welcome-section">
-    <h1>Welcome back, {{ current_user.username }}! 👋</h1>
-    <p>Manage your lost and found items, search for missing belongings, and help others reunite with their items.</p>
+<!-- Page Title & Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold mb-1">Dashboard</h1>
+        <p class="text-muted">Welcome back! Here's an overview of your reports.</p>
+    </div>
+    <a href="{{ url_for('reporting.my_items') }}" class="text-primary text-decoration-none fw-600">
+        View All Reports &rarr;
+    </a>
 </div>
 
-<!-- Quick Stats -->
-<div class="stats-grid">
-    <div class="stat-card stat-primary">
-        <div class="stat-content">
-            <div class="stat-info">
-                <h3>{{ current_user.items|length }}</h3>
-                <p>Total Reports</p>
-            </div>
-            <div class="stat-icon">
-                <i class="fas fa-clipboard-list"></i>
-            </div>
-        </div>
-        <div class="stat-trend">
-            <i class="fas fa-chart-line"></i>
-            <span>All time</span>
-        </div>
-    </div>
+{% set user_items = current_user.items %}
+{% set lost_count = user_items|selectattr('item_type', 'equalto', 'lost')|list|length %}
+{% set found_count = user_items|selectattr('item_type', 'equalto', 'found')|list|length %}
+{% set active_count = user_items|selectattr('item_status', 'equalto', 'pending')|list|length %}
+{% set resolved_count = user_items|selectattr('item_status', 'equalto', 'resolved')|list|length %}
 
-    <div class="stat-card stat-success">
-        <div class="stat-content">
-            <div class="stat-info">
-                {% set found_items = [] %}
-                {% for item in current_user.items %}
-                {% if item.type == 'found' %}
-                {% set _ = found_items.append(item) %}
-                {% endif %}
-                {% endfor %}
-                <h3>{{ found_items|length }}</h3>
-                <p>Found Reports</p>
-            </div>
-            <div class="stat-icon">
-                <i class="fas fa-hand-holding-heart"></i>
-            </div>
-        </div>
-        <div class="stat-trend">
-            <i class="fas fa-{% if found_items|length > 0 %}arrow-up{% else %}minus{% endif %}"></i>
-            <span>Helping others</span>
-        </div>
-    </div>
-
-    <div class="stat-card stat-warning">
-        <div class="stat-content">
-            <div class="stat-info">
-                {% set lost_items = [] %}
-                {% for item in current_user.items %}
-                {% if item.item_type == 'lost' %}
-                {% set _ = lost_items.append(item) %}
-                {% endif %}
-                {% endfor %}
-                <h3>{{ lost_items|length }}</h3>
-                <p>Lost Reports</p>
-            </div>
-            <div class="stat-icon">
-                <i class="fas fa-search-location"></i>
-            </div>
-        </div>
-        <div class="stat-trend">
-            <i class="fas fa-{% if lost_items|length > 0 %}exclamation{% else %}check{% endif %}"></i>
-            <span>{% if lost_items|length > 0 %}Needs attention{% else %}All good{% endif %}</span>
-        </div>
-    </div>
-
-    <div class="stat-card stat-info">
-        <div class="stat-content">
-            <div class="stat-info">
-                {% set new_notifications = [] %}
-                {% for notification in current_user.notifications %}
-                {% if not notification.is_seen %}
-                {% set _ = new_notifications.append(notification) %}
-                {% endif %}
-                {% endfor %}
-                <h3>{{ new_notifications|length }}</h3>
-                <p>New Alerts</p>
-            </div>
-            <div class="stat-icon">
-                <i class="fas fa-bell"></i>
-            </div>
-        </div>
-        <div class="stat-trend">
-            <i class="fas fa-{% if new_notifications|length > 0 %}envelope{% else %}envelope-open{% endif %}"></i>
-            <span>{% if new_notifications|length > 0 %}Unread{% else %}All read{% endif %}</span>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Actions -->
-<div class="section">
-    <div class="section-header">
-        <h2>Quick Actions</h2>
-        <p>Get things done quickly</p>
-    </div>
-    <div class="actions-grid">
-        <a href="{{ url_for('search') }}" class="action-card">
-            <div class="action-icon search">
-                <i class="fas fa-search"></i>
-            </div>
-            <div class="action-content">
-                <h4>Search Items</h4>
-                <p>Look for lost or found items across campus</p>
-            </div>
-            <div class="action-arrow">
-                <i class="fas fa-arrow-right"></i>
-            </div>
-        </a>
-
-        <a href="{{ url_for('reporting.report_item') }}" class="action-card">
-            <div class="action-icon report">
-                <i class="fas fa-plus"></i>
-            </div>
-            <div class="action-content">
-                <h4>Report Item</h4>
-                <p>Report lost or submit found items</p>
-            </div>
-            <div class="action-arrow">
-                <i class="fas fa-arrow-right"></i>
-            </div>
-        </a>
-
-        <a href="{{ url_for('reporting.my_items') }}" class="action-card">
-            <div class="action-icon history">
-                <i class="fas fa-history"></i>
-            </div>
-            <div class="action-content">
-                <h4>My Reports</h4>
-                <p>View and manage your reports</p>
-            </div>
-            <div class="action-arrow">
-                <i class="fas fa-arrow-right"></i>
-            </div>
-        </a>
-
-        <a href="{{ url_for('notifications') }}" class="action-card">
-            <div class="action-icon notifications">
-                <i class="fas fa-bell"></i>
-            </div>
-            <div class="action-content">
-                <h4>Notifications</h4>
-                <p>Check your alerts and matches</p>
-            </div>
-            <div class="action-arrow">
-                <i class="fas fa-arrow-right"></i>
-            </div>
-        </a>
-    </div>
-</div>
-
-<!-- Recent Activity -->
-<div class="section">
-    <div class="section-header">
-        <h2>Recent Activity</h2>
-        <p>Your latest reported items</p>
-    </div>
-    <div class="activity-card">
-        {% if current_user.items %}
-        <div class="activity-list">
-            {% for item in current_user.items %}
-            {% if loop.index <= 5 %} <div class="activity-item">
-                <div class="activity-type {{ item.item_type }}"> <!-- ✅ Fixed -->
-                    <i class="fas fa-{% if item.item_type == 'lost' %}search{% else %}hand-holding{% endif %}"></i>
-                    <!-- ✅ Fixed -->
+<!-- Dashboard Stats Row -->
+<div class="row g-4 mb-5">
+    <!-- Total Reports -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 20px;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary"
+                    style="width: 50px; height: 50px;">
+                    <i class="fas fa-list fa-lg"></i>
                 </div>
-                <div class="activity-details">
-                    <div class="activity-main">
-                        <h5>{{ item.item_title }}</h5> <!-- ✅ Fixed -->
-                        <p class="activity-desc">
-                            {% if item.item_description|length > 80 %} <!-- ✅ Fixed -->
-                            {{ item.item_description[:80] }}... <!-- ✅ Fixed -->
-                            {% else %}
-                            {{ item.item_description }} <!-- ✅ Fixed -->
-                            {% endif %}
-                        </p>
-                        <div class="activity-meta">
-                            <span class="meta location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                {{ item.item_location }} <!-- ✅ Fixed -->
-                            </span>
-                            <span class="meta category">
-                                <i class="fas fa-tag"></i>
-                                {{ item.item_category }} <!-- ✅ Fixed -->
-                            </span>
-                            <span class="meta date">
-                                <i class="fas fa-calendar"></i>
-                                {{ item.item_created_at.strftime('%b %d, %Y') }} <!-- ✅ Fixed -->
-                            </span>
+                <div>
+                    <h3 class="fw-bold mb-0">{{ user_items|length }}</h3>
+                    <p class="text-muted small mb-0">Total Reports</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Lost Items -->
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ url_for('reporting.my_items', type='lost') }}" class="text-decoration-none h-100">
+            <div class="card border-0 shadow-sm p-4 h-100 dashboard-stat-card" style="border-radius: 20px;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-warning"
+                        style="width: 50px; height: 50px;">
+                        <i class="fas fa-search fa-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0 text-dark">{{ lost_count }}</h3>
+                        <p class="text-muted small mb-0">Lost Items</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!-- Found Items -->
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ url_for('reporting.my_items', type='found') }}" class="text-decoration-none h-100">
+            <div class="card border-0 shadow-sm p-4 h-100 dashboard-stat-card" style="border-radius: 20px;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-success"
+                        style="width: 50px; height: 50px;">
+                        <i class="fas fa-hand-holding-heart fa-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0 text-dark">{{ found_count }}</h3>
+                        <p class="text-muted small mb-0">Found Items</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!-- Resolved -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 20px;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-info"
+                    style="width: 50px; height: 50px;">
+                    <i class="fas fa-check-circle fa-lg"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-0 text-dark">{{ resolved_count }}</h3>
+                    <p class="text-muted small mb-0">Resolved</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Area -->
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm" style="border-radius: 24px;">
+            <div class="card-body p-5">
+                {% if not current_user.items %}
+                <div class="text-center py-5">
+                    <div class="mb-4 text-muted opacity-25">
+                        <i class="fas fa-archive" style="font-size: 5rem;"></i>
+                    </div>
+                    <h3 class="fw-bold">No items reported yet</h3>
+                    <p class="text-muted mb-4">You haven't reported any lost or found items on campus.</p>
+                    <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary px-5 py-3 fw-bold"
+                        style="border-radius: 12px;">
+                        Report an Item
+                    </a>
+                </div>
+                {% else %}
+                <div class="w-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0">Recent Activity</h5>
+                        <a href="{{ url_for('reporting.my_items') }}" class="btn btn-light btn-sm fw-bold px-3">View
+                            All</a>
+                    </div>
+
+                    <div class="list-group list-group-flush">
+                        {% for item in current_user.items[:8] %}
+                        <div class="list-group-item border-0 px-3 py-3 d-flex align-items-center gap-3 mb-2 recent-item-row"
+                            style="border-radius: 16px;">
+                            <div class="p-3 rounded-3 bg-light text-primary d-flex align-items-center justify-content-center"
+                                style="width: 48px; height: 48px;">
+                                <i
+                                    class="fas fa-{% if item.item_type == 'lost' %}search{% else %}hand-holding{% endif %}"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-bold">{{ item.item_title }}</h6>
+                                <small class="text-muted">{{ item.item_location }} • {{
+                                    item.item_created_at.strftime('%b %d, %Y') }}</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                {% set badge = get_status_badge(item) %}
+                                <span class="badge"
+                                    style="background-color: {{ badge.bg }}; color: {{ badge.color }}; border-radius: 8px; padding: 0.5rem 0.75rem;">
+                                    {{ badge.label }}
+                                </span>
+                                <a href="{{ url_for('view_item', item_id=item.item_id) }}"
+                                    class="btn btn-sm btn-outline-light text-primary border-0 fw-bold">
+                                    Details
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                    <div class="activity-status">
-                        {% set badge = get_status_badge(item) %}
-                        <span class="status"
-                            style="background-color: {{ badge.bg }}; color: {{ badge.color }}; display: inline-flex; align-items: center; gap: 0.35rem;">
-                            <i class="fas fa-{{ badge.icon }}" style="font-size: 0.8em;"></i>
-                            {{ badge.label }}
-                        </span>
+                        {% endfor %}
                     </div>
                 </div>
+                {% endif %}
+            </div>
         </div>
-        {% endif %}
-        {% endfor %}
     </div>
-    <div class="activity-footer">
-        <a href="{{ url_for('reporting.my_items') }}" class="view-all-btn">
-            View All Items
-            <i class="fas fa-arrow-right"></i>
-        </a>
-    </div>
-    {% else %}
-    <div class="empty-state">
-        <div class="empty-icon">
-            <i class="fas fa-inbox"></i>
-        </div>
-        <h4>No activity yet</h4>
-        <p>Start by reporting your first lost or found item!</p>
-        <a href="{{ url_for('reporting.report_item') }}" class="btn btn-primary">
-            Report Your First Item
-        </a>
-    </div>
-    {% endif %}
 </div>
-</div>
+
 <style>
-    /* ===== DASHBOARD STYLES ===== */
-
-    /* Welcome Section */
-    .welcome-section {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        /* Emerald green gradient */
-        color: white;
-        padding: 2.5rem;
-        border-radius: 20px;
-        margin-bottom: 2rem;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .welcome-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
-    }
-
-    .welcome-section h1 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        position: relative;
-        z-index: 1;
-    }
-
-    .welcome-section p {
-        font-size: 1.1rem;
-        opacity: 0.9;
-        margin-bottom: 0;
-        position: relative;
-        z-index: 1;
-        max-width: 800px;
-    }
-
-    /* Stats Grid */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .stat-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.75rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
-        border: 1px solid #f1f5f9;
-        overflow: hidden;
-        position: relative;
-    }
-
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-    }
-
-    .stat-card.stat-primary::before {
-        background: linear-gradient(90deg, #667eea, #764ba2);
-    }
-
-    .stat-card.stat-success::before {
-        background: linear-gradient(90deg, #10b981, #059669);
-    }
-
-    .stat-card.stat-warning::before {
-        background: linear-gradient(90deg, #f59e0b, #d97706);
-    }
-
-    .stat-card.stat-info::before {
-        background: linear-gradient(90deg, #06b6d4, #0891b2);
-    }
-
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    .stat-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-
-    .stat-info h3 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.25rem;
-        line-height: 1;
-        background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .stat-info p {
-        color: #64748b;
-        font-weight: 600;
-        margin-bottom: 0;
-    }
-
-    .stat-icon {
-        font-size: 2.5rem;
-        opacity: 0.9;
-        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .stat-trend {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.875rem;
-        color: #64748b;
-        font-weight: 500;
-    }
-
-    /* Section Styles */
-    .section {
-        margin-bottom: 2rem;
-    }
-
-    .section-header {
-        margin-bottom: 1.5rem;
-    }
-
-    .section-header h2 {
-        font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 0.5rem;
-        font-size: 1.75rem;
-    }
-
-    .section-header p {
-        color: #64748b;
-        margin-bottom: 0;
-        font-size: 1rem;
-    }
-
-    /* Actions Grid */
-    .actions-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .action-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.75rem;
-        text-decoration: none;
-        color: inherit;
-        display: flex;
-        align-items: center;
-        gap: 1.25rem;
-        transition: all 0.3s ease;
-        border: 1px solid #f1f5f9;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .action-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(168, 85, 247, 0.03) 100%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .action-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-        text-decoration: none;
-        color: inherit;
-        border-color: var(--accent-color);
-    }
-
-    .action-card:hover::before {
-        opacity: 1;
-    }
-
-    .action-icon {
-        width: 64px;
-        height: 64px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.75rem;
-        color: white;
-        flex-shrink: 0;
-        position: relative;
-        z-index: 1;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    }
-
-    .action-icon.search {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-    }
-
-    .action-icon.report {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-    }
-
-    .action-icon.history {
-        background: linear-gradient(135deg, #06b6d4, #0891b2);
-    }
-
-    .action-icon.notifications {
-        background: linear-gradient(135deg, #10b981, #059669);
-    }
-
-    .action-content {
-        flex: 1;
-        position: relative;
-        z-index: 1;
-    }
-
-    .action-content h4 {
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        color: #1e293b;
-        font-size: 1.25rem;
-    }
-
-    .action-content p {
-        color: #64748b;
-        margin-bottom: 0;
-        font-size: 0.95rem;
-        line-height: 1.5;
-    }
-
-    .action-arrow {
-        color: #cbd5e1;
-        transition: all 0.3s ease;
-        font-size: 1.25rem;
-        position: relative;
-        z-index: 1;
-    }
-
-    .action-card:hover .action-arrow {
-        color: var(--accent-color);
-        transform: translateX(8px);
-    }
-
-    /* Activity Card */
-    .activity-card {
-        background: white;
-        border-radius: 16px;
-        border: 1px solid #f1f5f9;
-        overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .activity-list {
-        padding: 0;
-    }
-
-    .activity-item {
-        display: flex;
-        align-items: center;
-        gap: 1.25rem;
-        padding: 1.5rem;
-        transition: all 0.3s ease;
-    }
-
-    .activity-item:not(:last-child) {
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    .activity-item:hover {
-        background: #f8fafc;
-    }
-
-    .activity-type {
-        width: 56px;
-        height: 56px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: white;
-        flex-shrink: 0;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .activity-type.lost {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-    }
-
-    .activity-type.found {
-        background: linear-gradient(135deg, #10b981, #059669);
-    }
-
-    .activity-details {
-        flex: 1;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .activity-main {
-        flex: 1;
-    }
-
-    .activity-main h5 {
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        color: #1e293b;
-        font-size: 1.1rem;
-    }
-
-    .activity-desc {
-        color: #64748b;
-        margin-bottom: 0.75rem;
-        font-size: 0.95rem;
-        line-height: 1.5;
-    }
-
-    .activity-meta {
-        display: flex;
-        gap: 1.5rem;
-        flex-wrap: wrap;
-    }
-
-    .meta {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.85rem;
-        color: #64748b;
-    }
-
-    .meta i {
-        font-size: 0.9rem;
-    }
-
-    .activity-status {
-        margin-left: 1.5rem;
-    }
-
-    .status {
-        padding: 0.5em 1em;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .status.pending {
-        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-        color: #1e40af;
-    }
-
-    .status.claimed {
-        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-        color: #065f46;
-    }
-
-    .status.resolved {
-        background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-        color: #374151;
-    }
-
-    /* Activity Footer */
-    .activity-footer {
-        padding: 1.5rem;
-        border-top: 1px solid #f1f5f9;
-        text-align: center;
-        background: #f8fafc;
-    }
-
-    .view-all-btn {
-        color: var(--accent-color);
-        text-decoration: none;
-        font-weight: 700;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem;
-        transition: all 0.3s ease;
-        padding: 0.75rem 1.5rem;
-        border-radius: 10px;
-        background: rgba(99, 102, 241, 0.1);
-    }
-
-    .view-all-btn:hover {
-        gap: 1rem;
-        text-decoration: none;
-        color: var(--accent-color-hover);
-        background: rgba(99, 102, 241, 0.15);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
-    }
-
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 4rem 2rem;
-    }
-
-    .empty-icon {
-        font-size: 4.5rem;
-        color: #cbd5e1;
-        margin-bottom: 1.5rem;
-        opacity: 0.7;
+    .dashboard-stat-card {
+        transition: transform 0.2s, background-color 0.2s;
     }
 
-    .empty-state h4 {
-        color: #4a5568;
-        margin-bottom: 1rem;
-        font-weight: 700;
-        font-size: 1.5rem;
+    .dashboard-stat-card:hover {
+        transform: translateY(-3px);
+        background-color: #fcfdfe;
     }
 
-    .empty-state p {
-        color: #718096;
-        margin-bottom: 2rem;
-        font-size: 1.1rem;
-        max-width: 500px;
-        margin-left: auto;
-        margin-right: auto;
+    .recent-item-row {
+        transition: background-color 0.2s;
     }
-
-    /* Responsive Design */
-    @media (max-width: 1024px) {
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
 
-        .actions-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
+    .recent-item-row:hover {
+        background-color: #f8fafc !important;
     }
-
-    @media (max-width: 768px) {
-        .welcome-section {
-            padding: 1.75rem;
-        }
-
-        .welcome-section h1 {
-            font-size: 2rem;
-        }
-
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .actions-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .activity-details {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
-        }
-
-        .activity-status {
-            margin-left: 0;
-            align-self: flex-end;
-        }
 
-        .activity-meta {
-            gap: 1rem;
-        }
+    .content-body {
+        background: transparent !important;
     }
 </style>
 {% endblock %}

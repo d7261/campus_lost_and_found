@@ -82,10 +82,13 @@ def manage_notifications():
 @login_required
 @admin_required
 def manage_matches():
-    """Manage Matches"""
-    # FIXED: Use match_created_at
-    matches = Match.query.order_by(Match.match_created_at.desc()).all()
-    return render_template('admin/matches.html', matches=matches)
+    """Manage Matches - Shows all match notifications"""
+    # Get all match-related notifications (potential_match and visual_match)
+    match_notifications = Notification.query.filter(
+        Notification.notification_type.in_(['potential_match', 'visual_match'])
+    ).order_by(Notification.notification_created_at.desc()).all()
+    
+    return render_template('admin/matches.html', matches=match_notifications)
 
 @admin_bp.route('/admin/messages')
 @login_required
