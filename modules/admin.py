@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, User, Item, Notification, Match, Message
+from models import db, User, Item, Notification, Match, Message, Flag, Category, CampusLocation
 from datetime import datetime, timedelta
+from sqlalchemy import or_
 import os
 from fpdf import FPDF
 from flask import make_response
@@ -29,14 +30,15 @@ def admin_dashboard():
     pending_items = Item.query.filter_by(item_status='pending').count()
     resolved_items = Item.query.filter_by(item_status='resolved').count()
     total_matches = Match.query.count()
+    pending_flags = Flag.query.filter_by(flag_status='pending').count()
     
-    # Recent activity - FIXED: Use item_created_at / user_created_at
+    # Recent activity
     recent_items = Item.query.order_by(Item.item_created_at.desc()).limit(10).all()
     recent_users = User.query.order_by(User.user_created_at.desc()).limit(5).all()
+    recent_flags = Flag.query.order_by(Flag.flag_created_at.desc()).limit(5).all()
     
     # System stats
     today = datetime.utcnow().date()
-    # FIXED: Use item_created_at / user_created_at
     items_today = Item.query.filter(Item.item_created_at >= str(today)).count()
     users_today = User.query.filter(User.user_created_at >= str(today)).count()
     
@@ -46,35 +48,147 @@ def admin_dashboard():
                          pending_items=pending_items,
                          resolved_items=resolved_items,
                          total_matches=total_matches,
+                         pending_flags=pending_flags,
                          recent_items=recent_items,
                          recent_users=recent_users,
+                         recent_flags=recent_flags,
                          items_today=items_today,
-                         users_today=users_today)
+                          users_today=users_today)
+
+@admin_bp.route('/admin/analytics')
+@login_required
+@admin_required
+def admin_analytics():
+    """System Analytics & Trends"""
+    # 7-day trends
+    trends = []
+    for i in range(7):
+        date = (datetime.utcnow() - timedelta(days=i)).date()
+        date_str = date.strftime('%Y-%m-%d')
+        next_day = date + timedelta(days=1)
+        next_day_str = next_day.strftime('%Y-%m-%d')
+        
+        items_count = Item.query.filter(Item.item_created_at >= date_str, 
+                                      Item.item_created_at < next_day_str).count()
+        users_count = User.query.filter(User.user_created_at >= date_str, 
+                                      User.user_created_at < next_day_str).count()
+        matches_count = Match.query.filter(Match.match_created_at >= date_str, 
+                                         Match.match_created_at < next_day_str).count()
+        
+        trends.append({
+            'date': date.strftime('%b %d'),
+            'items': items_count,
+            'users': users_count,
+            'matches': matches_count
+        })
+    
+    trends.reverse() # Oldest first for charts
+    
+    # Calculate some Visual stats
+    total_matches = Match.query.count()
+    resolved_matches = Match.query.join(Item, Match.match_item_id == Item.item_id)\
+                                 .filter(Item.item_status == 'resolved').count()
+    
+    accuracy = 0
+    if total_matches > 0:
+        accuracy = round((resolved_matches / total_matches) * 100, 1)
+    
+    return render_template('admin/analytics.html', trends=trends, total_matches=total_matches, accuracy=accuracy)
 
 @admin_bp.route('/admin/users')
 @login_required
 @admin_required
 def manage_users():
     """Manage Users"""
-    # FIXED: Use user_created_at
-    users = User.query.order_by(User.user_created_at.desc()).all()
-    return render_template('admin/users.html', users=users)
+    q = request.args.get('q', '')
+    query = User.query
+    
+    if q:
+        query = query.filter(
+            or_(
+                User.user_username.ilike(f'%{q}%'),
+                User.user_email.ilike(f'%{q}%')
+            )
+        )
+    
+    users = query.order_by(User.user_created_at.desc()).all()
+    return render_template('admin/users.html', users=users, q=q)
+
+@admin_bp.route('/flag/create', methods=['POST'])
+@login_required
+def create_flag():
+    """Create a community flag for an item or message"""
+    flag_type = request.form.get('flag_type')
+    reason = request.form.get('reason')
+    item_id = request.form.get('item_id')
+    message_id = request.form.get('message_id')
+    
+    if not reason:
+        flash('Please provide a reason for flagging.', 'warning')
+        return redirect(request.referrer or url_for('dashboard'))
+    
+    new_flag = Flag(
+        flag_type=flag_type,
+        flag_reason=reason,
+        flag_creator_id=current_user.user_id,
+        item_id=item_id if flag_type == 'item' else None,
+        message_id=message_id if flag_type == 'message' else None
+    )
+    
+    db.session.add(new_flag)
+    db.session.commit()
+    
+    flash('Thank you for your report. An administrator will review it shortly.', 'success')
+    return redirect(request.referrer or url_for('dashboard'))
+
+@admin_bp.route('/admin/flags')
+@login_required
+@admin_required
+def manage_flags():
+    """Manage Flagged Content"""
+    flags = Flag.query.order_by(Flag.flag_status.asc(), Flag.flag_created_at.desc()).all()
+    return render_template('admin/flags.html', flags=flags)
+
+@admin_bp.route('/admin/flag/<int:flag_id>/resolve', methods=['POST'])
+@login_required
+@admin_required
+def resolve_flag(flag_id):
+    """Resolve or Ignore a flag"""
+    flag = Flag.query.get_or_404(flag_id)
+    action = request.form.get('action') # 'resolved' or 'ignored'
+    
+    if action in ['resolved', 'ignored']:
+        flag.flag_status = action
+        db.session.commit()
+        flash(f'Flag marked as {action}.', 'success')
+    
+    return redirect(url_for('admin.manage_flags'))
 
 @admin_bp.route('/admin/items')
 @login_required
 @admin_required
 def manage_items():
     """Manage Items"""
-    # FIXED: Use item_created_at
-    items = Item.query.order_by(Item.item_created_at.desc()).all()
-    return render_template('admin/items.html', items=items)
+    q = request.args.get('q', '')
+    query = Item.query
+    
+    if q:
+        query = query.filter(
+            or_(
+                Item.item_title.ilike(f'%{q}%'),
+                Item.item_description.ilike(f'%{q}%'),
+                Item.item_location.ilike(f'%{q}%')
+            )
+        )
+        
+    items = query.order_by(Item.item_created_at.desc()).all()
+    return render_template('admin/items.html', items=items, q=q)
 
 @admin_bp.route('/admin/notifications')
 @login_required
 @admin_required
 def manage_notifications():
     """Manage Notifications"""
-    # FIXED: Use notification_created_at
     notifications = Notification.query.order_by(Notification.notification_created_at.desc()).limit(100).all()
     return render_template('admin/notifications.html', notifications=notifications)
 
@@ -83,7 +197,6 @@ def manage_notifications():
 @admin_required
 def manage_matches():
     """Manage Matches - Shows all match notifications"""
-    # Get all match-related notifications (potential_match and visual_match)
     match_notifications = Notification.query.filter(
         Notification.notification_type.in_(['potential_match', 'visual_match'])
     ).order_by(Notification.notification_created_at.desc()).all()
@@ -94,9 +207,10 @@ def manage_matches():
 @login_required
 @admin_required
 def manage_messages():
-    """Manage Messages"""
-    messages = Message.query.order_by(Message.message_created_at.desc()).limit(100).all()
-    return render_template('admin/messages.html', messages=messages)
+    """Manage Messages - Privacy first: only shows flagged ones"""
+    # Join with Flags to only show conversations that have been flagged
+    flagged_messages = db.session.query(Message).join(Flag, Message.message_id == Flag.message_id).order_by(Message.message_created_at.desc()).all()
+    return render_template('admin/messages.html', messages=flagged_messages)
 
 @admin_bp.route('/admin/message/<int:message_id>/delete', methods=['POST'])
 @login_required
@@ -105,9 +219,8 @@ def delete_message(message_id):
     """Delete a message"""
     message = Message.query.get_or_404(message_id)
     
-    # Also delete associated notification if possible? 
-    # Usually cascade handles this, or we can leave it. 
-    # For now just delete the message.
+    # Delete associated flags
+    Flag.query.filter_by(message_id=message_id).delete()
     
     db.session.delete(message)
     db.session.commit()
@@ -115,13 +228,24 @@ def delete_message(message_id):
     flash('Message deleted successfully.', 'success')
     return redirect(url_for('admin.manage_messages'))
 
-@admin_bp.route('/admin/user/<int:user_id>/toggle')
+@admin_bp.route('/admin/user/<int:user_id>/suspend', methods=['POST'])
 @login_required
 @admin_required
-def toggle_user(user_id):
-    """Toggle user status (for future use)"""
+def suspend_user(user_id):
+    """Suspend or Unsuepend a user"""
     user = User.query.get_or_404(user_id)
-    flash(f'User {user.user_username} status updated.', 'info')
+    reason = request.form.get('reason', '')
+    
+    if user.user_is_suspended:
+        user.user_is_suspended = False
+        user.user_suspension_reason = None
+        flash(f'User {user.user_username} has been re-activated.', 'success')
+    else:
+        user.user_is_suspended = True
+        user.user_suspension_reason = reason
+        flash(f'User {user.user_username} has been suspended.', 'warning')
+        
+    db.session.commit()
     return redirect(url_for('admin.manage_users'))
 
 @admin_bp.route('/admin/item/<int:item_id>/delete', methods=['POST'])
@@ -252,6 +376,109 @@ def view_item(item_id):
                          item_notifications=item_notifications,
                          all_matches=all_matches)
     
+@admin_bp.route('/admin/categories')
+@login_required
+@admin_required
+def manage_categories():
+    """Manage Item Categories"""
+    categories = Category.query.order_by(Category.category_name).all()
+    return render_template('admin/categories.html', categories=categories)
+
+@admin_bp.route('/admin/category/add', methods=['POST'])
+@login_required
+@admin_required
+def add_category():
+    """Add a new category"""
+    name = request.form.get('name', '').strip()
+    icon = request.form.get('icon', 'tag').strip()
+    
+    if name:
+        if Category.query.filter_by(category_name=name).first():
+            flash('Category already exists.', 'error')
+        else:
+            new_cat = Category(category_name=name, category_icon=icon)
+            db.session.add(new_cat)
+            db.session.commit()
+            flash('Category added successfully.', 'success')
+            
+    return redirect(url_for('admin.manage_categories'))
+
+@admin_bp.route('/admin/category/<int:category_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_category(category_id):
+    """Delete a category"""
+    cat = Category.query.get_or_404(category_id)
+    db.session.delete(cat)
+    db.session.commit()
+    flash('Category deleted.', 'success')
+    return redirect(url_for('admin.manage_categories'))
+
+@admin_bp.route('/admin/locations')
+@login_required
+@admin_required
+def manage_locations():
+    """Manage Campus Locations"""
+    locations = CampusLocation.query.order_by(CampusLocation.location_name).all()
+    return render_template('admin/locations.html', locations=locations)
+
+@admin_bp.route('/admin/location/add', methods=['POST'])
+@login_required
+@admin_required
+def add_location():
+    """Add a new campus location"""
+    name = request.form.get('name', '').strip()
+    desc = request.form.get('description', '').strip()
+    
+    if name:
+        if CampusLocation.query.filter_by(location_name=name).first():
+            flash('Location already exists.', 'error')
+        else:
+            new_loc = CampusLocation(location_name=name, location_description=desc)
+            db.session.add(new_loc)
+            db.session.commit()
+            flash('Location added successfully.', 'success')
+            
+    return redirect(url_for('admin.manage_locations'))
+
+@admin_bp.route('/admin/location/<int:location_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_location(location_id):
+    """Delete a location"""
+    loc = CampusLocation.query.get_or_404(location_id)
+    db.session.delete(loc)
+    db.session.commit()
+    flash('Location deleted.', 'success')
+    return redirect(url_for('admin.manage_locations'))
+
+@admin_bp.route('/admin/disputes')
+@login_required
+@admin_required
+def manage_disputes():
+    """Manage Disputes"""
+    from models import Dispute
+    disputes = Dispute.query.order_by(Dispute.dispute_created_at.desc()).all()
+    return render_template('admin/disputes.html', disputes=disputes)
+
+@admin_bp.route('/admin/disputes/<int:dispute_id>/resolve', methods=['POST'])
+@login_required
+@admin_required
+def resolve_dispute(dispute_id):
+    """Resolve a dispute"""
+    from models import Dispute
+    action = request.form.get('action')
+    dispute = Dispute.query.get_or_404(dispute_id)
+    
+    if action == 'resolve':
+        dispute.dispute_status = 'resolved'
+    elif action == 'dismiss':
+        dispute.dispute_status = 'dismissed'
+    
+    db.session.commit()
+    flash('Dispute status updated.', 'success')
+    return redirect(url_for('admin.manage_disputes'))
+
 @admin_bp.route('/download-report')
 @login_required
 @admin_required

@@ -15,13 +15,13 @@ def create_sample_notifications():
             Notification(
                 message="Potential match found for your lost 'iPhone 13'. Similarity: 85%",
                 notification_type='potential_match',
-                user_id=user.id,
+                user_id=user.user_id,
                 item_id=1  # This would be an actual item ID
             ),
             Notification(
                 message="Your found 'Calculus Textbook' might match a lost item. Similarity: 72%", 
                 notification_type='potential_match',
-                user_id=user.id,
+                user_id=user.user_id,
                 item_id=2
             ),
             Notification(

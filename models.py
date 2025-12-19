@@ -14,11 +14,14 @@ class User(UserMixin, db.Model):
     user_password_hash = db.Column(db.String(128), nullable=False)
     user_role = db.Column(db.String(20), default='student')
     user_created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user_is_suspended = db.Column(db.Boolean, default=False)
+    user_suspension_reason = db.Column(db.String(255), nullable=True)
     
     # Relationships (these stay the same)
     items = db.relationship('Item', backref='owner', lazy=True)
     # Explicitly specify foreign_keys to resolve ambiguity between user_id and notification_sender_id
     notifications = db.relationship('Notification', foreign_keys='Notification.user_id', backref='user', lazy=True)
+    flags_created = db.relationship('Flag', foreign_keys='Flag.flag_creator_id', backref='reporter', lazy=True)
     
     # Flask-Login requires get_id() to return the primary key as string
     def get_id(self):
@@ -50,6 +53,7 @@ class Item(db.Model):
     # Relationships
     embedding = db.relationship('ImageEmbedding', backref='item', uselist=False, lazy=True)
     notifications = db.relationship('Notification', backref='item', lazy=True)
+    flags = db.relationship('Flag', backref='item', lazy=True)
 
 class ImageEmbedding(db.Model):
     __tablename__ = 'image_embeddings'
@@ -71,7 +75,7 @@ class Notification(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     item_id = db.Column(db.Integer, db.ForeignKey('items.item_id'), nullable=True) # Changed default nullable=False to True to avoid issues if generic notification
     notification_sender_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True) # Optional link to sender
-
+    
     # Relationship
     sender = db.relationship('User', foreign_keys=[notification_sender_id], backref='triggered_notifications')
 
@@ -104,3 +108,48 @@ class Message(db.Model):
     sender = db.relationship('User', foreign_keys=[message_sender_id], backref='sent_messages')
     recipient = db.relationship('User', foreign_keys=[message_recipient_id], backref='received_messages')
     item = db.relationship('Item', backref='messages')
+    flags = db.relationship('Flag', backref='message', lazy=True)
+
+class Flag(db.Model):
+    __tablename__ = 'flags'
+    
+    flag_id = db.Column(db.Integer, primary_key=True)
+    flag_type = db.Column(db.String(20), nullable=False) # 'item', 'message'
+    flag_reason = db.Column(db.Text, nullable=False)
+    flag_status = db.Column(db.String(20), default='pending') # 'pending', 'resolved', 'ignored'
+    flag_created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Target IDs (one of these will be set)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.item_id'), nullable=True)
+    message_id = db.Column(db.Integer, db.ForeignKey('messages.message_id'), nullable=True)
+    
+    # Who reported it
+    flag_creator_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+
+class Category(db.Model):
+    __tablename__ = 'categories'
+    
+    category_id = db.Column(db.Integer, primary_key=True)
+    category_name = db.Column(db.String(100), unique=True, nullable=False)
+    category_icon = db.Column(db.String(50), default='tag')
+    category_is_active = db.Column(db.Boolean, default=True)
+
+class CampusLocation(db.Model):
+    __tablename__ = 'campus_locations'
+    
+    location_id = db.Column(db.Integer, primary_key=True)
+    location_name = db.Column(db.String(200), unique=True, nullable=False)
+    location_description = db.Column(db.Text, nullable=True)
+    location_is_active = db.Column(db.Boolean, default=True)
+
+class Dispute(db.Model):
+    __tablename__ = 'disputes'
+    
+    dispute_id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.item_id'), nullable=False)
+    dispute_reason = db.Column(db.Text, nullable=False)
+    dispute_status = db.Column(db.String(20), default='open')  # 'open', 'resolved', 'dismissed'
+    dispute_created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    item = db.relationship('Item', overlaps="disputes") # item relationship already in Item backref?

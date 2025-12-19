@@ -25,7 +25,7 @@ def check_image_storage():
             image_path = f"static/uploads/{item.image_path}"
             file_exists = os.path.exists(image_path)
             status = "✅" if file_exists else "❌"
-            print(f"   {status} Item {item.id}: {item.title} -> {item.image_path} (File exists: {file_exists})")
+            print(f"   {status} Item {item.item_id}: {item.item_title} -> {item.item_image_path} (File exists: {file_exists})")
         
         # Check total items
         total_items = Item.query.count()

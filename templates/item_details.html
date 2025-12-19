@@ -20,7 +20,7 @@
                 {% if item.embedding %}
                 <div class="position-absolute top-0 start-0 m-4 badge bg-primary p-2 px-3 shadow"
                     style="border-radius: 10px;">
-                    <i class="fas fa-robot me-2"></i> AI Enhanced
+                    <i class="fas fa-camera me-2"></i> Visually Indexed
                 </div>
                 {% endif %}
                 {% else %}
@@ -40,8 +40,7 @@
             <div class="d-flex justify-content-between align-items-start mb-4">
                 <div>
                     {% set badge = get_status_badge(item) %}
-                    <span class="badge mb-2 p-2 px-3"
-                        style="background-color: {{ badge.bg }}; color: {{ badge.color }}; border-radius: 10px; font-weight: 700;">
+                    <span class="badge mb-2 p-2 px-3 {{ badge.class }}" style="border-radius: 10px; font-weight: 700;">
                         <i class="fas fa-{{ badge.icon }} me-1"></i> {{ badge.label }}
                     </span>
                     <h1 class="fw-bold mb-1">{{ item.item_title }}</h1>
@@ -52,14 +51,16 @@
                     </p>
                 </div>
 
-                {% if item.user_id == current_user.id and item.item_status != 'resolved' %}
-                <form method="POST" action="{{ url_for('resolve_item', item_id=item.item_id) }}">
-                    <button type="submit" class="btn btn-success fw-bold px-4 py-2" style="border-radius: 12px;"
-                        onclick="return confirm('Mark this item as resolved?')">
-                        Mark Resolved
+                <div class="d-flex align-items-center gap-2">
+                    {% if current_user.user_id|string == item.owner_id|string and item.item_status != 'resolved' %}
+                    <!-- Button moved to bottom -->
+                    {% elif current_user.user_id|string != item.owner_id|string %}
+                    <button type="button" class="btn btn-link text-danger p-2" data-bs-toggle="modal"
+                        data-bs-target="#flagModal" title="Report Item">
+                        <i class="fas fa-flag"></i>
                     </button>
-                </form>
-                {% endif %}
+                    {% endif %}
+                </div>
             </div>
 
             <hr class="text-muted opacity-10 my-4">
@@ -101,23 +102,72 @@
 
             <!-- Actions Section -->
             <div class="mt-auto pt-4 border-top">
-                {% if current_user.id != item.user_id %}
-                {% if item.item_type == 'found' and item.item_status == 'pending' %}
-                <form method="POST" action="{{ url_for('claim_item', item_id=item.item_id) }}">
-                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-5" style="border-radius: 16px;">
-                        Claim This Item
-                    </button>
-                </form>
-                {% elif item.item_type == 'lost' and item.item_status == 'pending' %}
-                <a href="{{ url_for('messaging.view_conversation_by_item', item_id=item.item_id) }}"
-                    class="btn btn-primary w-100 py-3 fw-bold fs-5" style="border-radius: 16px;">
-                    I Found This Item / Contact Owner
-                </a>
-                {% endif %}
+                {% if current_user.user_id|string != item.owner_id|string %}
+                <div class="d-flex flex-column gap-3">
+                    {% if item.item_type == 'found' and item.item_status == 'pending' %}
+                    <form method="POST" action="{{ url_for('claim_item', item_id=item.item_id) }}">
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-5"
+                            style="border-radius: 16px;">
+                            Claim This Item
+                        </button>
+                    </form>
+                    {% elif item.item_type == 'lost' and item.item_status == 'pending' %}
+                    <a href="{{ url_for('messaging.conversation', user_id=item.owner_id, item_id=item.item_id) }}"
+                        class="btn btn-primary w-100 py-3 fw-bold fs-5" style="border-radius: 16px;">
+                        I Found This Item / Contact Owner
+                    </a>
+                    {% endif %}
+
+                </div>
+
+                <!-- Flag Modal -->
+                <div class="modal fade" id="flagModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow" style="border-radius: 20px;">
+                            <form action="{{ url_for('admin.create_flag') }}" method="POST">
+                                <input type="hidden" name="flag_type" value="item">
+                                <input type="hidden" name="item_id" value="{{ item.item_id }}">
+                                <div class="modal-header border-0 p-4 pb-0">
+                                    <h5 class="fw-bold">Report Item</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <p class="text-muted small mb-3">Is this item inappropriate, a duplicate, or
+                                        suspicious? Let our moderators know.</p>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-muted">Reason for Reporting</label>
+                                        <textarea name="reason" class="form-control" rows="3"
+                                            placeholder="e.g. Inappropriate content, spam, etc." required
+                                            style="border-radius: 12px;"></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 p-4 pt-0">
+                                    <button type="button" class="btn btn-light fw-bold"
+                                        data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger fw-bold px-4">Submit Report</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
                 {% else %}
-                <div class="bg-light p-3 rounded-4 text-center">
-                    <p class="text-muted mb-0 small fw-bold">This is your report. You can manage it from your dashboard.
-                    </p>
+                <div class="bg-light p-4 rounded-4 text-center">
+                    <p class="text-muted mb-3 fw-bold">Manage your report</p>
+
+                    {% if item.item_status != 'resolved' %}
+                    <form method="POST" action="{{ url_for('resolve_item', item_id=item.item_id) }}">
+                        <button type="submit" class="btn btn-success w-100 py-3 fw-bold fs-5"
+                            style="border-radius: 16px;"
+                            onclick="return confirm('Mark this item as resolved/returned? This verifies the item has been returned to its owner.')">
+                            <i class="fas fa-check-circle me-2"></i> Mark as Resolved / Returned
+                        </button>
+                    </form>
+                    {% else %}
+                    <button class="btn btn-secondary w-100 py-3 fw-bold fs-5" disabled style="border-radius: 16px;">
+                        <i class="fas fa-check-double me-2"></i> Item Resolved
+                    </button>
+                    {% endif %}
                 </div>
                 {% endif %}
             </div>

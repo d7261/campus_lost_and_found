@@ -63,6 +63,10 @@ def login():
         user = User.query.filter_by(user_username=username).first()  # ✅ NEW
         
         if user and user.check_password(password):
+            if user.user_is_suspended:
+                flash(f'Your account has been suspended. Reason: {user.user_suspension_reason or "No reason provided."}', 'error')
+                return render_template('auth/login.html')
+                
             login_user(user, remember=remember)
             flash(f'Welcome back, {user.user_username}!', 'success')
             

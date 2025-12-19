@@ -1,359 +1,312 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Admin Dashboard Header -->
-<div class="admin-header">
-    <div class="header-content">
-        <h1><i class="fas fa-shield-alt me-3"></i>Admin Console</h1>
-        <p class="lead">System Overview, User Management & Activity Logs</p>
+<!-- Page Title & Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold mb-1">Admin Command Center</h1>
+        <p class="text-muted">System monitoring and management hub</p>
     </div>
-    <div class="header-actions">
-        <!-- NEW: Download Report Button -->
-        <a href="{{ url_for('admin.download_system_report') }}" class="action-btn" style="background: white; color: #059669;">
+    <div class="d-flex gap-3">
+        <a href="{{ url_for('admin.download_system_report') }}" class="btn btn-outline-primary border-2 fw-bold"
+            style="border-radius: 10px;">
             <i class="fas fa-file-pdf me-2"></i> System Report
         </a>
+    </div>
+</div>
 
-        <a href="{{ url_for('admin.manage_users') }}" class="action-btn">
-            <i class="fas fa-users me-2"></i> Users
+<!-- Primary Navigation Row (Management Tools) -->
+<div class="row g-3 mb-5">
+    <div class="col-md-2">
+        <a href="{{ url_for('admin.manage_users') }}"
+            class="card border-0 shadow-sm p-3 text-center text-decoration-none admin-nav-card">
+            <div class="text-primary mb-2 fs-4"><i class="fas fa-users"></i></div>
+            <span class="fw-bold text-dark small">Users</span>
         </a>
-        <a href="{{ url_for('admin.manage_items') }}" class="action-btn">
-            <i class="fas fa-box-open me-2"></i> Items
+    </div>
+    <div class="col-md-2">
+        <a href="{{ url_for('admin.manage_items') }}"
+            class="card border-0 shadow-sm p-3 text-center text-decoration-none admin-nav-card">
+            <div class="text-primary mb-2 fs-4"><i class="fas fa-box"></i></div>
+            <span class="fw-bold text-dark small">Items</span>
         </a>
-        <a href="{{ url_for('admin.manage_matches') }}" class="action-btn">
-            <i class="fas fa-handshake me-2"></i> Matches
+    </div>
+    <div class="col-md-2">
+        <a href="{{ url_for('admin.manage_flags') }}"
+            class="card border-0 shadow-sm p-3 text-center text-decoration-none admin-nav-card position-relative">
+            <div class="text-danger mb-2 fs-4"><i class="fas fa-flag"></i></div>
+            <span class="fw-bold text-dark small">Flags</span>
+            {% if pending_flags > 0 %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ pending_flags }}
+            </span>
+            {% endif %}
         </a>
-        <a href="{{ url_for('admin.manage_notifications') }}" class="action-btn">
-            <i class="fas fa-bell me-2"></i> Alerts
+    </div>
+    <div class="col-md-2">
+        <a href="{{ url_for('admin.manage_categories') }}"
+            class="card border-0 shadow-sm p-3 text-center text-decoration-none admin-nav-card">
+            <div class="text-primary mb-2 fs-4"><i class="fas fa-tags"></i></div>
+            <span class="fw-bold text-dark small">Categories</span>
+        </a>
+    </div>
+    <div class="col-md-2">
+        <a href="{{ url_for('admin.manage_locations') }}"
+            class="card border-0 shadow-sm p-3 text-center text-decoration-none admin-nav-card">
+            <div class="text-primary mb-2 fs-4"><i class="fas fa-map-marked-alt"></i></div>
+            <span class="fw-bold text-dark small">Locations</span>
+        </a>
+    </div>
+    <div class="col-md-2">
+        <a href="{{ url_for('admin.manage_matches') }}"
+            class="card border-0 shadow-sm p-3 text-center text-decoration-none admin-nav-card">
+            <div class="text-primary mb-2 fs-4"><i class="fas fa-camera"></i></div>
+            <span class="fw-bold text-dark small">Visual Matches</span>
         </a>
     </div>
 </div>
 
-<!-- Main Stats Grid -->
-<div class="stats-grid">
-    <!-- Users -->
-    <div class="stat-card">
-        <div class="stat-icon purple">
-            <i class="fas fa-users"></i>
-        </div>
-        <div class="stat-info">
-            <h3>{{ total_users }}</h3>
-            <p>Total Users</p>
-        </div>
-    </div>
-
-    <!-- Total Items -->
-    <div class="stat-card">
-        <div class="stat-icon blue">
-            <i class="fas fa-layer-group"></i>
-        </div>
-        <div class="stat-info">
-            <h3>{{ total_items }}</h3>
-            <p>Total Items</p>
-        </div>
-    </div>
-
-    <!-- Matches (AI & Text) -->
-    <div class="stat-card">
-        <div class="stat-icon green">
-            <i class="fas fa-handshake"></i>
-        </div>
-        <div class="stat-info">
-            <h3>{{ total_matches }}</h3>
-            <p>Total Matches</p>
-        </div>
-    </div>
-
-    <!-- Pending Items -->
-    <div class="stat-card">
-        <div class="stat-icon orange">
-            <i class="fas fa-clock"></i>
-        </div>
-        <div class="stat-info">
-            <h3>{{ pending_items }}</h3>
-            <p>Pending Review</p>
-        </div>
-    </div>
-</div>
-
-<!-- Secondary Stats Row -->
-<div class="stats-grid mt-4">
-    <div class="stat-card small">
-        <div class="stat-icon-sm teal">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="stat-info-sm">
-            <h4>{{ resolved_items }}</h4>
-            <span>Resolved</span>
-        </div>
-    </div>
-
-    <div class="stat-card small">
-        <div class="stat-icon-sm indigo">
-            <i class="fas fa-calendar-day"></i>
-        </div>
-        <div class="stat-info-sm">
-            <h4>{{ items_today }}</h4>
-            <span>Posted Today</span>
-        </div>
-    </div>
-
-    <div class="stat-card small">
-        <div class="stat-icon-sm pink">
-            <i class="fas fa-image"></i>
-        </div>
-        <div class="stat-info-sm">
-            <!-- Calculate items with images -->
-            {% set img_count = recent_items|selectattr('item_image_path')|list|length %}
-            <h4>{{ img_count }}</h4>
-            <span>Recent Images</span>
-        </div>
-    </div>
-</div>
-
-<!-- Content Grid -->
-<div class="content-grid mt-5">
-    <!-- Left Column: Recent Activity -->
-    <div class="main-column">
-        <div class="content-card">
-            <div class="card-header-custom">
-                <h3><i class="fas fa-history me-2"></i>Recent Activity</h3>
-                <a href="{{ url_for('admin.manage_items') }}" class="view-all-link">View All</a>
+<!-- Statistics Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 20px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="stat-icon-bg bg-primary-soft text-primary">
+                    <i class="fas fa-users"></i>
+                </div>
+                <span class="text-success small fw-bold">+{{ users_today }} today</span>
             </div>
-            
-            <div class="table-responsive">
-                <table class="custom-table">
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Status</th>
-                            <th>Owner</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if recent_items %}
+            <h3 class="fw-bold mb-0">{{ total_users }}</h3>
+            <p class="text-muted small mb-0">Registered Users</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 20px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="stat-icon-bg bg-info-soft text-info">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <span class="text-info small fw-bold">+{{ items_today }} today</span>
+            </div>
+            <h3 class="fw-bold mb-0">{{ total_items }}</h3>
+            <p class="text-muted small mb-0">Total Items Posted</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 20px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="stat-icon-bg bg-success-soft text-success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <span class="text-muted small fw-bold">Live Stats</span>
+            </div>
+            <h3 class="fw-bold mb-0">{{ resolved_items }}</h3>
+            <p class="text-muted small mb-0">Resolved Cases</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 h-100 border-start border-4 border-danger" style="border-radius: 20px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="stat-icon-bg bg-danger-soft text-danger">
+                    <i class="fas fa-flag"></i>
+                </div>
+                <span class="badge bg-danger">Priority</span>
+            </div>
+            <h3 class="fw-bold mb-0">{{ pending_flags }}</h3>
+            <p class="text-muted small mb-0">Pending Flags</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Items Activity -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 20px;">
+            <div class="card-header bg-transparent border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Recent Activity</h5>
+                <a href="{{ url_for('admin.manage_items') }}" class="btn btn-sm btn-light fw-bold px-3">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 py-3 border-0 small text-uppercase text-muted fw-bold">Item</th>
+                                <th class="py-3 border-0 small text-uppercase text-muted fw-bold">Status</th>
+                                <th class="py-3 border-0 small text-uppercase text-muted fw-bold">Owner</th>
+                                <th class="py-3 border-0 small text-uppercase text-muted fw-bold text-end pe-4">Date
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             {% for item in recent_items %}
                             <tr>
-                                <td>
-                                    <div class="item-cell">
-                                        {% if item.item_image_path %}
-                                        <img src="{{ url_for('static', filename='uploads/' ~ item.item_image_path) }}" 
-                                             class="table-thumb" alt="Item" onerror="this.style.display='none'">
-                                        {% else %}
-                                        <div class="table-thumb-placeholder">
-                                            <i class="fas fa-box"></i>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="admin-table-img-wrapper">
+                                            {% if item.item_image_path %}
+                                            <img src="{{ url_for('static', filename='uploads/' + item.item_image_path) }}"
+                                                alt="">
+                                            {% else %}
+                                            <i class="fas fa-image opacity-25"></i>
+                                            {% endif %}
                                         </div>
-                                        {% endif %}
-                                        <div class="item-text">
-                                            <span class="item-name">{{ item.item_title }}</span>
-                                            <span class="item-cat">{{ item.item_category }}</span>
+                                        <div>
+                                            <div class="fw-bold text-dark">{{ item.item_title }}</div>
+                                            <div class="text-muted small">{{ item.item_category }}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="status-badge status-{{ item.item_type }}">
-                                        {{ item.item_type|title }}
+                                    {% set badge = get_status_badge(item) %}
+                                    <span class="badge rounded-pill p-2 px-3 {{ badge.class }}">
+                                        {{ badge.label }}
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="user-cell">
-                                        <div class="user-avatar-sm">{{ item.owner.user_username[0]|upper }}</div>
-                                        <span>{{ item.owner.user_username }}</span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center fw-bold text-primary"
+                                            style="width: 24px; height: 24px; font-size: 0.7rem;">
+                                            {{ item.owner.user_username[0]|upper }}
+                                        </div>
+                                        <span class="small">{{ item.owner.user_username }}</span>
                                     </div>
                                 </td>
-                                <td class="date-cell">
-                                    {{ item.item_created_at.strftime('%b %d') }}
+                                <td class="text-end pe-4 small text-muted">
+                                    {{ item.item_created_at.strftime('%b %d, %H:%M') }}
                                 </td>
                             </tr>
                             {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="4" class="text-center py-4 text-muted">No recent items found</td>
-                            </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Right Column: New Users -->
-    <div class="side-column">
-        <div class="content-card">
-            <div class="card-header-custom">
-                <h3><i class="fas fa-user-plus me-2"></i>New Users</h3>
-                <a href="{{ url_for('admin.manage_users') }}" class="view-all-link">Manage</a>
-            </div>
-            
-            <div class="users-list">
-                {% if recent_users %}
-                    {% for user in recent_users %}
-                    <div class="user-list-item">
-                        <div class="user-avatar-md">{{ user.user_username[0]|upper }}</div>
-                        <div class="user-details">
-                            <h4>{{ user.user_username }}</h4>
-                            <span>{{ user.user_email }}</span>
+    <!-- System Status & Recent Flags -->
+    <div class="col-lg-4">
+        <div class="d-flex flex-column gap-4">
+            <!-- Recent Flags -->
+            <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+                <div
+                    class="card-header bg-transparent border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-danger">Recent Flags</h5>
+                    <a href="{{ url_for('admin.manage_flags') }}"
+                        class="btn btn-sm btn-light text-danger fw-bold">Review</a>
+                </div>
+                <div class="card-body p-4">
+                    {% if recent_flags %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for flag in recent_flags %}
+                        <div class="p-3 bg-light rounded-3 border-start border-3 border-danger">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-bold small text-dark">{{ flag.flag_type|title }} Flag</span>
+                                <span class="text-muted" style="font-size: 0.7rem;">{{
+                                    flag.flag_created_at.strftime('%H:%M') }}</span>
+                            </div>
+                            <p class="small text-muted mb-0 text-truncate">{{ flag.flag_reason }}</p>
                         </div>
-                        <span class="role-badge">{{ user.user_role }}</span>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="text-center py-4 text-muted">No new users</div>
-                {% endif %}
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-check-circle fa-2x mb-2 opacity-25"></i>
+                        <p class="small mb-0">No active flags</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Newest Users -->
+            <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+                <div class="card-header bg-transparent border-0 p-4 pb-0">
+                    <h5 class="fw-bold mb-0">Newest Users</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex flex-column gap-3">
+                        {% for user in recent_users %}
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-primary-soft text-primary d-flex align-items-center justify-content-center fw-bold"
+                                    style="width: 32px; height: 32px;">
+                                    {{ user.user_username[0]|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold small">{{ user.user_username }}</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">{{ user.user_role|title }}</div>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('admin.view_user', user_id=user.user_id) }}"
+                                class="btn btn-sm btn-light rounded-circle">
+                                <i class="fas fa-chevron-right fs-xs"></i>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-/* --- 1. Header Styling (Matches Frontend) --- */
-.admin-header {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    padding: 2.5rem;
-    border-radius: 20px;
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15);
-}
+    .bg-primary-soft {
+        background-color: #eef2ff;
+    }
 
-.header-content h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
-.header-content .lead { font-size: 1.1rem; opacity: 0.9; margin: 0; }
+    .bg-info-soft {
+        background-color: #f0f9ff;
+    }
 
-.header-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .bg-success-soft {
+        background-color: #f0fdf4;
+    }
 
-.action-btn {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 0.8rem 1.5rem;
-    border-radius: 12px;
-    text-decoration: none;
-    font-weight: 600;
-    backdrop-filter: blur(5px);
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255,255,255,0.3);
-}
+    .bg-danger-soft {
+        background-color: #fef2f2;
+    }
 
-.action-btn:hover {
-    background: white;
-    color: #059669;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
+    .stat-icon-bg {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
 
-/* --- 2. Stats Grid --- */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.5rem;
-}
+    .admin-nav-card {
+        transition: all 0.2s ease;
+        border: 1px solid transparent !important;
+    }
 
-.stat-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-    border: 1px solid #f1f5f9;
-    transition: transform 0.3s ease;
-}
+    .admin-nav-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.05) !important;
+        border-color: var(--primary-color) !important;
+    }
 
-.stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+    .admin-table-img-wrapper {
+        width: 40px;
+        height: 40px;
+        background: #f8fafc;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-/* Icons */
-.stat-icon {
-    width: 60px; height: 60px; border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem; color: white;
-}
-.stat-icon.purple { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
-.stat-icon.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.stat-icon.green { background: linear-gradient(135deg, #10b981, #059669); }
-.stat-icon.orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .admin-table-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
 
-/* Text */
-.stat-info h3 { font-size: 2rem; font-weight: 700; margin: 0; line-height: 1; color: #1e293b; }
-.stat-info p { color: #64748b; margin: 0.2rem 0 0; font-size: 0.9rem; font-weight: 500; }
-
-/* Small Stats */
-.stat-card.small { padding: 1.2rem; gap: 1rem; }
-.stat-icon-sm { width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: white; }
-.stat-icon-sm.teal { background: #14b8a6; }
-.stat-icon-sm.indigo { background: #6366f1; }
-.stat-icon-sm.pink { background: #ec4899; }
-.stat-info-sm h4 { font-size: 1.5rem; font-weight: 700; margin: 0; line-height: 1; }
-.stat-info-sm span { font-size: 0.8rem; color: #64748b; }
-
-/* --- 3. Content Layout --- */
-.content-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 1.5rem;
-}
-
-.content-card {
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-    border: 1px solid #f1f5f9;
-    overflow: hidden;
-}
-
-.card-header-custom {
-    padding: 1.5rem;
-    border-bottom: 1px solid #f1f5f9;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.card-header-custom h3 { font-size: 1.2rem; font-weight: 700; margin: 0; color: #334155; }
-.view-all-link { color: #10b981; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
-
-/* --- 4. Custom Table --- */
-.custom-table { width: 100%; border-collapse: collapse; }
-.custom-table th { text-align: left; padding: 1rem 1.5rem; background: #f8fafc; color: #64748b; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
-.custom-table td { padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-.custom-table tr:last-child td { border-bottom: none; }
-.custom-table tr:hover { background: #fcfcfc; }
-
-/* Item Cell */
-.item-cell { display: flex; align-items: center; gap: 1rem; }
-.table-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
-.table-thumb-placeholder { width: 40px; height: 40px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: #cbd5e1; }
-.item-text { display: flex; flex-direction: column; }
-.item-name { font-weight: 600; color: #334155; }
-.item-cat { font-size: 0.8rem; color: #94a3b8; }
-
-/* Badges */
-.status-badge { padding: 0.3em 0.8em; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
-.status-lost { background: #fef2f2; color: #ef4444; }
-.status-found { background: #ecfdf5; color: #10b981; }
-
-/* User Cell */
-.user-cell { display: flex; align-items: center; gap: 0.8rem; }
-.user-avatar-sm { width: 30px; height: 30px; border-radius: 50%; background: #6366f1; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; }
-.date-cell { color: #64748b; font-size: 0.9rem; }
-
-/* --- 5. Users List (Right Col) --- */
-.users-list { padding: 0; }
-.user-list-item { padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid #f1f5f9; }
-.user-list-item:last-child { border-bottom: none; }
-.user-avatar-md { width: 40px; height: 40px; border-radius: 50%; background: #3b82f6; color: white; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; }
-.user-details { flex: 1; }
-.user-details h4 { font-size: 0.95rem; font-weight: 600; margin: 0; color: #334155; }
-.user-details span { font-size: 0.8rem; color: #94a3b8; }
-.role-badge { background: #f1f5f9; color: #64748b; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
-
-/* Responsive */
-@media (max-width: 992px) {
-    .content-grid { grid-template-columns: 1fr; }
-}
+    .fs-xs {
+        font-size: 0.7rem;
+    }
 </style>
 {% endblock %}

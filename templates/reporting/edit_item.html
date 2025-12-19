@@ -5,61 +5,43 @@
     <div class="report-container">
         <!-- Modern Header -->
         <div class="report-header-v2">
-            <h1>Report an Item</h1>
-            <p>Tell us what happened so our visual system can help you find or return it.</p>
+            <h1>Edit Report</h1>
+            <p>Update your item details or status.</p>
         </div>
 
         <form method="POST" enctype="multipart/form-data" id="reportForm">
-            <!-- Type Toggle -->
-            <div class="type-selector-wrapper mb-5">
-                <div class="type-selector">
-                    <input type="radio" name="type" id="typeLost" value="lost" checked>
-                    <label for="typeLost" class="type-btn lost">I Lost Something</label>
-
-                    <input type="radio" name="type" id="typeFound" value="found">
-                    <label for="typeFound" class="type-btn found">I Found Something</label>
-                </div>
-            </div>
-
             <!-- Focused Form Content -->
             <div class="form-content">
                 <!-- Title Row -->
                 <div class="form-group-modern mb-4">
                     <label for="title" class="modern-label">What is the item?</label>
-                    <input type="text" class="modern-input" id="title" name="title"
-                        placeholder="e.g., Blue Marvin Cap, iPhone 13, Black Keys..." required>
+                    <input type="text" class="modern-input" id="title" name="title" value="{{ item.item_title }}"
+                        required>
                 </div>
 
-                <!-- Category & Date Row -->
+                <!-- Category Row -->
                 <div class="form-row-modern mb-4">
                     <div class="form-group-modern">
                         <label for="category" class="modern-label">Category</label>
                         <select class="modern-select" id="category" name="category" required>
-                            <option value="">Select category...</option>
                             {% for cat in categories %}
-                            <option value="{{ cat.category_name }}">{{ cat.category_name }}</option>
+                            <option value="{{ cat.category_name }}" {% if item.item_category==cat.category_name
+                                %}selected{% endif %}>{{ cat.category_name }}</option>
                             {% else %}
                             <option value="Other">Other</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="form-group-modern">
-                        <label for="date_lost_found" class="modern-label">When?</label>
-                        <input type="date" class="modern-input" id="date_lost_found" name="date_lost_found"
-                            max="{{ today }}" required>
+                        <label for="location" class="modern-label">Current Location</label>
+                        <input type="text" class="modern-input" id="location" name="location" list="locationOptions"
+                            value="{{ item.item_location }}" required>
+                        <datalist id="locationOptions">
+                            {% for loc in locations %}
+                            <option value="{{ loc.location_name }}">
+                                {% endfor %}
+                        </datalist>
                     </div>
-                </div>
-
-                <!-- Location Row -->
-                <div class="form-group-modern mb-4">
-                    <label for="location" class="modern-label">Where exactly?</label>
-                    <input type="text" class="modern-input" id="location" name="location" list="locationOptions"
-                        placeholder="Campus Building, Room or Area..." required>
-                    <datalist id="locationOptions">
-                        {% for loc in locations %}
-                        <option value="{{ loc.location_name }}">
-                            {% endfor %}
-                    </datalist>
                 </div>
 
                 <!-- Photo Upload Area -->
@@ -67,18 +49,20 @@
                     <input type="file" id="image" name="image" accept="image/*" onchange="previewImage(this)"
                         style="display: none;">
                     <div class="upload-content" onclick="document.getElementById('image').click()">
-                        <div id="uploadPlaceholder">
+                        <div id="uploadPlaceholder" {% if item.item_image_path %}style="display: none;" {% endif %}>
                             <div class="upload-icon-circle">
                                 <i class="fas fa-camera"></i>
                             </div>
-                            <h5>Add a Photo</h5>
-                            <p>Highly recommended for faster visual matching</p>
-                            <span class="upload-hint-v2">Click to browse files</span>
+                            <h5>Update Photo</h5>
+                            <p>Keep your report accurate with a clear photo.</p>
                         </div>
 
                         <!-- Image Preview -->
-                        <div class="preview-container-v2" id="previewContainer" style="display: none;">
-                            <img id="imagePreview" src="#" alt="Preview">
+                        <div class="preview-container-v2" id="previewContainer" {% if not item.item_image_path
+                            %}style="display: none;" {% endif %}>
+                            <img id="imagePreview"
+                                src="{% if item.item_image_path %}{{ url_for('static', filename='uploads/' + item.item_image_path) }}{% else %}#{% endif %}"
+                                alt="Preview">
                             <button type="button" class="remove-btn" onclick="clearImage(event)">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -88,19 +72,18 @@
 
                 <!-- Description Area -->
                 <div class="form-group-modern mb-5">
-                    <label for="description" class="modern-label">Any additional details?</label>
+                    <label for="description" class="modern-label">Description</label>
                     <textarea class="modern-input" id="description" name="description" rows="4"
-                        placeholder="Brief description including color, brand, or distinctive features..."
-                        required></textarea>
+                        required>{{ item.item_description }}</textarea>
                 </div>
 
                 <!-- Action Button -->
                 <div class="form-actions-v2">
                     <button type="submit" class="submit-btn-v2">
-                        <span>Submit Report</span>
-                        <i class="fas fa-arrow-right"></i>
+                        <span>Save Changes</span>
+                        <i class="fas fa-save"></i>
                     </button>
-                    <a href="{{ url_for('dashboard') }}" class="cancel-link-v2">Cancel and go back</a>
+                    <a href="{{ url_for('reporting.my_items') }}" class="cancel-link-v2">Cancel</a>
                 </div>
             </div>
         </form>
@@ -108,9 +91,9 @@
 </div>
 
 <style>
-    /* Modern Report UI Variables */
+    /* Re-using styles from report.html for consistency */
     :root {
-        --report-primary: #3b82f6;
+        --report-primary: #6366f1;
         --report-bg: #f8fafc;
         --report-card: #ffffff;
         --report-text: #1e293b;
@@ -119,7 +102,7 @@
         --report-input-bg: #f1f5f9;
     }
 
-    /* Background Wrapper */
+    /* Rest of the styles are the same as report.html */
     .report-wrapper {
         background: var(--report-bg);
         min-height: calc(100vh - 80px);
@@ -128,7 +111,6 @@
         justify-content: center;
     }
 
-    /* Main Container */
     .report-container {
         width: 100%;
         max-width: 820px;
@@ -139,7 +121,6 @@
         border: 1px solid var(--report-border);
     }
 
-    /* Header */
     .report-header-v2 {
         text-align: center;
         margin-bottom: 3.5rem;
@@ -150,65 +131,13 @@
         font-weight: 800;
         color: var(--report-text);
         margin-bottom: 0.75rem;
-        letter-spacing: -0.02em;
     }
 
     .report-header-v2 p {
         color: var(--report-muted);
         font-size: 1.1rem;
-        max-width: 450px;
-        margin: 0 auto;
     }
 
-    /* Type Selector Buttons */
-    .type-selector-wrapper {
-        display: flex;
-        justify-content: center;
-    }
-
-    .type-selector {
-        background: #f1f5f9;
-        padding: 0.5rem;
-        border-radius: 50px;
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .type-selector input[type="radio"] {
-        display: none;
-    }
-
-    .type-btn {
-        padding: 1rem 2.5rem;
-        border-radius: 40px;
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        color: var(--report-muted);
-        user-select: none;
-        margin: 0;
-    }
-
-    .type-btn:hover {
-        color: var(--report-text);
-    }
-
-    /* Lost Button Active */
-    #typeLost:checked+.type-btn.lost {
-        background: #fee2e2;
-        color: #dc2626;
-        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
-    }
-
-    /* Found Button Active */
-    #typeFound:checked+.type-btn.found {
-        background: #dcfce7;
-        color: #16a34a;
-        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.1);
-    }
-
-    /* Modern Form Controls */
     .modern-label {
         display: block;
         font-weight: 700;
@@ -229,15 +158,11 @@
         transition: all 0.2s;
     }
 
-    .modern-input::placeholder {
-        color: #94a3b8;
-    }
-
     .modern-input:focus,
     .modern-select:focus {
         background: white;
         border-color: var(--report-primary);
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         outline: none;
     }
 
@@ -247,7 +172,6 @@
         gap: 1.5rem;
     }
 
-    /* Modern Upload Style */
     .upload-area-v2 {
         border: 2px dashed #cbd5e1;
         border-radius: 20px;
@@ -286,26 +210,6 @@
         font-size: 1.4rem;
     }
 
-    .upload-content h5 {
-        color: var(--report-text);
-        font-weight: 700;
-        margin-bottom: 0.25rem;
-    }
-
-    .upload-content p {
-        color: var(--report-muted);
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
-    }
-
-    .upload-hint-v2 {
-        color: var(--report-primary);
-        font-weight: 700;
-        font-size: 0.85rem;
-        text-decoration: underline;
-    }
-
-    /* Image Preview V2 */
     .preview-container-v2 {
         width: 100%;
         position: relative;
@@ -337,14 +241,6 @@
         z-index: 5;
     }
 
-    /* Action Buttons */
-    .form-actions-v2 {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.5rem;
-    }
-
     .submit-btn-v2 {
         width: 100%;
         background: var(--report-text);
@@ -359,7 +255,7 @@
         justify-content: center;
         gap: 1rem;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.3s;
     }
 
     .submit-btn-v2:hover {
@@ -375,55 +271,9 @@
         font-size: 1rem;
         transition: color 0.2s;
     }
-
-    .cancel-link-v2:hover {
-        color: var(--report-text);
-    }
-
-    /* Animations */
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    #reportForm {
-        animation: slideDown 0.5s ease-out forwards;
-    }
-
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-        .report-container {
-            padding: 2.5rem 1.5rem;
-            border-radius: 0;
-            border: none;
-        }
-
-        .report-header-v2 h1 {
-            font-size: 2.2rem;
-        }
-
-        .type-btn {
-            padding: 0.8rem 1.5rem;
-            font-size: 0.9rem;
-        }
-
-        .form-row-modern {
-            grid-template-columns: 1fr;
-        }
-    }
 </style>
 
 <script>
-    // Set max date to today
-    document.getElementById('date_lost_found').max = new Date().toISOString().split('T')[0];
-
     function previewImage(input) {
         const previewContainer = document.getElementById('previewContainer');
         const uploadPlaceholder = document.getElementById('uploadPlaceholder');
@@ -431,19 +281,17 @@
 
         if (input.files && input.files[0]) {
             const reader = new FileReader();
-
             reader.onload = function (e) {
                 previewImage.src = e.target.result;
                 previewContainer.style.display = 'block';
                 uploadPlaceholder.style.display = 'none';
             }
-
             reader.readAsDataURL(input.files[0]);
         }
     }
 
     function clearImage(event) {
-        event.stopPropagation(); // Prevent triggering the file input again
+        event.stopPropagation();
         const imageInput = document.getElementById('image');
         const previewContainer = document.getElementById('previewContainer');
         const uploadPlaceholder = document.getElementById('uploadPlaceholder');

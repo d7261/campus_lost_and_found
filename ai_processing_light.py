@@ -99,7 +99,7 @@ class LightImageRecognition:
                     similar_items.append({
                         'item': embedding.item,
                         'similarity': similarity,
-                        'embedding_id': embedding.id
+                        'embedding_id': embedding.image_embedding_id
                     })
             
             similar_items.sort(key=lambda x: x['similarity'], reverse=True)

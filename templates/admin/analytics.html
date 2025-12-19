@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold mb-1">System Analytics</h1>
+        <p class="text-muted">7-day activity trends and system performance</p>
+    </div>
+    <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-secondary border-2 fw-bold"
+        style="border-radius: 12px;">
+        <i class="fas fa-arrow-left me-2"></i> Dashboard
+    </a>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Visual Matching Accuracy Card -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 24px;">
+            <div class="card-body p-4 text-center">
+                <div class="mb-3">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-indigo-100 text-indigo rounded-circle"
+                        style="width: 64px; height: 64px;">
+                        <i class="fas fa-camera fa-2x"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-indigo mb-1">{{ accuracy }}%</h3>
+                <p class="text-muted fw-bold small text-uppercase mb-3">Visual Matching Accuracy</p>
+                <div class="progress" style="height: 10px; border-radius: 5px;">
+                    <div class="progress-bar bg-indigo" role="progressbar"
+                        style="width: var(--accuracy); --accuracy: {{ accuracy }}%;" aria-valuenow="{{ accuracy }}"
+                        aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <p class="text-muted small mt-3">Based on {{ total_matches }} potential matches generated across the
+                    system.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Health Stats -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 24px;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">System Health</h5>
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                    <span class="text-muted small fw-bold">DATABASE STATUS</span>
+                    <span class="badge bg-success-subtle text-success">ONLINE</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                    <span class="text-muted small fw-bold">VISUAL SERVICE</span>
+                    <span class="badge bg-success-subtle text-success">ACTIVE</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small fw-bold">MATCHING QUEUE</span>
+                    <span class="badge bg-light text-muted">0 PENDING</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trends Chart -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 24px;">
+    <div class="card-body p-4">
+        <h5 class="fw-bold mb-4">7-Day Activity Trend</h5>
+        <div style="height: 350px;">
+            <canvas id="trendsChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('trendsChart').getContext('2d');
+
+    // Use JSON.parse with safe filter to satisfy linter
+    const trendsDataRaw = '{{ trends|tojson|safe }}';
+    const trendsData = JSON.parse(trendsDataRaw);
+    const labels = trendsData.map(t => t.date);
+    const itemsData = trendsData.map(t => t.items);
+    const usersData = trendsData.map(t => t.users);
+    const matchesData = trendsData.map(t => t.matches);
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'New Items',
+                    data: itemsData,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'New Users',
+                    data: usersData,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Potential Matches',
+                    data: matchesData,
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<style>
+    .bg-indigo-100 {
+        background-color: #e0e7ff;
+    }
+
+    .text-indigo {
+        color: #4338ca;
+    }
+
+    .bg-indigo {
+        background-color: #6366f1;
+    }
+
+    .bg-success-subtle {
+        background-color: #f0fdf4;
+    }
+
+    .text-success {
+        color: #16a34a;
+    }
+</style>
+{% endblock %}

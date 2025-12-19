@@ -51,23 +51,83 @@ def utility_processor():
     def get_status_badge(item):
         """Returns label, class, and icon based on item state"""
         if item.item_status == 'claimed':
-            return {'label': 'In Progress', 'class': 'info', 'icon': 'spinner', 'bg': '#e0f2fe', 'color': '#0284c7'}
+            return {
+                'label': 'In Progress', 
+                'class': 'status-pending', 
+                'icon': 'spinner', 
+                'bg': '#e0f2fe', 
+                'color': '#0284c7'
+            }
         
         if item.item_type == 'lost':
             if item.item_status == 'pending':
-                return {'label': 'Active Search', 'class': 'warning', 'icon': 'search', 'bg': '#fff7ed', 'color': '#c2410c'}
+                return {
+                    'label': 'Active Search', 
+                    'class': 'status-lost', 
+                    'icon': 'search', 
+                    'bg': '#fff7ed', 
+                    'color': '#c2410c'
+                }
             elif item.item_status == 'resolved':
-                return {'label': 'Recovered', 'class': 'success', 'icon': 'check-circle', 'bg': '#f0fdf4', 'color': '#15803d'}
-        else: # found
-            if item.item_status == 'pending':
-                return {'label': 'Available', 'class': 'primary', 'icon': 'box-open', 'bg': '#ecfdf5', 'color': '#047857'}
-            elif item.item_status == 'resolved':
-                return {'label': 'Returned', 'class': 'secondary', 'icon': 'hand-holding-heart', 'bg': '#f1f5f9', 'color': '#475569'}
+                return {
+                    'label': 'Recovered', 
+                    'class': 'status-resolved', 
+                    'icon': 'check-circle', 
+                    'bg': '#f0fdf4', 
+                    'color': '#15803d'
+                }
         
-        # Fallback
-        return {'label': item.item_status.title(), 'class': 'secondary', 'icon': 'circle', 'bg': '#f1f5f9', 'color': '#64748b'}
+        if item.item_type == 'found':
+            if item.item_status == 'pending':
+                return {
+                    'label': 'Found Item', 
+                    'class': 'status-found', 
+                    'icon': 'hand-holding-heart', 
+                    'bg': '#f0fdf4', 
+                    'color': '#16a34a'
+                }
+            elif item.item_status == 'resolved':
+                return {
+                    'label': 'Returned', 
+                    'class': 'status-resolved', 
+                    'icon': 'check-circle', 
+                    'bg': '#f0fdf4', 
+                    'color': '#15803d'
+                }
+        
+        return {'label': 'Unknown', 'class': 'secondary', 'icon': 'question', 'bg': '#f3f4f6', 'color': '#374151'}
 
-    return dict(get_status_badge=get_status_badge)
+    unread_notifications_count = 0
+    unread_messages_count = 0
+    
+    if current_user.is_authenticated:
+        unread_notifications_count = Notification.query.filter_by(
+            user_id=current_user.user_id,
+            notification_is_seen=False
+        ).count()
+        
+        from models import Message
+        unread_messages_count = Message.query.filter_by(
+            message_recipient_id=current_user.user_id,
+            message_is_read=False
+        ).count()
+
+    return dict(
+        get_status_badge=get_status_badge,
+        unread_notifications_count=unread_notifications_count,
+        unread_messages_count=unread_messages_count
+    )
+
+@app.before_request
+def check_user_suspension():
+    if current_user.is_authenticated:
+        # We need to get a fresh copy from DB to catch suspension changes
+        user = db.session.get(User, current_user.user_id)
+        if user and user.user_is_suspended:
+            if request.endpoint not in ['auth.login', 'auth.logout', 'static']:
+                logout_user()
+                flash(f'Your account has been suspended. Reason: {user.user_suspension_reason or "No reason provided."}', 'error')
+                return redirect(url_for('auth.login'))
 
 # ==========================
 # ROUTES
@@ -76,24 +136,24 @@ def utility_processor():
 @app.route('/')
 def index():
     if current_user.is_authenticated:
+        if current_user.user_role == 'admin':
+            return redirect(url_for('admin.admin_dashboard'))
+            
         # Get some basic data for the dashboard
         recent_items = Item.query.order_by(Item.item_created_at.desc()).limit(5).all()
         user_items = Item.query.filter_by(owner_id=current_user.user_id).count()
-        unread_notifications = Notification.query.filter_by(
-            user_id=current_user.user_id,
-            notification_is_seen=False
-        ).count()
-        
         return render_template('dashboard/index.html',
                               recent_items=recent_items,
-                              user_items=user_items,
-                              unread_notifications=unread_notifications)
+                              user_items=user_items)
     return render_template('landing.html')
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
     """Dashboard page"""
+    if current_user.user_role == 'admin':
+        return redirect(url_for('admin.admin_dashboard'))
+        
     # Get recent items
     recent_items = Item.query.order_by(Item.item_created_at.desc()).limit(10).all()
     
@@ -126,18 +186,25 @@ def search():
     items = []
     
     if query:
+        from sqlalchemy import or_
         items = Item.query.filter(
-            (Item.item_title.ilike(f'%{query}%')) |
-            (Item.item_description.ilike(f'%{query}%')) |
-            (Item.item_category.ilike(f'%{query}%')) |
-            (Item.item_location.ilike(f'%{query}%'))
-        ).filter_by(item_status='pending').all()
+            or_(
+                Item.item_title.ilike(f'%{query}%'),
+                Item.item_description.ilike(f'%{query}%'),
+                Item.item_category.ilike(f'%{query}%'),
+                Item.item_location.ilike(f'%{query}%')
+            )
+        ).filter(
+            Item.item_status.in_(['pending', 'claimed'])
+        ).all()
     
     return render_template('search.html', items=items, query=query)
 
 @app.route('/notifications')
 @login_required
 def notifications():
+    if current_user.user_role == 'admin':
+        return redirect(url_for('admin.admin_dashboard'))
     from sqlalchemy.orm import joinedload
     user_notifications = Notification.query.options(
         joinedload(Notification.item).joinedload(Item.owner)
@@ -401,6 +468,9 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         
+        # Import models for seeding
+        from models import Category, CampusLocation
+        
         # Fix admin creation
         admin_user = User.query.filter_by(user_username='admin').first()
         if not admin_user:
@@ -413,6 +483,43 @@ if __name__ == '__main__':
             db.session.add(admin)
             db.session.commit()
             print("👑 Admin user created: admin / admin123")
+            
+        # Seed Categories if empty
+        if Category.query.count() == 0:
+            default_categories = [
+                ('Electronics', 'laptop'),
+                ('Books/Documents', 'book'),
+                ('Clothing/Accessories', 'tshirt'),
+                ('Keys/ID Cards', 'key'),
+                ('Wallets/Bags', 'wallet'),
+                ('Stationery', 'pen'),
+                ('Personal Items', 'user'),
+                ('Others', 'tag')
+            ]
+            for name, icon in default_categories:
+                db.session.add(Category(category_name=name, category_icon=icon))
+            db.session.commit()
+            print("📁 Default categories seeded!")
+
+        # Seed Locations if empty
+        if CampusLocation.query.count() == 0:
+            default_locations = [
+                'Main Library',
+                'Student Center',
+                'Engineering Building',
+                'Science Hall',
+                'Cafeteria',
+                'Sports Complex',
+                'Administration Office',
+                'Lecture Hall A',
+                'Lecture Hall B',
+                'North Gate',
+                'South Gate'
+            ]
+            for loc_name in default_locations:
+                db.session.add(CampusLocation(location_name=loc_name))
+            db.session.commit()
+            print("📍 Default locations seeded!")
         
         print("=" * 50)
         print("🎓 Campus Lost & Found Application - UNIFIED VERSION")

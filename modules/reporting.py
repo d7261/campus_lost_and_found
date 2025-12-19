@@ -1,12 +1,11 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, make_response
 from flask_login import login_required, current_user
-from models import db, Item, Notification
+from models import db, Item, Notification, Category, CampusLocation
 from datetime import datetime
 import os
 from werkzeug.utils import secure_filename
 from modules.matching_simple import matching_engine
 from fpdf import FPDF
-from flask import make_response
 
 # Import conditionally based on AI_ENABLED
 try:
@@ -14,7 +13,7 @@ try:
     AI_AVAILABLE = True
 except ImportError:
     AI_AVAILABLE = False
-    print("⚠️ AI module not available. Image matching disabled.")
+    print("⚠️ Visual module not available. Image matching disabled.")
 
 reporting_bp = Blueprint('reporting', __name__)
 
@@ -60,6 +59,10 @@ def validate_form_data(data):
 @reporting_bp.route('/report', methods=['GET', 'POST'])
 @login_required
 def report_item():
+    # Fetch categories and locations from DB
+    categories = Category.query.filter_by(category_is_active=True).all()
+    locations = CampusLocation.query.filter_by(location_is_active=True).all()
+
     if request.method == 'POST':
         try:
             # Collect form data
@@ -77,12 +80,12 @@ def report_item():
             if validation_errors:
                 for error in validation_errors:
                     flash(error, 'error')
-                return render_template('reporting/report.html')
+                return render_template('reporting/report.html', categories=categories, locations=locations)
             
             # Parse date
             date_obj = datetime.strptime(form_data['date_lost_found'], '%Y-%m-%d')
             
-            # Check if AI is enabled in config
+            # Check if Visual Processing is enabled in config
             ai_enabled = current_app.config.get('AI_ENABLED', False) and AI_AVAILABLE
             
             # Start database transaction
@@ -109,7 +112,7 @@ def report_item():
                 # Validate file
                 if not allowed_file(image_file.filename):
                     flash('Invalid file type. Allowed: PNG, JPG, JPEG, GIF, BMP, WEBP', 'error')
-                    return render_template('reporting/report.html')
+                    return render_template('reporting/report.html', categories=categories, locations=locations)
                 
                 # Check file size
                 image_file.seek(0, os.SEEK_END)
@@ -118,7 +121,7 @@ def report_item():
                 
                 if file_size > MAX_FILE_SIZE:
                     flash(f'File too large. Maximum size is {MAX_FILE_SIZE//1024//1024}MB', 'error')
-                    return render_template('reporting/report.html')
+                    return render_template('reporting/report.html', categories=categories, locations=locations)
                 
                 # Save image
                 try:
@@ -135,29 +138,29 @@ def report_item():
                     new_item.item_image_path = filename
                     image_processed = True
                     
-                    # Process with AI if enabled
+                    # Process with Visual Engine if enabled
                     print(f"🔍 AI_ENABLED in config: {current_app.config.get('AI_ENABLED', False)}")
                     print(f"🔍 AI_AVAILABLE (module loaded): {AI_AVAILABLE}")
                     print(f"🔍 ai_enabled (both true): {ai_enabled}")
                     
                     if ai_enabled:
                         try:
-                            print(f"🖼️ Starting AI processing for item {new_item.item_id}")
+                            print(f"🖼️ Starting visual processing for item {new_item.item_id}")
                             # 🛑 IMPORTANT: Open the file we just saved to disk
                             # We use 'rb' (read binary)
                             with open(filepath, 'rb') as f_stream:
                                 # We pass the item_id and the file stream
                                 image_matches = image_engine.process_new_item(new_item.item_id, f_stream)
-                                print(f"✅ AI processed image. Found {len(image_matches)} visual matches")
+                                print(f"✅ Visual system processed image. Found {len(image_matches)} visual matches")
                                 if len(image_matches) > 0:
                                     for match in image_matches:
                                         print(f"   - Match: Item #{match['item'].item_id}, Similarity: {match['similarity']:.2%}")
                         except Exception as ai_error:
-                            print(f"⚠️ AI processing error: {ai_error}")
+                            print(f"⚠️ Visual processing error: {ai_error}")
                             import traceback
                             traceback.print_exc()
                     else:
-                        print(f"⚠️ AI processing skipped (ai_enabled={ai_enabled})")
+                        print(f"⚠️ Visual processing skipped (ai_enabled={ai_enabled})")
                     
                 except Exception as e:
                     print(f"❌ Image save error: {e}")
@@ -207,7 +210,7 @@ def report_item():
                             notification_is_seen=False
                         )
                         db.session.add(notification_to_finder)
-                        image_notifications += 2
+                        image_notifications += 1
                     
                     elif new_item.item_type == 'found' and matched_item.item_type == 'lost':
                         # Notify the person who lost the item (owner of matched item)
@@ -229,7 +232,7 @@ def report_item():
                             notification_is_seen=False
                         )
                         db.session.add(notification_to_finder)
-                        image_notifications += 2
+                        image_notifications += 1
                         
                     else:
                         continue
@@ -255,14 +258,16 @@ def report_item():
             db.session.rollback()
             print(f"❌ Critical error in report_item: {e}")
             flash(f'Error reporting item: {str(e)[:100]}', 'error')
-            return render_template('reporting/report.html')
+            return render_template('reporting/report.html', categories=categories, locations=locations)
     
-    return render_template('reporting/report.html')
+    return render_template('reporting/report.html', categories=categories, locations=locations)
 
 
 @reporting_bp.route('/my-items')
 @login_required
 def my_items():
+    if current_user.user_role == 'admin':
+        return redirect(url_for('admin.admin_dashboard'))
     """Display user's reported items"""
     try:
         user_items = Item.query.filter_by(
@@ -381,9 +386,11 @@ def edit_item(item_id):
             db.session.rollback()
             flash(f'Error updating item: {str(e)}', 'error')
     
-    return render_template('reporting/edit_item.html', item=item)
-
-    return render_template('reporting/edit_item.html', item=item)
+    # Fetch categories and locations for editing
+    categories = Category.query.filter_by(category_is_active=True).all()
+    locations = CampusLocation.query.filter_by(location_is_active=True).all()
+    
+    return render_template('reporting/edit_item.html', item=item, categories=categories, locations=locations)
 
 @reporting_bp.route('/item/<int:item_id>/claim', methods=['POST'])
 @login_required

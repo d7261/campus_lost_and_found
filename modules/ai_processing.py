@@ -13,7 +13,7 @@ class ImageRecognitionEngine:
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = self._load_model()
         self.transform = self._get_transform()
-        print(f"🤖 AI Engine initialized on {self.device}")
+        print(f"📷 Image Recognition Engine initialized on {self.device}")
         
     def _load_model(self):
         """Load pre-trained ResNet model"""
@@ -137,7 +137,7 @@ class ImageRecognitionEngine:
         """
         Main entry point: Extracts ONCE, Saves, then Matches.
         """
-        print(f"🖼️ AI Processing started for Item {item_id}")
+        print(f"🖼️ Visual Processing started for Item {item_id}")
         try:
             # 1. Extract features ONCE
             features = self.extract_features(image_file)
@@ -154,7 +154,7 @@ class ImageRecognitionEngine:
             # 3. Find similar items using the same features (exclude current item)
             matches = self.find_similar_items(features, exclude_item_id=item_id)
             
-            print(f"✅ AI Complete. Saved: {saved}, Matches found: {len(matches)}")
+            print(f"✅ Visual Scan Complete. Saved: {saved}, Matches found: {len(matches)}")
             return matches
             
         except Exception as e:

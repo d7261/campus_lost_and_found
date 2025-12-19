@@ -9,6 +9,8 @@ messaging_bp = Blueprint('messaging', __name__)
 @messaging_bp.route('/messages')
 @login_required
 def inbox():
+    if current_user.user_role == 'admin':
+        return redirect(url_for('admin.admin_dashboard'))
     """List of conversations"""
     # Find users who have exchanged messages with current_user
     # This is a bit complex query to get unique conversations with latest message

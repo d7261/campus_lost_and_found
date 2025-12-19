@@ -198,6 +198,91 @@
             opacity: 1;
         }
 
+        /* Notification Badges */
+        .nav-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 0.15rem 0.45rem;
+            border-radius: 50px;
+            margin-left: auto;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+            line-height: 1;
+        }
+
+        .notification-banner {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            padding: 1.25rem 2rem;
+            border-radius: 20px;
+            margin-bottom: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
+            animation: slideInDown 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .notification-banner-text h5 {
+            margin: 0;
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: -0.01em;
+        }
+
+        .notification-banner-text p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .notification-banner-btn {
+            background: white;
+            color: #6366f1;
+            padding: 0.75rem 1.5rem;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .notification-banner-btn:hover {
+            background: #f8fafc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            color: #4f46e5;
+        }
+
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
         /* --- Report Item Sidebar Button --- */
         .sidebar-action-wrapper {
             padding: 1.5rem;
@@ -273,6 +358,27 @@
                 display: block;
             }
         }
+
+        /* Status Badges */
+        .status-lost {
+            background-color: #fff7ed;
+            color: #c2410c;
+        }
+
+        .status-found {
+            background-color: #f0fdf4;
+            color: #16a34a;
+        }
+
+        .status-pending {
+            background-color: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .status-resolved {
+            background-color: #f0fdf4;
+            color: #15803d;
+        }
     </style>
 </head>
 
@@ -293,6 +399,7 @@
         <nav class="sidebar-nav-container">
             <div class="nav-section-title">Menu</div>
 
+            {% if current_user.user_role != 'admin' %}
             <a href="{{ url_for('dashboard') }}"
                 class="sidebar-nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
                 <i class="fas fa-th-large"></i>
@@ -304,6 +411,7 @@
                 <i class="fas fa-list-ul"></i>
                 <span>My Reports</span>
             </a>
+            {% endif %}
 
             <a href="{{ url_for('search') }}"
                 class="sidebar-nav-link {% if request.endpoint == 'search' %}active{% endif %}">
@@ -311,19 +419,27 @@
                 <span>Browse Items</span>
             </a>
 
+            {% if current_user.user_role != 'admin' %}
             <div class="nav-section-title">Communication</div>
 
             <a href="{{ url_for('notifications') }}"
                 class="sidebar-nav-link {% if request.endpoint == 'notifications' %}active{% endif %}">
                 <i class="fas fa-bell"></i>
                 <span>Notifications</span>
+                {% if unread_notifications_count > 0 %}
+                <span class="nav-badge">{{ unread_notifications_count }}</span>
+                {% endif %}
             </a>
 
             <a href="{{ url_for('messaging.inbox') }}"
                 class="sidebar-nav-link {% if 'messaging' in request.endpoint %}active{% endif %}">
                 <i class="fas fa-comment-dots"></i>
                 <span>Messages</span>
+                {% if unread_messages_count > 0 %}
+                <span class="nav-badge">{{ unread_messages_count }}</span>
+                {% endif %}
             </a>
+            {% endif %}
 
             {% if current_user.user_role == 'admin' %}
             <div class="nav-section-title">Admin</div>
@@ -335,12 +451,14 @@
             {% endif %}
         </nav>
 
+        {% if current_user.user_role != 'admin' %}
         <div class="sidebar-action-wrapper">
             <a href="{{ url_for('reporting.report_item') }}" class="btn-report-sidebar">
                 <i class="fas fa-plus"></i>
                 <span>Report Item</span>
             </a>
         </div>
+        {% endif %}
     </aside>
 
     <!-- Main Content Wrapper -->
@@ -350,9 +468,10 @@
                 <button class="mobile-toggle-btn" id="sidebarToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <a href="{{ url_for('dashboard') }}" class="brand-logo">
+                <a href="{{ url_for('admin.admin_dashboard') if current_user.user_role == 'admin' else url_for('dashboard') }}"
+                    class="brand-logo">
                     <i class="fas fa-cube"></i>
-                    <span>CampusFindAI</span>
+                    <span>CampusFind</span>
                 </a>
             </div>
 
@@ -380,7 +499,44 @@
                 {% endwith %}
             </div>
 
+            <!-- Global Activity Banner -->
+            {% if current_user.is_authenticated and (unread_notifications_count > 0 or unread_messages_count > 0) %}
+            <div class="notification-banner">
+                <div class="notification-banner-content">
+                    <div class="user-avatar-circle"
+                        style="width: 50px; height: 50px; font-size: 1.2rem; margin-bottom: 0; background: rgba(255,255,255,0.2); color: white;">
+                        <i
+                            class="fas fa-{% if unread_notifications_count > 0 %}bell{% else %}comment-dots{% endif %}"></i>
+                    </div>
+                    <div class="notification-banner-text">
+                        <h5>You have new activity!</h5>
+                        <p>
+                            {% if unread_notifications_count > 0 and unread_messages_count > 0 %}
+                            You have {{ unread_notifications_count }} notifications and {{ unread_messages_count }}
+                            unread messages.
+                            {% elif unread_notifications_count > 0 %}
+                            You have {{ unread_notifications_count }} new unread notifications.
+                            {% else %}
+                            You have {{ unread_messages_count }} new unread messages waiting.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                <div class="notification-banner-actions">
+                    <a href="{% if unread_notifications_count > 0 %}{{ url_for('notifications') }}{% else %}{{ url_for('messaging.inbox') }}{% endif %}"
+                        class="notification-banner-btn">
+                        <span>View Updates</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
             {% block content %}{% endblock %}
+
+            <footer class="mt-5 mb-4 text-center text-muted small">
+                Developed by <strong>KIBET</strong>
+            </footer>
         </main>
     </div>
 
