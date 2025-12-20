@@ -41,7 +41,7 @@ class ImageRecognitionEngine:
         if self.model is None: return None
         
         try:
-            # 🛑 FIX 1: Handle Stream Seeking (Reset cursor to start)
+            # Ensure stream cursor is at the beginning
             if hasattr(image_input, 'seek') and hasattr(image_input, 'read'):
                 image_input.seek(0)
                 image = Image.open(image_input).convert('RGB')
@@ -66,7 +66,7 @@ class ImageRecognitionEngine:
     def save_image_embedding(self, item_id, features):
         """
         Save pre-calculated features to database.
-        🛑 FIX 2: Accepts 'features' array, not the file object
+        Note: Accepts 'features' array, separate from the image file object
         """
         try:
             if features is not None:

@@ -33,7 +33,7 @@ def register():
             flash('Email already registered', 'error')
             return render_template('auth/register.html')
         
-        # Updated constructor with new prefixes
+        # Initialize user with provided details
         user = User(
             user_username=username,
             user_email=email,

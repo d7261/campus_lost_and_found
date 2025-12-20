@@ -150,7 +150,7 @@ def send_message():
         # But messaging creates a notification.
         # Let's check Notification model again.
         
-        # Quick fix: Only create Notification if item_id exists, OR modify Notification model to allow null item_id.
+        # Ensure notification is linked to the item being discussed
         # Given existing constraints, I will check if item_id is provided.
         # If not, I'll search for a dummy item or skip notification for now (or fail safely).
         # Actually better: Creating a message usually happens in context of an item.

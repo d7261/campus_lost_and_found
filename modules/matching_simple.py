@@ -19,8 +19,7 @@ class SimpleMatchingEngine:
             matches_found = 0
             
             for candidate in candidate_items:
-                # 🔴 THIS WAS THE ERROR: 'candidate.id'
-                # ✅ FIX: Change to 'candidate.item_id'
+                # Use candidate item ID
                 if candidate.item_id == new_item.item_id:
                     continue
                 
@@ -71,7 +70,7 @@ class SimpleMatchingEngine:
             else:
                 lost_item, found_item = item2, item1
             
-            # 🔴 CRITICAL FIX: Use .owner_id (Database Column)
+            # Use owner_id column from database
             # Do NOT use .owner.user_id (Relationship) to avoid loading errors
             lost_owner_id = lost_item.owner_id
             found_owner_id = found_item.owner_id
@@ -84,16 +83,16 @@ class SimpleMatchingEngine:
             n1 = Notification(
                 notification_message=f"🔍 Match Found! A found '{found_item.item_title}' matches your lost report. (Similarity: {similarity_score:.0%})",
                 notification_type='potential_match',
-                user_id=lost_owner_id,      # ✅ Fixed
-                item_id=found_item.item_id  # ✅ Fixed (.item_id)
+                user_id=lost_item.owner_id,      # Recipient (Lost item owner)
+                item_id=found_item.item_id       # Related found item
             )
             
             # Notification for Found Item Reporter
             n2 = Notification(
                 notification_message=f"🔍 Match Found! Your found '{found_item.item_title}' matches a lost report. (Similarity: {similarity_score:.0%})",
                 notification_type='potential_match',
-                user_id=found_owner_id,     # ✅ Fixed
-                item_id=lost_item.item_id   # ✅ Fixed (.item_id)
+                user_id=found_item.owner_id,     # Recipient (Found item finder)
+                item_id=lost_item.item_id        # Related lost item
             )
             
             db.session.add(n1)

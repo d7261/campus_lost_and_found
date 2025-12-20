@@ -263,7 +263,7 @@ def delete_item(item_id):
         # Delete related notifications
         Notification.query.filter_by(item_id=item_id).delete()
         
-        # Delete image file - FIXED: Use item_image_path
+        # Delete image file associated with item
         if item.item_image_path:
             try:
                 # Assuming app.config['UPLOAD_FOLDER'] is set, otherwise hardcode 'static/uploads'
@@ -306,7 +306,7 @@ def system_stats():
     total_items = Item.query.count()
     
     seven_days_ago = datetime.utcnow() - timedelta(days=7)
-    # FIXED: Use user_created_at
+    # Filter by user creation date
     user_growth = User.query.filter(User.user_created_at >= seven_days_ago).count()
     
     lost_items = Item.query.filter_by(item_type='lost').count()
@@ -335,7 +335,7 @@ def view_user(user_id):
     """View user profile and details"""
     user = User.query.get_or_404(user_id)
     
-    # FIXED: Use owner_id instead of user_id for items
+    # Filter by owner ID
     user_items = Item.query.filter_by(owner_id=user_id).all()
     
     lost_items = [i for i in user_items if i.item_type == 'lost']
@@ -343,7 +343,7 @@ def view_user(user_id):
     pending_items = [i for i in user_items if i.item_status == 'pending']
     resolved_items = [i for i in user_items if i.item_status == 'resolved']
     
-    # FIXED: Use notification_created_at
+    # Filter by notification creation date
     user_notifications = Notification.query.filter_by(user_id=user_id)\
         .order_by(Notification.notification_created_at.desc()).limit(10).all()
     
@@ -363,7 +363,7 @@ def view_item(item_id):
     """View item details"""
     item = Item.query.get_or_404(item_id)
     
-    # FIXED: Use notification_created_at
+    # Filter by notification creation date
     item_notifications = Notification.query.filter_by(item_id=item_id)\
         .order_by(Notification.notification_created_at.desc()).all()
     

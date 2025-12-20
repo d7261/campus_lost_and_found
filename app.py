@@ -399,10 +399,10 @@ def view_item(item_id):
     for user_item in user_items:
         # Check if types are opposite (Lost vs Found)
         if user_item.item_type != item.item_type:
-            # ✅ FIX: Use the correct function name 'calculate_similarity'
+            # Calculate image similarity
             similarity_score = matching_engine.calculate_similarity(user_item, item)
             
-            # ✅ FIX: Use the correct variable name 'similarity_threshold'
+            # Check against threshold
             if similarity_score >= matching_engine.similarity_threshold:
                 is_potential_match = True
                 break
@@ -471,7 +471,7 @@ if __name__ == '__main__':
         # Import models for seeding
         from models import Category, CampusLocation
         
-        # Fix admin creation
+        # Create admin user if not exists
         admin_user = User.query.filter_by(user_username='admin').first()
         if not admin_user:
             admin = User(

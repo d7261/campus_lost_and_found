@@ -50,7 +50,7 @@ def validate_form_data(data):
         date_obj = datetime.strptime(data.get('date_lost_found', ''), '%Y-%m-%d')
         if date_obj > datetime.utcnow():
             errors.append("Date cannot be in the future")
-        if date_obj.year == 2015:  # Fix for the 2015 bug
+        if date_obj.year == 2015:  # Handle year parsing edge case
             errors.append("Please check the date (2015 detected)")
     except ValueError:
         errors.append("Invalid date format. Use YYYY-MM-DD")
@@ -125,7 +125,7 @@ def report_item():
                 
                 # Save image
                 try:
-                    # 🔴 FIX 1: Use .item_id instead of .id
+                    # Retrieve item ID
                     filename = secure_filename(f"{new_item.item_id}_{image_file.filename}")
                     
                     upload_dir = current_app.config.get('UPLOAD_FOLDER', 'static/uploads')
@@ -134,7 +134,7 @@ def report_item():
                     
                     image_file.save(filepath)
                     
-                    # 🔴 FIX 2: Use .item_image_path instead of .image_path
+                    # Retrieve item image path
                     new_item.item_image_path = filename
                     image_processed = True
                     
@@ -146,7 +146,7 @@ def report_item():
                     if ai_enabled:
                         try:
                             print(f"🖼️ Starting visual processing for item {new_item.item_id}")
-                            # 🛑 IMPORTANT: Open the file we just saved to disk
+                            # Open the newly saved image file
                             # We use 'rb' (read binary)
                             with open(filepath, 'rb') as f_stream:
                                 # We pass the item_id and the file stream
@@ -353,7 +353,7 @@ def edit_item(item_id):
     
     if request.method == 'POST':
         try:
-            # ✅ CORRECTED: Update fields with prefixed names
+            # Update fields with prefixed names
             item.item_title = request.form.get('title', item.item_title).strip()  # Use item_title
             item.item_description = request.form.get('description', item.item_description).strip()  # Use item_description
             item.item_location = request.form.get('location', item.item_location).strip()  # Use item_location
